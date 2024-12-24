@@ -1,7 +1,1 @@
-__pycache__/
-*.pyc
-*.pyo
-migrations/
-env/
-venv/
-.env
+/backend/env
