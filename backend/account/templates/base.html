@@ -1,0 +1,46 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}PingPong{% endblock %}</title>
+    <link href="{% static 'css/base.css' %}" rel="stylesheet">
+</head>
+<body>
+    <header id="header">
+        <div class="logo">
+            <a href="{% url 'dashboard' %}">PingPong</a>
+        </div>
+        {% if request.user.is_authenticated %}
+            <nav>
+                <ul class="menu">
+                    <li class="selected">
+                        <a href="{% url 'dashboard' %}">My Dashboard</a>
+                    </li>
+                </ul>
+            </nav>
+        {% endif %}
+        <div class="user">
+            {% if request.user.is_authenticated %}
+                <span>Hello {{ request.user.first_name|default:request.user.username }},</span>
+                <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main id="content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
+
+{% comment %}
+    The current user is set in the httpRequest object by the auth middleware, 
+    and can be accessed using request.user.
+{% endcomment %}

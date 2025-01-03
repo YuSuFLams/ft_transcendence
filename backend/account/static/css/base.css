@@ -1,0 +1,247 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #1a1b26;
+    color: #a9b1d6;
+}
+
+p {
+    line-height: 1.8;
+}
+
+a {
+    color: #7aa2f7;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #bb9af7;
+    text-shadow: 0 0 8px rgba(187, 154, 247, 0.4);
+}
+
+h1, h2, h3, h4, h5, h6 { 
+    font-family: 'Press Start 2P', cursive; 
+    font-weight: normal;
+    color: #f7768e;
+}
+
+h1 {
+    border-bottom: 3px solid #414868;
+    padding: 0 0 10px 0;
+    margin: 10px 0 20px 0;
+    text-shadow: 2px 2px 4px rgba(247, 118, 142, 0.3);
+}
+
+h2 {
+    margin: 30px 0 20px;
+    color: #9ece6a;
+}
+
+ol {
+    line-height: 1.5;
+}
+
+#header {
+    padding: 35px 100px;
+    font-size: 14px;
+    background: #24283b;
+    color: #c0caf5;
+    border-bottom: 4px solid #7aa2f7;
+    box-shadow: 0 20px 10px rgba(0, 0, 0, 0.3);
+}
+
+#header .logo {
+    font-family: 'Press Start 2P', cursive;
+    float: left;
+    color: #7aa2f7;
+    font-size: 20px;
+    margin-right: 10%;
+    text-shadow: 0 0 f10px rgba(122, 162, 247, 0.5);
+}
+
+#header ul.menu {
+    list-style: none;
+    float: left;
+    margin: 0;
+    padding: 0;
+}
+
+#header ul.menu li {
+    float: left;
+    padding: 4px 15px;
+    margin: 0 5px;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+#header ul.menu li:hover {
+    background: rgba(122, 162, 247, 0.1);
+}
+
+#header ul.menu li.selected a,
+#header ul.menu li.selected a:hover {
+    color: #7aa2f7;
+    font-weight: bold;
+}
+
+#header a {
+    color: #c0caf5;
+}
+
+#header .user {
+    float: right;
+    padding-top: 4px;
+}
+
+#header .user button {
+    background: none;
+    color: #7aa2f7;
+    border: none;
+    cursor: pointer;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#header .user button:hover {
+    background: rgba(122, 162, 247, 0.1);
+}
+
+#content {
+    padding: 30px 100px;
+    min-height: calc(100vh - 200px);
+}
+
+/* Forms */
+input, textarea {
+    background: #1f2335;
+    border: 2px solid #414868;
+    color: #c0caf5;
+    padding: 8px 15px;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+}
+
+input:focus, textarea:focus {
+    border-color: #7aa2f7;
+    outline: none;
+    box-shadow: 0 0 10px rgba(122, 162, 247, 0.2);
+}
+
+input[type=submit], a.button {
+    font-weight: bold;
+    background: #7aa2f7;
+    color: #1a1b26;
+    padding: 12px 25px;
+    font-size: 14px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type=submit]:hover, a.button:hover {
+    background: #bb9af7;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(187, 154, 247, 0.3);
+}
+
+/* Messages */
+ul.messages {
+    margin: 10px 100px;
+    padding: 0;
+    list-style-type: none;
+}
+
+ul.messages li {
+    margin: 0;
+    padding: 14px 20px;
+    list-style: none;
+    color: #fff;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+ul.messages li.success { 
+    background: #9ece6a;
+    box-shadow: 0 2px 8px rgba(158, 206, 106, 0.3);
+}
+
+ul.messages li.error { 
+    background: #f7768e;
+    box-shadow: 0 2px 8px rgba(247, 118, 142, 0.3);
+}
+
+ul.messages li.info { 
+    background: #7dcfff;
+    color: #1a1b26;
+    box-shadow: 0 2px 8px rgba(125, 207, 255, 0.3);
+}
+
+ul.messages li.warning { 
+    background: #e0af68;
+    box-shadow: 0 2px 8px rgba(224, 175, 104, 0.3);
+}
+
+/* Game-specific additions */
+.game-card {
+    background: #24283b;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+}
+
+.achievement {
+    background: linear-gradient(45deg, #24283b, #1a1b26);
+    border: 2px solid #7aa2f7;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.achievement-icon {
+    width: 50px;
+    height: 50px;
+    background: #7aa2f7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.score {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 24px;
+    color: #7aa2f7;
+    text-shadow: 0 0 10px rgba(122, 162, 247, 0.5);
+}
+
+/* Loader animation */
+.loading {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #24283b;
+    border-top: 5px solid #7aa2f7;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

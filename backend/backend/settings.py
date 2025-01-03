@@ -21,7 +21,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'game',
     'chat',
-    'users',
+    'account',
     "daphne",
     'channels',
     "corsheaders",
@@ -136,3 +136,13 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = False
+
+
+LOGIN_REDIRECT_URL = 'dashboard'
+#telling django, if there is no next param, after a login redirect to dash.
+
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+
+# MEDIA_URL = 'media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
