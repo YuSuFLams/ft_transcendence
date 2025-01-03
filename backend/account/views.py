@@ -2,10 +2,6 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from .forms import LoginForm
-
-"""
-TODO if a an authenticated user request /account/login you should redirect him to dashboard
-"""
         
 """
 django.contrib.auth.views provide class based views to deal with auth:
@@ -71,3 +67,16 @@ def edit(request):
     return (render(request,
                    'account/edit.html',
                    {'user_form':user_form, 'profile_form':profile_form}))
+
+from django.contrib.auth.views import LoginView
+
+class MyLoginView(LoginView):
+    def dispatch(self, request, *args, **kwargs):
+        if (request.user.is_authenticated):
+            return (redirect("dashboard"))
+        return super().dispatch(request, *args, **kwargs)
+    
+"""
+    overriding the dispatch method to redirect 
+    the logged user from login -> dashboard
+"""

@@ -19,7 +19,7 @@ class Profile(models.Model):
     date_of_birth = models.DateField(blank=True, null=True)
     #the ImageField manages the storage & the validation of the img
     # photo = models.ImageField(upload_to='users/%Y/%m/%d', blank=True)
-    photo = models.ImageField(default='default_profile.png', upload_to='users/%Y/%m/%d')
+    photo = models.ImageField(default='default_avatar.jpg', upload_to='users/%Y/%m/%d')
 
     def __str__(self):
         return (f"Profile of {self.user.username}")
