@@ -43,7 +43,11 @@ def register(request):
             """
             new_user.save()
             Profile.objects.create(user=new_user)
-            return(render(request, 'account/register_done.html', {'new_user': new_user}))
+
+            #redirecting the user to dashboard, after a successfull login
+            login(request, new_user)
+            return (redirect('dashboard'))
+            # return(render(request, 'account/register_done.html', {'new_user': new_user}))
     else:
         user_form = UserRegistrationForm()
     return(render(request, 'account/register.html', {'user_form': user_form}))
