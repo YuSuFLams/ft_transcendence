@@ -9,6 +9,13 @@
         {{ user_form.as_p }}
         {{ profile_form.as_p }}
         {% csrf_token %}
+
+        {% if user.profile.photo %}
+            <img src="{{ user.profile.photo.url }}" alt="photo" style="width: 100px; height: 100px; border-radius: 50%;">
+        {% else %}
+            <p>No avatar uploaded.</p>
+        {% endif %}
+
         <p><input type="submit" value="Save changes"></p>
     </form>
 {% endblock %}
