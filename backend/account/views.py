@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from .forms import LoginForm
+from .forms import UserEditForm, UserRegistrationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
         
 """
 django.contrib.auth.views provide class based views to deal with auth:
@@ -17,8 +20,6 @@ django.contrib.auth.views provide class based views to deal with auth:
     -> PasswordResetCompleteView
 """
 
-from django.contrib.auth.decorators import login_required
-
 """
     thanks to the decorator if the user is not logged, it will be redirected to
     login, and the next input will be filled with the dashboard url
@@ -28,10 +29,9 @@ from django.contrib.auth.decorators import login_required
 def dashboard(request):
     return (render(request, 'account/dashboard.html', {'section': 'dashboard'}))
 
-from .forms import UserRegistrationForm
-from .models import Profile
-
 def register(request):
+    if (request.user.is_authenticated):
+        return (redirect("dashboard"))
     if (request.method == "POST"):
         user_form = UserRegistrationForm(request.POST)
         if (user_form.is_valid()):
@@ -42,37 +42,29 @@ def register(request):
                 it uses PBKDF2 algo with SHA256 hash
             """
             new_user.save()
-            Profile.objects.create(user=new_user)
 
             #redirecting the user to dashboard, after a successfull login
             login(request, new_user)
             return (redirect('dashboard'))
-            # return(render(request, 'account/register_done.html', {'new_user': new_user}))
     else:
         user_form = UserRegistrationForm()
     return(render(request, 'account/register.html', {'user_form': user_form}))
 
-from .forms import UserEditForm, ProfileEditForm
 
 @login_required
 def edit(request):
     if (request.method == "POST"):
         user_form = UserEditForm(instance=request.user,
-                                         data=request.POST)
-        profile_form = ProfileEditForm(instance=request.user.profile,
                                          data=request.POST,
                                          files=request.FILES)
-        if (user_form.is_valid() and profile_form.is_valid()):
+        if (user_form.is_valid()):
             user_form.save()
-            profile_form.save()
     else:
         user_form = UserEditForm(instance=request.user)
-        profile_form = ProfileEditForm(instance=request.user.profile)
     return (render(request,
                    'account/edit.html',
-                   {'user_form':user_form, 'profile_form':profile_form}))
+                   {'user_form':user_form}))
 
-from django.contrib.auth.views import LoginView
 
 class MyLoginView(LoginView):
     def dispatch(self, request, *args, **kwargs):

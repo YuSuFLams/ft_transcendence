@@ -1,11 +1,10 @@
 from django import forms
+from django.contrib.auth import get_user_model
 
 class LoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
     #the widget used to include 'type=password' on HTML
-
-from django.contrib.auth import get_user_model
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(label="Password",
@@ -19,7 +18,7 @@ class UserRegistrationForm(forms.ModelForm):
             and it is better to keep the code generic than using AUTH_USER_MODEL
             the fields validation will be according to the model
         """
-        fields = ['username', 'first_name']
+        fields = ['email', 'username', 'first_name']
     
     def clean_password2(self):
         cd = self.cleaned_data
@@ -31,15 +30,7 @@ class UserRegistrationForm(forms.ModelForm):
         note the name -> ```clean_<field_name>```
     """
 
-
-from .models import Profile
-
 class UserEditForm(forms.ModelForm):
     class Meta:
         model = get_user_model()
-        fields = ['first_name', 'last_name']
-
-class ProfileEditForm(forms.ModelForm):
-    class Meta:
-        model = Profile
-        fields = ['date_of_birth', 'photo']
+        fields = ['first_name', 'last_name', 'avatar']

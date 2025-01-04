@@ -1,25 +1,51 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-"""
-    the auth framework, includes models that are defined on
-    django.contrib.auth.models:
-    User -> a models with basic fields {username, pass,email ..}
-    Group-> to categorized the users
-    permissions -> flag for users to perform certain actions
-"""
+class MyAccountManager(BaseUserManager):
+    def create_user(self, email, username, password=None):
+        if (not email):
+            raise ValueError("Users must have an email.")
+        if (not username):
+            raise ValueError("Users must have a username.")
+        user = self.model(email=self.normalize_email(),
+                          username=username)
+        user.set_password(password)
+        user.save()
+        return (user)
+    
+    def create_super_user(self, email, username, password):
+        user = self.create_user(email=self.normalize_email(email),
+                                username=username,
+                                password=password)
+        user.is_admin = True
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+        return (user)
 
-from django.conf import settings
+class Account(AbstractBaseUser):
+    username        = models.CharField(max_length=60, unique=True)
+    first_name      = models.CharField(max_length=30, blank=True)
+    last_name       = models.CharField(max_length=30, blank=True)
+    email           = models.EmailField(unique=True)
+    is_admin        = models.BooleanField(default=False)
+    is_staff        = models.BooleanField(default=False)
+    is_superuser    = models.BooleanField(default=False)
+    is_active       = models.BooleanField(default=True)
+    date_joined     = models.DateTimeField(auto_now_add=True)
+    avatar          = models.ImageField(default='default_avatar.jpg', upload_to='avatars/')
 
-class Profile(models.Model):
-    #one user will have one profile
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, #change it with get_user
-        on_delete=models.CASCADE
-    )
-    date_of_birth = models.DateField(blank=True, null=True)
-    #the ImageField manages the storage & the validation of the img
-    # photo = models.ImageField(upload_to='users/%Y/%m/%d', blank=True)
-    photo = models.ImageField(default='default_avatar.jpg', upload_to='users/%Y/%m/%d')
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['']
+
+    objects = MyAccountManager()
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
+
+    def has_perm(self, perm, obj=None):
+       return self.is_admin
+    #required on /admin
 
     def __str__(self):
-        return (f"Profile of {self.user.username}")
+        return (self.username)
