@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{%block content%}
+    {% if is_self %}
+        <h1>Your Profile</h1>
+    {%else%}
+        <h1>{{username}}'s Profile</h1>
+    {%endif%}
+    <img src="{{avatar.url}}" alt="Avatar" class="avatar" style="width: 100px; height: 100px; border-radius: 50%;">
+    <h2>Email:<h2>
+    <h3>{{email}}</h3>
+
+    {% if is_self %}
+        <a href="{% url 'edit' %}">Edit you profile</a>
+    {%endif%}
+    
+{%endblock%}

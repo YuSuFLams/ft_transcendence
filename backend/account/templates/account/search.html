@@ -1,0 +1,25 @@
+{%extends 'base.html'%}
+
+{%block title%}
+Search page
+{%endblock%}
+
+{%block content%}
+    <h1>Searching for {{search}} </h1>
+    {%if search%}
+        
+        {%for account in accounts%}
+            <h3>
+                <a href="{% url 'view_profile' account.id %}">
+                    {{account.username}}
+                </a>
+            </h3>
+        {%endfor%}
+        {%if not accounts%}
+            <h3>No account found..</h3>
+        {%endif%}
+    {%else%}
+        <h3>You forgot to search..</h3>
+    {%endif%}
+    
+{%endblock%}

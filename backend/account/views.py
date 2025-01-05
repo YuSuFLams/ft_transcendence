@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login
-from .forms import LoginForm
+from django.contrib.auth import login
 from .forms import UserEditForm, UserRegistrationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
-        
+from .models import Account
 """
 django.contrib.auth.views provide class based views to deal with auth:
     -> LoginView
@@ -76,3 +75,30 @@ class MyLoginView(LoginView):
     overriding the dispatch method to redirect 
     the logged user from login -> dashboard
 """
+
+def view_profile(request, id):
+    try:
+        user = Account.objects.get(id=id)
+    except :
+        return(HttpResponse("Account not found."))
+    context = {}
+    context['username'] = user.username
+    context['avatar'] = user.avatar
+    context['email'] = user.email
+    context['first_name'] = user.first_name
+    is_friend = False
+    is_self = False
+    if (request.user.is_authenticated and request.user == user):
+        is_self = True
+    #TODO add is_online
+    context['is_self'] = is_self
+    context['is_friend'] = is_friend
+    return (render(request, 'account/profile.html', context))
+
+def search_account(request):
+    accounts = None
+    if (request.method == "GET"):
+        query_search = request.GET.get('q')
+        if (query_search):
+            accounts = Account.objects.filter(username__contains=query_search)
+    return(render(request, 'account/search.html', {'accounts' : accounts, 'search' :query_search}))
