@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-
+from django.conf import settings
 class MyAccountManager(BaseUserManager):
     def create_user(self, email, username, password=None):
         if (not email):
@@ -49,3 +49,69 @@ class Account(AbstractBaseUser):
 
     def __str__(self):
         return (self.username)
+
+class FriendList(models.Model):
+    #one user -> one friendlist
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE,
+                             related_name='user')
+    
+    friends = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                     blank=True,
+                                     related_name='friends')
+    
+    def __str__(self):
+        return self.user.username
+    
+    def add_friend(self, account):
+        if (account not in self.friends.all()):
+            self.friends.add(self.account)
+            self.save() #is it essential ?
+
+    def remove_friend(self, account):
+        if (account in self.friends.all()):
+            self.friends.remove()
+            self.save() #is it essential ?
+    
+    def unfriend(self, fake_friend):
+        self.remove_friend(fake_friend)
+        fake = FriendList.objects.get(user=fake_friend)
+        fake.remove_friend(self.user)
+
+    def is_friend(self, friend):
+        if friend in self.friends.all():
+            return (True)
+        return (False)
+    
+
+class FriendRequest(models.Model):
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               on_delete=models.CASCADE,
+                               related_name='sender')
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                 on_delete=models.CASCADE,
+                                 related_name='receiver')
+    
+    is_active = models.BooleanField(default=True)
+
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return (self.sender.username)
+    
+    def accept(self):
+        sender_list = FriendList.objects.get(user=self.sender)
+        receiver_list = FriendList.objects.get(user=self.receiver)
+        sender_list.add_friend(self.receiver)
+        receiver_list.add_friend(self.sender)
+        self.is_active = False
+        self.save()
+
+    def cancel(self):
+        self.is_active = False
+        self.save()
+
+    def decline(self):
+        self.is_active = False
+        self.save()
+    

@@ -11,7 +11,20 @@
     <h3>{{email}}</h3>
 
     {% if is_self %}
-        <a href="{% url 'edit' %}">Edit you profile</a>
+        <a href="{% url 'edit' %}">Edit your profile</a>
+    {% else %}
+        <h2>Friendship Type:</h2>
+
+        <h3>
+            {%if friendship == 1%}
+                Your friend
+            {%elif friendship == 2%}
+                You sent a friend request
+            {%elif friendship == 3%}
+                He sent a friend request
+            {%elif friendship == 0%}
+                Not friends
+            {%endif%}
+        </h3>
     {%endif%}
-    
 {%endblock%}

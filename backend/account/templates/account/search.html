@@ -7,7 +7,6 @@ Search page
 {%block content%}
     <h1>Searching for {{search}} </h1>
     {%if search%}
-        
         {%for account in accounts%}
             <h3>
                 <a href="{% url 'view_profile' account.id %}">

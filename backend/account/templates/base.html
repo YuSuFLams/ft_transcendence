@@ -18,6 +18,11 @@
                     <li class="selected">
                         <a href="{% url 'dashboard' %}">My Dashboard</a>
                     </li>
+                    <li class="selected">
+                        <form method="GET" action='{% url 'search' %}'>
+                            <input type='search' name='q'>
+                            <button>Search</button>
+                        </form>
                 </ul>
             </nav>
         {% endif %}

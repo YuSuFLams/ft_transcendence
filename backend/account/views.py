@@ -1,10 +1,13 @@
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
 from django.contrib.auth import login
-from .forms import UserEditForm, UserRegistrationForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.views import LoginView
-from .models import Account
+from rest_framework.parsers import JSONParser
+from .forms import UserEditForm, UserRegistrationForm
+from .models import Account, FriendList, FriendRequest
+from .serializer import AccountSerializer
 """
 django.contrib.auth.views provide class based views to deal with auth:
     -> LoginView
@@ -81,18 +84,36 @@ def view_profile(request, id):
         user = Account.objects.get(id=id)
     except :
         return(HttpResponse("Account not found."))
+    
     context = {}
     context['username'] = user.username
     context['avatar'] = user.avatar
     context['email'] = user.email
     context['first_name'] = user.first_name
-    is_friend = False
+    try:
+        friend_list = FriendList.objects.get(user=user)
+    except FriendList.DoesNotExist:
+        friend_list = FriendList(user=user)
+        friend_list.save()
+
     is_self = False
+    friendship = 0 #WE RE NOT FRIENDS
+
     if (request.user.is_authenticated and request.user == user):
         is_self = True
+    else :
+        friends = FriendList.objects.all()
+        if (request.user in friends): #maybe err here
+            friendship = 1
+        elif (get_friend_request_or_false(request.user, user)):
+            friendship = 2
+        elif (get_friend_request_or_false(user, request.user)):
+            friendship = 3
+            context['friend_req_id'] = get_friend_request_or_false(user, request.user).id
+
     #TODO add is_online
     context['is_self'] = is_self
-    context['is_friend'] = is_friend
+    context['friendship'] = friendship
     return (render(request, 'account/profile.html', context))
 
 def search_account(request):
@@ -102,3 +123,20 @@ def search_account(request):
         if (query_search):
             accounts = Account.objects.filter(username__contains=query_search)
     return(render(request, 'account/search.html', {'accounts' : accounts, 'search' :query_search}))
+
+#API TESTING
+# @csrf_exempt
+def account_list(request):
+    if (request.method == 'GET'):
+        all_users_query = Account.objects.all()
+        serializer = AccountSerializer(all_users_query, many=True)
+        return HttpResponse(serializer.data)
+
+
+
+#HELPER
+def get_friend_request_or_false(sender, receiver):
+    try:
+        return (FriendRequest.objects.get(sender=sender, receiver=receiver, is_active=True))
+    except FriendRequest.DoesNotExist:
+        return False

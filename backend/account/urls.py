@@ -12,4 +12,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('edit/', views.edit, name='edit'),
     path('', include('django.contrib.auth.urls')),
+
+    #TESTING API
+    path('P/', views.account_list, name='account_list'),
 ]
