@@ -102,7 +102,7 @@ def view_profile(request, id):
     if (request.user.is_authenticated and request.user == user):
         is_self = True
     else :
-        friends = FriendList.objects.all()
+        friends = friend_list.objects.filter()
         if (request.user in friends): #maybe err here
             friendship = 1
         elif (get_friend_request_or_false(request.user, user)):
@@ -113,6 +113,7 @@ def view_profile(request, id):
 
     #TODO add is_online
     context['is_self'] = is_self
+    context['friend_list'] = friend_list
     context['friendship'] = friendship
     return (render(request, 'account/profile.html', context))
 
