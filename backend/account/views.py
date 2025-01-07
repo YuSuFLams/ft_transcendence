@@ -96,26 +96,58 @@ def view_profile(request, id):
         friend_list = FriendList(user=user)
         friend_list.save()
 
+    context['friends'] = friend_list.friends.all()
+
     is_self = False
-    friendship = 0 #WE RE NOT FRIENDS
+    friendship = 0 #No relations btwn you and him
 
     if (request.user.is_authenticated and request.user == user):
         is_self = True
+        friend_req = FriendRequest.objects.filter(receiver=user, is_active=True)
+        context['friend_req'] = friend_req
     else :
-        friends = friend_list.objects.filter()
-        if (request.user in friends): #maybe err here
-            friendship = 1
-        elif (get_friend_request_or_false(request.user, user)):
-            friendship = 2
-        elif (get_friend_request_or_false(user, request.user)):
-            friendship = 3
-            context['friend_req_id'] = get_friend_request_or_false(user, request.user).id
+        try :
+            friend_list.friends.get(id=request.user.id)
+            friendship = 1 #you're friends
+        except:
+            if (get_friend_request_or_false(sender=request.user, receiver=user)):
+                friendship = 2
+                #you sent a request, we're waiting him to accept or dny, and you can cancel
+            elif (get_friend_request_or_false(sender=user, receiver=request.user)):
+                friendship = 3
+                #he sent a request, you can accept or decline
+                context['friend_req_id'] = get_friend_request_or_false(user, request.user).id
+            #else
+            #  !!is_self && !!friendship  means you're just looking at a stanger profile
 
     #TODO add is_online
     context['is_self'] = is_self
-    context['friend_list'] = friend_list
     context['friendship'] = friendship
     return (render(request, 'account/profile.html', context))
+
+def send_friend_req(request):
+    """
+        1- check if there is an old req -> if there is an active one raise execp
+         -> if there isnt an active one, create new one
+        2- if there is no friendrequest -> create one
+    """
+    if request.method == "POST":
+        try:
+            friend_id = request.POST.get("friend_id")
+            friend = Account.objects.get(id=friend_id)
+            try:
+                friend_req = FriendRequest.object.get(sender=request.user,
+                                                receiver=friend,
+                                                is_active=True)
+                raise Exception("already a friend request sent, no need to add one")
+            except FriendRequest.DoesNotExist:
+                friend_req = FriendRequest(sender=request.user, receiver=friend)
+                friend_req.save()
+            except Exception as e:
+                print(e)
+        except:
+            print("Friend-id not found")
+            
 
 def search_account(request):
     accounts = None
@@ -135,7 +167,7 @@ def account_list(request):
 
 
 
-#HELPER
+#HELPER 
 def get_friend_request_or_false(sender, receiver):
     try:
         return (FriendRequest.objects.get(sender=sender, receiver=receiver, is_active=True))
