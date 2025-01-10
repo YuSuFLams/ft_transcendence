@@ -40,27 +40,6 @@ django.contrib.auth.views provide class based views to deal with auth:
 def dashboard(request):
     return (render(request, 'account/dashboard.html', {'section': 'dashboard'}))
 
-# def register(request):
-#     if (request.user.is_authenticated):
-#         return (redirect("dashboard"))
-#     if (request.method == "POST"):
-#         user_form = UserRegistrationForm(request.POST)
-#         if (user_form.is_valid()):
-#             new_user = user_form.save(commit=False)
-#             new_user.set_password(user_form.cleaned_data['password'])
-#             """
-#                 set_password() takes care of hashing the pass before saving it to db
-#                 it uses PBKDF2 algo with SHA256 hash
-#             """
-#             new_user.save()
-
-#             #redirecting the user to dashboard, after a successfull login
-#             login(request, new_user)
-#             return (redirect('dashboard'))
-#     else:
-#         user_form = UserRegistrationForm()
-#     return(render(request, 'account/register.html', {'user_form': user_form}))
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -73,7 +52,6 @@ def register(request):
         user_form.save()
         return Response(user_form.data)
     return (Response(user_form.errors))
-
 
 @login_required
 def edit(request):
@@ -192,7 +170,8 @@ def is_authenticated(request):
     return (Response({'Authenticated':True}))
 
 """
-API PART
+    Overriding post method on TokenRefreshView
+    def post(self, request: Request, *args, **kwargs) -> Response:
 """
 
 class MyTokenRefreshView(TokenRefreshView):
@@ -200,15 +179,11 @@ class MyTokenRefreshView(TokenRefreshView):
 
         try:
             refresh_token = request.COOKIES.get('refresh_token')
-
             request.data['refresh'] = refresh_token
-
             req = super().post(request, *args, **kwargs)
-
             access_token = req.data['access']
 
             resp = Response()
-
             resp.set_cookie(
                 key='access_token',
                 value=access_token,
@@ -217,26 +192,15 @@ class MyTokenRefreshView(TokenRefreshView):
                 samesite='None',
                 path='/'
             )
-
             resp.data = {'Refreshed':True}
-
             return resp
         except:
             return (Response({'Refreshed':False}))
 
-
-"""Overriding post method on TokenRefreshView
+""" 
+    Overriding post method on Token ObtainPairView
     def post(self, request: Request, *args, **kwargs) -> Response:
-        serializer = self.get_serializer(data=request.data)
-
-        try:
-            serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
-
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
 """
-
 
 class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -244,7 +208,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
             response = super().post(request, *args, **kwargs)
             access_token = response.data['access']
             refresh_token = response.data['refresh']
-
             res = Response()
             res.data = {'Success':True}
 
@@ -263,25 +226,10 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 httponly=True,
                 path='/'
             )
-
-
             return res
-
         except:
             return(Response({'success':False}))
 
-    
-"""Overriding post method on Token ObtainPairView
-    def post(self, request: Request, *args, **kwargs) -> Response:
-        serializer = self.get_serializer(data=request.data)
-
-        try:
-            serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
-
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
-"""
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -296,15 +244,12 @@ def search_account(request):
     return(Response(searilized.data))
 
 
-#API TESTING
 # @csrf_exempt
 def account_list(request):
     if (request.method == 'GET'):
         all_users_query = Account.objects.all()
         serializer = AccountSerializer(all_users_query, many=True)
         return HttpResponse(serializer.data)
-
-
 
 #HELPER 
 def get_friend_request_or_false(sender, receiver):
