@@ -1,13 +1,22 @@
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.views import LoginView
-from rest_framework.parsers import JSONParser
+# from rest_framework.parsers import JSONParser
+
 from .forms import UserEditForm, UserRegistrationForm
 from .models import Account, FriendList, FriendRequest
 from .serializer import AccountSerializer
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
+from rest_framework.response import Response
+
 """
 django.contrib.auth.views provide class based views to deal with auth:
     -> LoginView
@@ -149,13 +158,110 @@ def send_friend_req(request):
             print("Friend-id not found")
             
 
+"""
+API PART
+"""
+
+class MyTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+
+        try:
+            refresh_token = request.COOKIES.get('refresh_token')
+
+            request.data['refresh'] = refresh_token
+
+            req = super().post(request, *args, **kwargs)
+
+            access_token = req.data['access']
+
+            resp = Response()
+
+            resp.set_cookie(
+                key='access_token',
+                value=access_token,
+                secure=True,
+                httponly=True,
+                samesite='None',
+                path='/'
+            )
+
+            resp.data = {'Refreshed':True}
+
+            return resp
+        except:
+            return (Response({'Refreshed':False}))
+
+
+"""Overriding post method on TokenRefreshView
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+"""
+
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        try:
+            response = super().post(request, *args, **kwargs)
+            access_token = response.data['access']
+            refresh_token = response.data['refresh']
+
+            res = Response()
+            res.data = {'Success':True}
+
+            res.set_cookie(
+                key='access_token',
+                value=access_token,
+                httponly=True,  #cannot access the token from JS, protect from XSS
+                secure=True, 
+                samesite='None', #the cookie will sent with cross-site and same-site
+                path='/' #cookie scope
+            )
+            res.set_cookie(
+                key='refresh_token',
+                value=refresh_token,
+                secure=True,
+                httponly=True,
+                path='/'
+            )
+
+
+            return res
+
+        except:
+            return(Response({'success':False}))
+
+    
+"""Overriding post method on Token ObtainPairView
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+"""
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def search_account(request):
     accounts = None
+    searilized = None
     if (request.method == "GET"):
         query_search = request.GET.get('q')
         if (query_search):
             accounts = Account.objects.filter(username__contains=query_search)
-    return(render(request, 'account/search.html', {'accounts' : accounts, 'search' :query_search}))
+            searilized = AccountSerializer(accounts, many=True)
+    return(Response(searilized.data))
+
 
 #API TESTING
 # @csrf_exempt
