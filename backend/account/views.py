@@ -8,10 +8,10 @@ from django.contrib.auth.views import LoginView
 
 from .forms import UserEditForm, UserRegistrationForm
 from .models import Account, FriendList, FriendRequest
-from .serializer import AccountSerializer
+from .serializer import AccountSerializer, RegisterSerializer
 
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
@@ -40,26 +40,39 @@ django.contrib.auth.views provide class based views to deal with auth:
 def dashboard(request):
     return (render(request, 'account/dashboard.html', {'section': 'dashboard'}))
 
-def register(request):
-    if (request.user.is_authenticated):
-        return (redirect("dashboard"))
-    if (request.method == "POST"):
-        user_form = UserRegistrationForm(request.POST)
-        if (user_form.is_valid()):
-            new_user = user_form.save(commit=False)
-            new_user.set_password(user_form.cleaned_data['password'])
-            """
-                set_password() takes care of hashing the pass before saving it to db
-                it uses PBKDF2 algo with SHA256 hash
-            """
-            new_user.save()
+# def register(request):
+#     if (request.user.is_authenticated):
+#         return (redirect("dashboard"))
+#     if (request.method == "POST"):
+#         user_form = UserRegistrationForm(request.POST)
+#         if (user_form.is_valid()):
+#             new_user = user_form.save(commit=False)
+#             new_user.set_password(user_form.cleaned_data['password'])
+#             """
+#                 set_password() takes care of hashing the pass before saving it to db
+#                 it uses PBKDF2 algo with SHA256 hash
+#             """
+#             new_user.save()
 
-            #redirecting the user to dashboard, after a successfull login
-            login(request, new_user)
-            return (redirect('dashboard'))
-    else:
-        user_form = UserRegistrationForm()
-    return(render(request, 'account/register.html', {'user_form': user_form}))
+#             #redirecting the user to dashboard, after a successfull login
+#             login(request, new_user)
+#             return (redirect('dashboard'))
+#     else:
+#         user_form = UserRegistrationForm()
+#     return(render(request, 'account/register.html', {'user_form': user_form}))
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    user_form = RegisterSerializer(data=request.data)
+    if (user_form.is_valid()):
+        valid = user_form.validated_data
+        if (valid['password'] != valid['password2']):
+            return (Response({'Created':False}))     
+
+        user_form.save()
+        return Response(user_form.data)
+    return (Response(user_form.errors))
 
 
 @login_required
@@ -157,6 +170,26 @@ def send_friend_req(request):
         except:
             print("Friend-id not found")
             
+@api_view(['POST'])
+def logout(request):
+    try:
+        resp = Response()
+        resp.data = {'Logged-out':True}
+        resp.delete_cookie('refresh_token',
+                           path='/',
+                           samesite='None')
+        resp.delete_cookie('access_token',
+                            path='/',
+                           samesite='None')
+        
+        return resp
+    except:
+        return(Response({'Logged-out':False}))    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def is_authenticated(request):
+    return (Response({'Authenticated':True}))
 
 """
 API PART
