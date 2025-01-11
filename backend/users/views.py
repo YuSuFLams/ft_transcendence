@@ -38,7 +38,7 @@ django.contrib.auth.views provide class based views to deal with auth:
 
 @login_required
 def dashboard(request):
-    return (render(request, 'account/dashboard.html', {'section': 'dashboard'}))
+    return (render(request, 'users/dashboard.html', {'section': 'dashboard'}))
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -64,7 +64,7 @@ def edit(request):
     else:
         user_form = UserEditForm(instance=request.user)
     return (render(request,
-                   'account/edit.html',
+                   'users/edit.html',
                    {'user_form':user_form}))
 
 
@@ -123,7 +123,14 @@ def view_profile(request, id):
     #TODO add is_online
     context['is_self'] = is_self
     context['friendship'] = friendship
-    return (render(request, 'account/profile.html', context))
+    return (render(request, 'users/profile.html', context))
+
+#FRIENDS SYSTEM
+def get_friend_request_or_false(sender, receiver):
+    try:
+        return (FriendRequest.objects.get(sender=sender, receiver=receiver, is_active=True))
+    except FriendRequest.DoesNotExist:
+        return False
 
 def send_friend_req(request):
     """
@@ -236,24 +243,16 @@ class MyTokenObtainPairView(TokenObtainPairView):
 def search_account(request):
     accounts = None
     searilized = None
-    if (request.method == "GET"):
-        query_search = request.GET.get('q')
-        if (query_search):
-            accounts = Account.objects.filter(username__contains=query_search)
-            searilized = AccountSerializer(accounts, many=True)
+    query_search = request.GET.get('q')
+    if (query_search):
+        accounts = Account.objects.filter(username__contains=query_search)
+        searilized = AccountSerializer(accounts, many=True)
     return(Response(searilized.data))
 
-
-# @csrf_exempt
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def account_list(request):
-    if (request.method == 'GET'):
-        all_users_query = Account.objects.all()
-        serializer = AccountSerializer(all_users_query, many=True)
-        return HttpResponse(serializer.data)
+    all_users_query = Account.objects.all()
+    serializer = AccountSerializer(all_users_query, many=True)
+    return Response(serializer.data)
 
-#HELPER 
-def get_friend_request_or_false(sender, receiver):
-    try:
-        return (FriendRequest.objects.get(sender=sender, receiver=receiver, is_active=True))
-    except FriendRequest.DoesNotExist:
-        return False

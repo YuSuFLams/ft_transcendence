@@ -65,13 +65,13 @@ class FriendList(models.Model):
     def __str__(self):
         return self.user.username
     
-    def add_friend(self, account):
-        if (account not in self.friends.all()):
-            self.friends.add(self.account)
+    def add_friend(self, users):
+        if (users not in self.friends.all()):
+            self.friends.add(self.users)
             self.save() #is it essential ?
 
-    def remove_friend(self, account):
-        if (account in self.friends.all()):
+    def remove_friend(self, users):
+        if (users in self.friends.all()):
             self.friends.remove()
             self.save() #is it essential ?
     

@@ -17,11 +17,12 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
+# SITE_ID = 1
 
 INSTALLED_APPS = [
     'game',
     'chat',
-    'account',
+    'users',
     "daphne",
     'channels',
 
@@ -35,11 +36,32 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # 'django.contrib.sites',
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
+    # 'allauth.socialaccount.providers.google'
 ]
+
+# SOCIALACCOUNT_PROVIDERS = {
+#     "google" : {
+#         "SCOPE": ["profile", "email"],
+#         "AUTH_PARAMS" : {
+#             "access_type" : "online"
+#         }
+#     }
+# }
+
+# AUTHENTICATION_BACKENDS= (
+#     'django.contrib.auth.backends.ModelBackend',
+    # 'allauth.accounts.auth_backends.AuthenticationBackend'
+# )
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'account.authentication.MyJWTAuthentication',
+        'users.authentication.MyJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -55,6 +77,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'allauth.account.middleware.AccountMiddleware'
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -156,4 +179,4 @@ LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 
-AUTH_USER_MODEL = 'account.Account'
+AUTH_USER_MODEL = 'users.Account'
