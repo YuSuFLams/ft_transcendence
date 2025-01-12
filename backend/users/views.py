@@ -36,7 +36,7 @@ django.contrib.auth.views provide class based views to deal with auth:
     login, and the next input will be filled with the dashboard url
 """
 
-@login_required
+# @login_required
 def dashboard(request):
     return (render(request, 'users/dashboard.html', {'section': 'dashboard'}))
 

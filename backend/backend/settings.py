@@ -17,7 +17,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
-# SITE_ID = 1
+SITE_ID = 1
 
 INSTALLED_APPS = [
     'game',
@@ -37,27 +37,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 'django.contrib.sites',
-    # 'allauth',
-    # 'allauth.account',
-    # 'allauth.socialaccount',
-    # 'allauth.socialaccount.providers.google'
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google'
 ]
 
-# SOCIALACCOUNT_PROVIDERS = {
-#     "google" : {
-#         "SCOPE": ["profile", "email"],
-#         "AUTH_PARAMS" : {
-#             "access_type" : "online"
-#         }
-#     }
-# }
-
-# AUTHENTICATION_BACKENDS= (
-#     'django.contrib.auth.backends.ModelBackend',
-    # 'allauth.accounts.auth_backends.AuthenticationBackend'
-# )
-
+SOCIALACCOUNT_PROVIDERS = {
+    "google" : {
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS" : {
+            "access_type" : "online"
+        }
+    }
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -77,7 +71,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'allauth.account.middleware.AccountMiddleware'
+
+
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -93,6 +89,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+
+                'django.template.context_processors.request',
             ],
         },
     },
@@ -180,3 +179,12 @@ LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 
 AUTH_USER_MODEL = 'users.Account'
+
+
+AUTHENTICATION_BACKENDS= (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend'
+)
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
