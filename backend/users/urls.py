@@ -6,9 +6,11 @@ from . import views
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    path('fr/', views.list_all_friends, name='list_all_friends'),
     path('<int:id>', views.view_profile, name='view_profile'),
-    path('all', views.account_list, name='account_list'),
+    path('all/', views.account_list, name='account_list'),
     path('search/', views.search_account, name='search'),
+    path('send_friend_req/', views.send_friend_req, name='send_friend_req'),
     # path('login/', views.MyLoginView.as_view(), name='login'),
     path('logout/', views.logout, name='logout'),
     path('register/', views.register, name='register'),

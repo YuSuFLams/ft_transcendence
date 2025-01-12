@@ -8,7 +8,7 @@ from django.contrib.auth.views import LoginView
 
 from .forms import UserEditForm, UserRegistrationForm
 from .models import Account, FriendList, FriendRequest
-from .serializer import AccountSerializer, RegisterSerializer
+from .serializer import AccountSerializer, RegisterSerializer, FriendsListSerializer
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -132,29 +132,47 @@ def get_friend_request_or_false(sender, receiver):
     except FriendRequest.DoesNotExist:
         return False
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_all_friends(request):
+    try:
+        friend_list = FriendList.objects.get(user=request.user)
+        serializer = FriendsListSerializer(friend_list)
+        return (Response(serializer.data))
+    except:
+        return (Response({'No Friends':True}))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def send_friend_req(request):
-    """
-        1- check if there is an old req -> if there is an active one raise execp
-         -> if there isnt an active one, create new one
-        2- if there is no friendrequest -> create one
-    """
-    if request.method == "POST":
+    try:
+        friend_id = request.POST.get("friend_id")
+        if (int(friend_id) == request.user.id):
+            return (Response("You can not add send friend request to yourself"))
+
+        friend = Account.objects.get(id=friend_id)
         try:
-            friend_id = request.POST.get("friend_id")
-            friend = Account.objects.get(id=friend_id)
-            try:
-                friend_req = FriendRequest.object.get(sender=request.user,
-                                                receiver=friend,
-                                                is_active=True)
-                raise Exception("already a friend request sent, no need to add one")
-            except FriendRequest.DoesNotExist:
-                friend_req = FriendRequest(sender=request.user, receiver=friend)
-                friend_req.save()
-            except Exception as e:
-                print(e)
-        except:
-            print("Friend-id not found")
-            
+            friend_req = FriendRequest.objects.get(sender=request.user,
+                                            receiver=friend,
+                                            is_active=True)
+            return (Response({"Already_sent":True}))
+        except FriendRequest.DoesNotExist:
+            friend_req = FriendRequest(sender=request.user, receiver=friend)
+            friend_req.save()
+            return (Response({"Request_sent":True}))
+        except Exception as e:
+            return (Response({"Request_sent":False}))
+    except:
+        return (Response({"Request_sent":False}))
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def accept_friend(request):
+#     try:
+#         friend_id = request.POST.get("accept_friend_id")
+
+
 @api_view(['POST'])
 def logout(request):
     try:
