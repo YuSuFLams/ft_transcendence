@@ -35,3 +35,13 @@ class FriendsReqReceivedSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
         fields = ['receiver', 'timestamp']
+
+class ViewProfileSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    first_name = serializers.CharField()
+    email = serializers.EmailField()
+    avatar = serializers.ImageField()
+    is_self = serializers.BooleanField()
+    friendship = serializers.IntegerField()
+    friends = serializers.ListSerializer(child=FriendsListSerializer(),
+                                         read_only=True)

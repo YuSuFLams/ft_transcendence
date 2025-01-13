@@ -7,12 +7,12 @@ from . import views
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('fr/', views.list_all_friends, name='list_all_friends'),
-    path('<int:id>', views.view_profile, name='view_profile'),
     path('all_friends/', views.account_list, name='account_list'),
     path('list_all_req_sent/', views.list_all_req_sent, name='list_all_req'),
     path('list_all_req_received/', views.list_all_req_received, name='list_all_req'),
     
     path('search/', views.search_account, name='search'),
+    path('<int:id>', views.view_profile, name='view_profile'),
     
     
     path('send_friend_req/', views.send_friend_req, name='send_friend_req'),

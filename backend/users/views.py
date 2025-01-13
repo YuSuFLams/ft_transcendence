@@ -12,7 +12,8 @@ from .serializer import (AccountSerializer,
                          RegisterSerializer,
                          FriendsListSerializer,
                          FriendsReqReceivedSerializer,
-                         FriendsReqSentSerializer)
+                         FriendsReqSentSerializer,
+                         ViewProfileSerializer)
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -83,27 +84,26 @@ class MyLoginView(LoginView):
     the logged user from login -> dashboard
 """
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def view_profile(request, id):
     try:
         user = Account.objects.get(id=id)
     except :
-        return(HttpResponse("Account not found."))
+        return(Response("Account not found."))
     
     context = {}
     context['username'] = user.username
     context['avatar'] = user.avatar
     context['email'] = user.email
     context['first_name'] = user.first_name
-    try:
-        friend_list = FriendList.objects.get(user=user)
-    except FriendList.DoesNotExist:
-        friend_list = FriendList(user=user)
-        friend_list.save()
+
+    friend_list, created = FriendList.objects.get_or_create(user=user)
 
     context['friends'] = friend_list.friends.all()
 
     is_self = False
-    friendship = 0 #No relations btwn you and him
+    friendship = 0
 
     if (request.user.is_authenticated and request.user == user):
         is_self = True
@@ -121,13 +121,12 @@ def view_profile(request, id):
                 friendship = 3
                 #he sent a request, you can accept or decline
                 context['friend_req_id'] = get_friend_request_or_false(user, request.user).id
-            #else
-            #  !!is_self && !!friendship  means you're just looking at a stanger profile
 
     #TODO add is_online
     context['is_self'] = is_self
     context['friendship'] = friendship
-    return (render(request, 'users/profile.html', context))
+    serializer = ViewProfileSerializer(context)
+    return (Response(serializer.data))
 
 #FRIENDS SYSTEM
 def get_friend_request_or_false(sender, receiver):
