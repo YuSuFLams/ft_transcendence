@@ -8,7 +8,11 @@ from django.contrib.auth.views import LoginView
 
 from .forms import UserEditForm, UserRegistrationForm
 from .models import Account, FriendList, FriendRequest
-from .serializer import AccountSerializer, RegisterSerializer, FriendsListSerializer
+from .serializer import (AccountSerializer,
+                         RegisterSerializer,
+                         FriendsListSerializer,
+                         FriendsReqReceivedSerializer,
+                         FriendsReqSentSerializer)
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -133,14 +137,34 @@ def get_friend_request_or_false(sender, receiver):
         return False
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def list_all_friends(request):
     try:
-        friend_list = FriendList.objects.get(user=request.user)
-        serializer = FriendsListSerializer(friend_list)
+        friend_list = FriendList.objects.filter(user=request.user)
+        serializer = FriendsReqSentSerializer(friend_list, many=True)
         return (Response(serializer.data))
     except:
-        return (Response({'No Friends':True}))
+        return (Response('You have no Friends'))
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_all_req_sent(request):
+    try:
+        friend_request = FriendRequest.objects.filter(receiver=request.user, is_active=True)
+        serializer = FriendsReqReceivedSerializer(friend_request, many=True)
+        return (Response(serializer.data))
+    except:
+        return (Response('You got no friend requests'))
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_all_req_received(request):
+    try:
+        friend_request = FriendRequest.objects.filter(sender=request.user, is_active=True)
+        serializer = FriendsReqReceivedSerializer(friend_request, many=True)
+        return (Response(serializer.data))
+    except:
+        return (Response('You did not sent any friend request'))
 
 
 @api_view(['POST'])
@@ -156,21 +180,68 @@ def send_friend_req(request):
             friend_req = FriendRequest.objects.get(sender=request.user,
                                             receiver=friend,
                                             is_active=True)
-            return (Response({"Already_sent":True}))
+            return (Response("The Friend request already sent"))
         except FriendRequest.DoesNotExist:
             friend_req = FriendRequest(sender=request.user, receiver=friend)
             friend_req.save()
-            return (Response({"Request_sent":True}))
+            return (Response('The friend request sent successfully'))
         except Exception as e:
-            return (Response({"Request_sent":False}))
+            return (Response('Failed to send the friend request'))
     except:
-        return (Response({"Request_sent":False}))
+        return (Response("Cannot find friend_id", status=400))
 
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def accept_friend(request):
-#     try:
-#         friend_id = request.POST.get("accept_friend_id")
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unfriend_friend(request):
+    try:
+        friend_id = int(request.POST.get("unfriend_id"))
+        if (friend_id == request.user.id):
+            return (Response('You can not unfriend yourself'))
+        try:
+            friend = Account.objects.get(id=friend_id)
+            friend_list = FriendList.objects.get(user=request.user)
+            friend_list.unfriend(fake_friend=friend)
+            return(Response('You unfriended successfully'))
+        except:
+            return(Response('Failed to unfriend'))
+    except:
+        return(Response('There is no unfriend_id', status=400))
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cancel_my_req(request):
+    try:
+        cancel_req_id = int(request.POST.get("cancel_req_id"))
+        try:
+            friend = Account.objects.get(id=cancel_req_id)
+            friend_list = FriendRequest.objects.get(sender=request.user, receiver=friend, is_active=True)
+            friend_list.cancel()
+            return(Response('You cancelled the request successfully'))
+        except:
+            return(Response('Failed to Cancel your request'))
+    except:
+        return(Response('Cannot find cancel_req_id', status=400))
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def accept_friend(request):
+    try:
+        friend_id = request.POST.get("accept_friend_id")
+        if (int(friend_id) == request.user.id):
+            return (Response('You can not unfriend yourself'))
+        try:
+            friend = Account.objects.get(id=int(friend_id))
+            try:
+                friend_req_list = FriendRequest.objects.get(sender=friend, receiver=request.user, is_active=True)
+                friend_req_list.accept()
+                return(Response({'Friendship_accepted':True}))
+            except:
+                return(Response('failed to accept the friendship'))
+        except:
+            return(Response('accept_friend_id not found', status=400))
+    except:
+        return(Response({'Friendship_accepted':False}))
 
 
 @api_view(['POST'])

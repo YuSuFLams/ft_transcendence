@@ -65,14 +65,17 @@ class FriendList(models.Model):
     def __str__(self):
         return self.user.username
     
-    def add_friend(self, users):
-        if (users not in self.friends.all()):
-            self.friends.add(self.users)
-            self.save() #is it essential ?
+    def add_friend(self, new_friend):
+        friend_list, created = FriendList.objects.get_or_create(user=self.user)
+        if (new_friend not in friend_list.friends.all()):
+            friend_list.friends.add(new_friend)
+        else:
+            print("already friends")
 
-    def remove_friend(self, users):
-        if (users in self.friends.all()):
-            self.friends.remove()
+    def remove_friend(self, old_friend):
+        friend_list = FriendList.objects.get(user=self.user)
+        if (old_friend in friend_list.friends.all()):
+            friend_list.friends.remove(old_friend)
             self.save() #is it essential ?
     
     def unfriend(self, fake_friend):
@@ -102,8 +105,9 @@ class FriendRequest(models.Model):
         return (self.sender.username)
     
     def accept(self):
-        sender_list = FriendList.objects.get(user=self.sender)
-        receiver_list = FriendList.objects.get(user=self.receiver)
+        sender_list, created = FriendList.objects.get_or_create(user=self.sender)
+        receiver_list, created2 = FriendList.objects.get_or_create(user=self.receiver)
+
         sender_list.add_friend(self.receiver)
         receiver_list.add_friend(self.sender)
         self.is_active = False

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Account, FriendList
+from .models import Account, FriendList, FriendRequest
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -7,7 +7,6 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'first_name', 'last_name', 'avatar']
 
 class RegisterSerializer(serializers.ModelSerializer):
-    
     password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
@@ -21,16 +20,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-    
 
-# class ProfileViewSerializer(serializers.Serializer):
-#     username        = serializers.CharField(max_length=60, unique=True)
-#     first_name      = serializers.CharField(max_length=30, blank=True)
-#     email           = serializers.EmailField(unique=True)
-#     avatar          = serializers.ImageField()
-#     friends         = serializers.ListField()
-
-class FriendsListSerializer(serializers.Serializer):
+class FriendsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendList
         fields = ['friends']
+
+class FriendsReqSentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['sender', 'timestamp']
+
+class FriendsReqReceivedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['receiver', 'timestamp']
