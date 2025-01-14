@@ -6,13 +6,30 @@ class AccountSerializer(serializers.ModelSerializer):
         model = Account
         fields = ['id', 'username', 'first_name', 'last_name', 'avatar']
 
+
+class EditAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['first_name', 'last_name', 'avatar']
+        read_only_fields = ['email', 'username']
+
+
+class ChangePassSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField(write_only=True, required=True)
+    new_password = serializers.CharField(write_only=True, required=True)
+    new_password2 = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = Account
+        fields = ['old_password', 'new_password', 'new_password2']
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
     class Meta:
         model = Account
-        fields = ['email', 'username', 'password', 'password2']
+        fields = ['email', 'username','first_name', 'last_name' 'password', 'password2']
 
     def create(self, validated_data):
         user = Account(email=validated_data['email'],

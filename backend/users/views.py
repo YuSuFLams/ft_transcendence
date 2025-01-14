@@ -1,19 +1,15 @@
-from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.views import LoginView
-# from rest_framework.parsers import JSONParser
-
-from .forms import UserEditForm, UserRegistrationForm
+from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
 from .models import Account, FriendList, FriendRequest
 from .serializer import (AccountSerializer,
                          RegisterSerializer,
-                         FriendsListSerializer,
                          FriendsReqReceivedSerializer,
                          FriendsReqSentSerializer,
-                         ViewProfileSerializer)
+                         ViewProfileSerializer,
+                         EditAccountSerializer,
+                         ChangePassSerializer)
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -52,25 +48,65 @@ def register(request):
     if (user_form.is_valid()):
         valid = user_form.validated_data
         if (valid['password'] != valid['password2']):
-            return (Response({'Created':False}))     
+            return (Response('Passwords does not match.'))     
+
+        try:
+            validate_password(valid['password'])
+        except:
+            return (Response('The password does not comply with the requirements.', status=400))
 
         user_form.save()
         return Response(user_form.data)
     return (Response(user_form.errors))
 
-@login_required
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def edit(request):
-    if (request.method == "POST"):
-        user_form = UserEditForm(instance=request.user,
-                                         data=request.POST,
-                                         files=request.FILES)
-        if (user_form.is_valid()):
-            user_form.save()
-    else:
-        user_form = UserEditForm(instance=request.user)
-    return (render(request,
-                   'users/edit.html',
-                   {'user_form':user_form}))
+    edit_user = EditAccountSerializer(instance=request.user, 
+                                      data=request.data,
+                                      partial=True)
+    if (edit_user.is_valid()):
+        edit_user.save()
+        return Response(edit_user.data)
+    return (Response(edit_user.errors))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    try:
+        new_instance = ChangePassSerializer(instance=request.user,
+                                            data=request.data)
+        
+        if (not new_instance.is_valid()):
+            return (Response('Error the data is not valid', status=400))
+        
+        valid = new_instance.validated_data
+        
+        if (valid['old_password'] == valid['new_password']):
+            return (Response('Your new password cannot be like the new one', status=400))
+        
+        auth_user = authenticate(username=request.user.username, password=valid['old_password'])
+        
+        if (not request.user.check_password(valid['old_password'])):
+            return (Response('Old_password is invalid', status=400))
+            
+        if (valid['new_password'] != valid['new_password2']):
+            return (Response('Passwords does not match.', status=400))
+        
+        try:
+            validate_password(password=valid['new_password'])
+        except:
+            return (Response('New password does not comply with the requirements.', status=400))
+
+        request.user.set_password(valid['new_password'])
+        request.user.save()
+        return (Response('Password updated successfully', status=200))
+    except KeyError:
+        return (Response('Required fields are missing', status=400))
+    except:
+        return (Response('Error setting new password', status=400))
 
 
 class MyLoginView(LoginView):
@@ -127,6 +163,30 @@ def view_profile(request, id):
     context['friendship'] = friendship
     serializer = ViewProfileSerializer(context)
     return (Response(serializer.data))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def me(request):
+    try:
+        user = Account.objects.get(id=request.user.id)
+    except :
+        return(Response("Account not found."))
+    
+    context = {}
+    context['username'] = user.username
+    context['avatar'] = user.avatar
+    context['email'] = user.email
+    context['first_name'] = user.first_name
+    friend_list, created = FriendList.objects.get_or_create(user=user)
+    context['friends'] = friend_list.friends.all()
+    context['friend_req'] = FriendRequest.objects.filter(receiver=user,
+                                                         is_active=True)
+    context['is_self'] = True
+    context['friendship'] = 0
+    serializer = ViewProfileSerializer(context)
+    return (Response(serializer.data))
+
 
 #FRIENDS SYSTEM
 def get_friend_request_or_false(sender, receiver):
@@ -221,6 +281,24 @@ def cancel_my_req(request):
             return(Response('Failed to Cancel your request'))
     except:
         return(Response('Cannot find cancel_req_id', status=400))
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def decline_friend_req(request):
+    try:
+        decline_friend_req = int(request.POST.get("decline_friend_req"))
+        try:
+            friend = Account.objects.get(id=decline_friend_req)
+            friend_list = FriendRequest.objects.get(sender=friend,
+                                                    receiver=request.user,
+                                                    is_active=True)
+            friend_list.decline()
+            return(Response('You cancelled the request successfully'))
+        except:
+            return(Response('Failed to Cancel your request'))
+    except:
+        return(Response('Cannot find decline_friend_req', status=400))
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
