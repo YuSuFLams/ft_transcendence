@@ -18,6 +18,12 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from rest_framework.response import Response
 
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+import jwt, json
+from django.conf import settings
+
+from urllib.parse import urlencode
+
 """
 django.contrib.auth.views provide class based views to deal with auth:
     -> LoginView
@@ -321,7 +327,7 @@ def accept_friend(request):
         return(Response({'Friendship_accepted':False}))
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def logout(request):
     try:
         resp = Response()
@@ -422,3 +428,162 @@ def account_list(request):
     serializer = AccountSerializer(all_users_query, many=True)
     return Response(serializer.data)
 
+
+def lgn(request):
+    base_url = "https://accounts.google.com/o/oauth2/v2/auth"
+    params = {
+        'client_id' : settings.CLIENT_ID_GOOGLE,
+        "redirect_uri" : "http://localhost:8000/oauth2/google/callback/",
+        'response_type' : 'code',
+        'scope' : 'openid email profile',
+        'access_type' : 'offline',
+        'prompt' : 'consent'
+    }
+
+    google_lgn = f'{base_url}?{urlencode(params)}'
+    return (render(request, 'registration/lgn.html', {'google_login_url':google_lgn}))
+
+
+def lgn_42(request):
+    return (render(request, 'registration/lgn_42.html', {'42_login_url':settings.REDIR_42}))
+
+from django.http import JsonResponse
+import requests
+
+
+"""
+    1- get the code from request
+    2- preparing the data to send a request to oauth2.googleapis.com
+    3- return JsonResponse 
+"""
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def google_oauth2_callback(request):
+    code = request.GET.get('code')
+
+    if not code:
+        return (JsonResponse({'Err':'Authorization code not found'}, status=400))
+    
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        'code':code,
+        'client_id' : settings.CLIENT_ID_GOOGLE,
+        'client_secret': settings.CLIENT_SECRET_GOOGLE,
+        'redirect_uri' : 'http://localhost:8000/oauth2/google/callback/',
+        'grant_type': 'authorization_code'
+    }
+
+    try:
+        response = requests.post(token_url, data=data)
+        response_json = json.loads(response.content)
+        id_token = response_json['id_token']
+    except:
+        return (Response('error'))
+    
+    google_keys_url = "https://www.googleapis.com/oauth2/v3/certs"
+
+    jwks_client = jwt.PyJWKClient(google_keys_url)
+    signing_key = jwks_client.get_signing_key_from_jwt(id_token)
+
+    decoded = jwt.decode(id_token,
+                         signing_key.key, 
+                         algorithms=['RS256'],
+                         audience=settings.CLIENT_ID_GOOGLE)
+    try:
+        user = Account.objects.get(email=decoded['email'])
+    except:
+        user = Account(email=decoded['email'],
+                       username=decoded['name'],
+                       first_name=decoded['given_name'],
+                       last_name=decoded['family_name'],
+                       avatar=decoded['picture'],
+                       )
+        user.save()
+    refresh_token = RefreshToken.for_user(user)
+    access_token = AccessToken.for_user(user)
+
+    res = Response()
+    res.data = {'Success':True}
+
+    res.set_cookie(
+        key='access_token',
+        value=access_token,
+        httponly=True,
+        secure=True, 
+        samesite='None',
+        path='/' 
+    )
+    res.set_cookie(
+        key='refresh_token',
+        value=refresh_token,
+        secure=True,
+        httponly=True,
+        path='/'
+    )
+    return res
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def oauth2_42_callback(request):
+    try:
+        code = request.GET.get('code')
+    except:
+        return(Response('No code found', status=400))
+
+    token_url = 'https://api.intra.42.fr/oauth/token'
+    data = {
+        'code':code,
+        'client_id' : settings.CLIENT_ID_42,
+        'client_secret': settings.CLIENT_SECRET_42,
+        'redirect_uri' : 'http://localhost:8000/oauth2/42/callback/',
+        'grant_type': 'authorization_code'
+    }
+
+    try:
+        response = requests.post(token_url, data=data)
+        response_json = json.loads(response.content)
+    except:
+        return (Response('error'))
+
+    access_token = response_json['access_token']
+    intra_me = 'https://api.intra.42.fr/v2/me'
+    authorization_header = {'Authorization' : f'Bearer {access_token}'}
+    try:
+        response_42 = requests.get(intra_me, headers=authorization_header)
+    except:
+        return(Response())
+
+    decoded = response_42.json()
+    try:
+        user = Account.objects.get(email=decoded['email'])
+    except:
+        user = Account(email=decoded['email'],
+                       username=decoded['login'],
+                       first_name=decoded['first_name'],
+                       last_name=decoded['last_name'],
+                       avatar=decoded['image']['versions']['medium'],
+                       )
+        user.save()
+    refresh_token = RefreshToken.for_user(user)
+    access_token = AccessToken.for_user(user)
+
+    res = Response()
+    res.data = {'Success':True}
+
+    res.set_cookie(
+        key='access_token',
+        value=access_token,
+        httponly=True,
+        secure=True, 
+        samesite='None',
+        path='/' 
+    )
+    res.set_cookie(
+        key='refresh_token',
+        value=refresh_token,
+        secure=True,
+        httponly=True,
+        path='/'
+    )
+    return res

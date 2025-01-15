@@ -10,7 +10,4 @@
         {% comment %} profile</a> or {% endcomment %}
         {% comment %} <a href="{% url "password_change" %}">change your password</a>. {% endcomment %}
     </p>
-    {% load socialaccount %}
-    <h2>Login using Google</h2>
-    <a href="{% provider_login_url 'google' process='connect' %}">Google</a>
 {% endblock %}

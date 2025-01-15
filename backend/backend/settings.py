@@ -38,24 +38,23 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google'
+    'oauth2_provider',
 ]
 
-SOCIALACCOUNT_PROVIDERS = {
-    "google" : {
-        "SCOPE": ["profile", "email"],
-        "AUTH_PARAMS" : {
-            "access_type" : "online"
+OAUTH2_PROVIDER = {
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,  # Token expiration time (1 hour)
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+        'openid': 'OpenID Connect access'
         }
-    }
 }
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'users.authentication.MyJWTAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -73,7 +72,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
 
-    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -180,11 +178,10 @@ LOGOUT_URL = 'logout'
 
 AUTH_USER_MODEL = 'users.Account'
 
+CLIENT_ID_GOOGLE = '373713270678-0dro9nrh86tlpcse6a4bia0ssf296o8m.apps.googleusercontent.com'
+CLIENT_SECRET_GOOGLE = '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'
 
-AUTHENTICATION_BACKENDS= (
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend'
-)
+CLIENT_ID_42 = 'u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6'
+CLIENT_SECRET_42 = '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'
 
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+REDIR_42 = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2F42%2Fcallback%2F&response_type=code'

@@ -14,3 +14,5 @@ class FriendListAdmin(admin.ModelAdmin):
 @admin.register(models.FriendRequest)
 class FriendRequestAdmin(admin.ModelAdmin):
     list_display = ['sender', 'receiver']
+
+#TODO removing a user from admin does not work

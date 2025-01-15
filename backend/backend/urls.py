@@ -3,7 +3,6 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from users.views import MyTokenObtainPairView, MyTokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,8 +11,8 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('', include('users.urls')),
 
-    path('accounts/', include('allauth.urls')),
-
+    path('oauth2/', include('users.urls')),
+    path('oauth2/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
 
 if settings.DEBUG:
