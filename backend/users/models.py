@@ -121,3 +121,7 @@ class FriendRequest(models.Model):
         self.is_active = False
         self.save()
     
+class ResetPassword(models.Model):
+    email = models.EmailField()
+    token = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)

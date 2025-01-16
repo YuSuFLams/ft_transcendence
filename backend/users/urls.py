@@ -1,13 +1,10 @@
 from django.urls import path, include
 from . import views
-# from django.contrib.auth import views as auth_views
-
 
 urlpatterns = [
     path('google/callback/', views.google_oauth2_callback, name='oauth2_google_callback'),
     path('42/callback/', views.oauth2_42_callback, name='oauth2_42_callback'),
-    path('', views.dashboard, name='dashboard'),
-    path('all_friends/', views.account_list, name='account_list'),
+    # path('all_friends/', views.account_list, name='account_list'),
     
     path('search/', views.search_account, name='search'),
     path('<int:id>', views.view_profile, name='view_profile'),
@@ -16,6 +13,9 @@ urlpatterns = [
     path('me/edit/', views.edit, name='edit'),
     path('me/change_password/', views.change_password, name='change_password'),
     path('me/', views.me, name='me'),
+
+    path('reset_password/', views.send_reset_mail, name='send_reset_mail'),
+    path('reset_password_success/<uid>/', views.send_reset_mail_success, name='send_reset_mail_success'),
     
     path('list_all_req_sent/', views.list_all_req_sent, name='list_all_req'),
     path('list_all_req_received/', views.list_all_req_received, name='list_all_req'),
@@ -32,5 +32,6 @@ urlpatterns = [
 
     path('google/', views.lgn, name='lgn'),
     path('42/', views.lgn_42, name='lgn_42'),
+
     path('is_authenticated/', views.is_authenticated, name='is_authenticated'),
 ]

@@ -15,4 +15,9 @@ class FriendListAdmin(admin.ModelAdmin):
 class FriendRequestAdmin(admin.ModelAdmin):
     list_display = ['sender', 'receiver']
 
+@admin.register(models.ResetPassword)
+class ResetPasswordAdmin(admin.ModelAdmin):
+    list_display = ['email', 'token', 'created_at']
+    readonly_fields = ['email', 'token', 'created_at']
+
 #TODO removing a user from admin does not work

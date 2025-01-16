@@ -2,14 +2,16 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from .models import Account, FriendList, FriendRequest
+from .models import Account, FriendList, FriendRequest, ResetPassword
 from .serializer import (AccountSerializer,
                          RegisterSerializer,
                          FriendsReqReceivedSerializer,
                          FriendsReqSentSerializer,
                          ViewProfileSerializer,
                          EditAccountSerializer,
-                         ChangePassSerializer)
+                         ChangePassSerializer,
+                         ResetPasswordSerializer,
+                         ResetPasswordSerializerSuccess,)
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -19,11 +21,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from rest_framework.response import Response
 
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-import jwt, json
+import jwt, json, requests, datetime
 from django.conf import settings
 
 from urllib.parse import urlencode
-
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 """
 django.contrib.auth.views provide class based views to deal with auth:
     -> LoginView
@@ -43,21 +46,17 @@ django.contrib.auth.views provide class based views to deal with auth:
     login, and the next input will be filled with the dashboard url
 """
 
-# @login_required
-def dashboard(request):
-    return (render(request, 'users/dashboard.html', {'section': 'dashboard'}))
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
     user_form = RegisterSerializer(data=request.data)
     if (user_form.is_valid()):
         valid = user_form.validated_data
-        if (valid['password'] != valid['password2']):
+        if (valid['password1'] != valid['password2']):
             return (Response('Passwords does not match.'))     
 
         try:
-            validate_password(valid['password'])
+            validate_password(valid['password1'])
         except:
             return (Response('The password does not comply with the requirements.', status=400))
 
@@ -113,13 +112,6 @@ def change_password(request):
         return (Response('Required fields are missing', status=400))
     except:
         return (Response('Error setting new password', status=400))
-
-
-class MyLoginView(LoginView):
-    def dispatch(self, request, *args, **kwargs):
-        if (request.user.is_authenticated):
-            return (redirect("dashboard"))
-        return super().dispatch(request, *args, **kwargs)
     
 """
     overriding the dispatch method to redirect 
@@ -328,6 +320,7 @@ def accept_friend(request):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def logout(request):
     try:
         resp = Response()
@@ -421,16 +414,9 @@ def search_account(request):
         searilized = AccountSerializer(accounts, many=True)
     return(Response(searilized.data))
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def account_list(request):
-    all_users_query = Account.objects.all()
-    serializer = AccountSerializer(all_users_query, many=True)
-    return Response(serializer.data)
-
 
 def lgn(request):
-    base_url = "https://accounts.google.com/o/oauth2/v2/auth"
+    base_url = settings.API_GOOGLE
     params = {
         'client_id' : settings.CLIENT_ID_GOOGLE,
         "redirect_uri" : "http://localhost:8000/oauth2/google/callback/",
@@ -439,31 +425,30 @@ def lgn(request):
         'access_type' : 'offline',
         'prompt' : 'consent'
     }
-
     google_lgn = f'{base_url}?{urlencode(params)}'
     return (render(request, 'registration/lgn.html', {'google_login_url':google_lgn}))
 
 
 def lgn_42(request):
-    return (render(request, 'registration/lgn_42.html', {'42_login_url':settings.REDIR_42}))
-
-from django.http import JsonResponse
-import requests
-
+    return (render(request,
+                   'registration/lgn_42.html',
+                   {'42_login_url':settings.API_42}))
 
 """
-    1- get the code from request
-    2- preparing the data to send a request to oauth2.googleapis.com
-    3- return JsonResponse 
+    1- get the code from the callback
+    2- preparing the a request with code and params -> api_link
+    3- process data
+    4- check if the email exist, get the cookie JWT->ACCESS && JWT->REFRESH
+    5- else create a new account and get the cookies
 """
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def google_oauth2_callback(request):
-    code = request.GET.get('code')
-
-    if not code:
-        return (JsonResponse({'Err':'Authorization code not found'}, status=400))
+    try:
+        code = request.GET.get('code')
+    except:
+        return (Response('Code not found', status=400))
     
     token_url = "https://oauth2.googleapis.com/token"
     data = {
@@ -587,3 +572,66 @@ def oauth2_42_callback(request):
         path='/'
     )
     return res
+
+#TODO avaatar
+#TODO add reset pass
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_reset_mail(request):
+    serialized = ResetPasswordSerializer(data=request.data)
+    if (not serialized.is_valid()):
+        return (Response('Invalid email', status=400))
+    validated = serialized.validated_data
+
+    try:
+        user = Account.objects.get(email=validated['reset_email'])
+    except:
+        return (Response('The email is incorrect', status=400))
+
+    token = PasswordResetTokenGenerator()
+    token = token.make_token(user)
+
+    reseted = ResetPassword(email=validated['reset_email'], token=token)
+    reseted.save()
+    reset_url = f'{settings.RESET_BASE_URI}/{token}'
+
+    send_mail('Transcendence Reset Password',
+            f'To reset your password, follow the link {reset_url}',
+            settings.EMAIL_HOST_USER,
+            [validated['reset_email']],
+            fail_silently=False)
+    return (Response('The reset email is sent, please check your email', status=200))
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_reset_mail_success(request, uid):
+    try:
+        reset_obj = ResetPassword.objects.get(token=uid)
+        now_stamp = datetime.datetime.now().timestamp()
+        created_stamp = reset_obj.created_at.timestamp()
+        if (now_stamp - created_stamp > settings.RESET_TOKEN_EXP):
+            reset_obj.delete()
+            return(Response('The reset token expired', status=400))
+    except:
+        return (Response("Reset token is invalid or expired", status=400))
+
+    try:
+        user = Account.objects.get(email=reset_obj.email)
+    except:
+        return (Response('The email not found on db', status=400))
+    
+    new_pass_serialized = ResetPasswordSerializerSuccess(data=request.data)
+    if (not new_pass_serialized.is_valid()):
+        return (Response('The new password is not valid', status=400))
+    valid = new_pass_serialized.validated_data
+    if (valid['new_password1'] != valid['new_password2']):
+        return (Response('Passwords does not match', status=400))
+    try:
+        validate_password(valid['new_password1'])
+    except:
+        return(Response('The new password does not comply with the requirements.', status=400))
+    user.set_password(valid['new_password1'])
+    user.save()
+    reset_obj.delete()
+    return (Response('The password changed successfully', status=200))
