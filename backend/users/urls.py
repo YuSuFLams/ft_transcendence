@@ -2,8 +2,6 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('google/callback/', views.google_oauth2_callback, name='oauth2_google_callback'),
-    path('42/callback/', views.oauth2_42_callback, name='oauth2_42_callback'),
     # path('all_friends/', views.account_list, name='account_list'),
     
     path('search/', views.search_account, name='search'),
@@ -32,6 +30,8 @@ urlpatterns = [
 
     path('google/', views.lgn, name='lgn'),
     path('42/', views.lgn_42, name='lgn_42'),
+    path('google/callback/', views.google_oauth2_callback, name='oauth2_google_callback'),
+    path('42/callback/', views.oauth2_42_callback, name='oauth2_42_callback'),
 
     path('is_authenticated/', views.is_authenticated, name='is_authenticated'),
 ]

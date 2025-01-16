@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 from django.conf import settings
-
 
 class MyAccountManager(BaseUserManager):
     def create_user(self, email, username, password=None):
@@ -56,7 +57,9 @@ class FriendList(models.Model):
     #one user -> one friendlist
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE,
-                             related_name='user')
+                             related_name='friend_list')
+    # you can access the friendlist from user using related_name
+    #because it is one to one field
     
     friends = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                      blank=True,
@@ -73,10 +76,14 @@ class FriendList(models.Model):
             print("already friends")
 
     def remove_friend(self, old_friend):
-        friend_list = FriendList.objects.get(user=self.user)
-        if (old_friend in friend_list.friends.all()):
-            friend_list.friends.remove(old_friend)
-            self.save() #is it essential ?
+        try:
+            friend_list = FriendList.objects.get(user=self.user)
+            if (old_friend in friend_list.friends.all()):
+                friend_list.friends.remove(old_friend)
+                self.save() #is it essential ?
+        except:
+            pass
+
     
     def unfriend(self, fake_friend):
         self.remove_friend(fake_friend)
@@ -125,3 +132,17 @@ class ResetPassword(models.Model):
     email = models.EmailField()
     token = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+"""The utility of **kwargs
+    added to prevent errs in case django signals sent
+    more args
+"""
+@receiver(pre_delete, sender=Account)
+def pre_del_account(sender, instance, **kwargs):
+    try:
+        friend_list = instance.friend_list
+        friend_list.friends.clear() #remove all the friend relationship before removing the user
+        friend_list.delete()
+    except FriendList.DoesNotExist:
+        pass

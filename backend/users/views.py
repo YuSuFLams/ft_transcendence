@@ -27,6 +27,7 @@ from django.conf import settings
 from urllib.parse import urlencode
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from urllib.parse import unquote
 """
 django.contrib.auth.views provide class based views to deal with auth:
     -> LoginView
@@ -230,20 +231,24 @@ def send_friend_req(request):
     try:
         friend_id = request.POST.get("friend_id")
         if (int(friend_id) == request.user.id):
-            return (Response("You can not add send friend request to yourself"))
+            return (Response("You can not send a friend request to yourself", status=400))
 
-        friend = Account.objects.get(id=friend_id)
+        try:
+            friend = Account.objects.get(id=friend_id)
+        except Account.DoesNotExist:
+            return (Response("The friend_id does not belong to any user", status=400))
+
         try:
             friend_req = FriendRequest.objects.get(sender=request.user,
                                             receiver=friend,
                                             is_active=True)
-            return (Response("The Friend request already sent"))
+            return (Response("The Friend request already sent", status=400))
         except FriendRequest.DoesNotExist:
             friend_req = FriendRequest(sender=request.user, receiver=friend)
             friend_req.save()
-            return (Response('The friend request sent successfully'))
+            return (Response('The friend request sent successfully', status=200))
         except Exception as e:
-            return (Response('Failed to send the friend request'))
+            return (Response('Failed to send the friend request', status=400))
     except:
         return (Response("Cannot find friend_id", status=400))
 
@@ -304,7 +309,7 @@ def accept_friend(request):
     try:
         friend_id = request.POST.get("accept_friend_id")
         if (int(friend_id) == request.user.id):
-            return (Response('You can not unfriend yourself'))
+            return (Response('You can not accept your self as a friend'))
         try:
             friend = Account.objects.get(id=int(friend_id))
             try:
@@ -482,7 +487,7 @@ def google_oauth2_callback(request):
                        username=decoded['name'],
                        first_name=decoded['given_name'],
                        last_name=decoded['family_name'],
-                       avatar=decoded['picture'],
+                       avatar='https://lh3.googleusercontent.com/a/ACg8ocLc25B6tPSVUUtGeq6Twiosmyf91OgVqOvhEympDON-oBqKv-s=s96-c',
                        )
         user.save()
     refresh_token = RefreshToken.for_user(user)
@@ -543,11 +548,13 @@ def oauth2_42_callback(request):
     try:
         user = Account.objects.get(email=decoded['email'])
     except:
+        img = decoded['image']['versions']['medium']
+        img = unquote(img[7:]) #removing /media/
         user = Account(email=decoded['email'],
                        username=decoded['login'],
                        first_name=decoded['first_name'],
                        last_name=decoded['last_name'],
-                       avatar=decoded['image']['versions']['medium'],
+                       avatar=img,
                        )
         user.save()
     refresh_token = RefreshToken.for_user(user)
@@ -573,8 +580,7 @@ def oauth2_42_callback(request):
     )
     return res
 
-#TODO avaatar
-#TODO add reset pass
+#TODO the case of avatar of 42 or google has a problem
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
