@@ -28,8 +28,8 @@ class MyAccountManager(BaseUserManager):
 
 class Account(AbstractBaseUser):
     username        = models.CharField(max_length=60, unique=True)
-    first_name      = models.CharField(max_length=30, blank=True, unique=False)
-    last_name       = models.CharField(max_length=30, blank=True, unique=False)
+    first_name      = models.CharField(max_length=30, blank=True)
+    last_name       = models.CharField(max_length=30, blank=True)
     email           = models.EmailField(unique=True)
     is_admin        = models.BooleanField(default=False)
     is_staff        = models.BooleanField(default=False)
@@ -38,8 +38,8 @@ class Account(AbstractBaseUser):
     date_joined     = models.DateTimeField(auto_now_add=True)
     avatar          = models.ImageField(default='default_avatar.jpg', upload_to='avatars/')
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     objects = MyAccountManager()
 

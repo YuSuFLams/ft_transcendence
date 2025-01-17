@@ -1,5 +1,4 @@
 from pathlib import Path
-from datetime import timedelta
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -42,7 +41,7 @@ INSTALLED_APPS = [
 ]
 
 OAUTH2_PROVIDER = {
-    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,  # Token expiration time (1 hour)
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,
     'SCOPES': {
         'read': 'Read scope',
         'write': 'Write scope',

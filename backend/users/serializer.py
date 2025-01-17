@@ -33,8 +33,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = Account(email=validated_data['email'],
-                       username=validated_data['username'])
-        #TODO add first_last names
+                    username=validated_data['username'],
+                    first_name=validated_data['first_name'],
+                    last_name=validated_data['last_name'])
+        #TODO you can add list.get('key', 'default_value')
         user.set_password(validated_data['password1'])
         user.save()
         return user
