@@ -19,3 +19,53 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+@font-face {
+  font-family: 'TORAJA';
+  src: url('assets/fonts/TORAJA.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Font5';
+  src: url('assets/fonts/Font5.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Font6';
+  src: url('assets/fonts/Font6.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Font2';
+  src: url('assets/fonts/Font2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Font1';
+  src: url('assets/fonts/Font1.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Font4';
+  src: url('assets/fonts/Font4.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Font3';
+  src: url('assets/fonts/Font3.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Borias';
+  src: url('assets/fonts/BORIASRegular.ttf') format('truetype');
+}

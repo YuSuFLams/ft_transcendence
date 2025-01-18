@@ -5,9 +5,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/users', include('users.urls')),
+    path('api/users/', include('users.urls')),
     path('api/game', include('game.urls')),
     path('api/chat', include('chat.urls')),
+
+    path('oauth2/', include('users.urls')),
+    path('oauth2/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
 
 if settings.DEBUG:

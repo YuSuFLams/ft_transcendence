@@ -1,5 +1,4 @@
 from pathlib import Path
-from datetime import timedelta
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -17,6 +16,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
+SITE_ID = 1
 
 INSTALLED_APPS = [
     'game',
@@ -24,7 +24,10 @@ INSTALLED_APPS = [
     'users',
     "daphne",
     'channels',
+
+    "rest_framework_simplejwt",
     "corsheaders",
+    
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -32,7 +35,30 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'django.contrib.sites',
+    'oauth2_provider',
 ]
+
+OAUTH2_PROVIDER = {
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600 * 24 * 7,
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+        'openid': 'OpenID Connect access'
+        }
+}
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'users.authentication.MyJWTAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -43,6 +69,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -58,6 +86,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+
+                'django.template.context_processors.request',
             ],
         },
     },
@@ -136,3 +167,34 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = False
+
+
+LOGIN_REDIRECT_URL = 'dashboard'
+#telling django, if there is no next param, after a login redirect to dash.
+
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+
+AUTH_USER_MODEL = 'users.Account'
+
+CLIENT_SECRET_GOOGLE = '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'
+CLIENT_ID_GOOGLE = '373713270678-0dro9nrh86tlpcse6a4bia0ssf296o8m.apps.googleusercontent.com'
+API_GOOGLE = 'https://accounts.google.com/o/oauth2/v2/auth'
+
+CLIENT_SECRET_42 = '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'
+CLIENT_ID_42 = 'u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6'
+API_42 = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2F42%2Fcallback%2F&response_type=code'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'butgha91826@gmail.com'
+EMAIL_HOST_PASSWORD = 'tayslqbdwnjyrebx'
+
+#TODO what if i log using oauth, and i requested to change my pass.
+
+RESET_BASE_URI = 'http://localhost:8000/api/users/reset_password_success'
+
+RESET_TOKEN_EXP = 300
