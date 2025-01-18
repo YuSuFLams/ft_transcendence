@@ -15,9 +15,10 @@ import axios, { AxiosError } from 'axios';
 interface SignUpProps {
     toggleView: () => void; // Change according to your toggle view logic
     isMobile: boolean;
+    setIsCreated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile }) => {
+const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) => {
     const [hidePass, setHidePass] = useState<boolean>(true);
     const [hideConfirmPass, setHideConfirmPass] = useState<boolean>(true);
     const router = useRouter();
@@ -26,7 +27,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile }) => {
     const inputEmail = useRef<HTMLInputElement | null>(null);
     const inputUsername = useRef<HTMLInputElement | null>(null);
     const inputPassword = useRef<HTMLInputElement | null>(null);
-    const inputConfirmPassword = useRef<HTMLInputElement>(null);
+    const inputConfirmPassword = useRef<HTMLInputElement | null>(null);
     const [error, setError] = useState<Record<string, string>>({});
     const [data, setData] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
@@ -73,12 +74,12 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile }) => {
                     
                     <form className="xl:space-y-4 lg:space-y-3 sm:space-y-3 space-y-1 w-[100%] lg:w-[90%]" onSubmit={ (e) => {
                         handleSubmit(e, inputFname, inputLname, inputEmail, inputUsername, inputPassword,
-                            inputConfirmPassword, setError, setData, setLoading, toggleView)}}>
+                            inputConfirmPassword, setError, setData, setLoading, toggleView, setIsCreated)}}>
                     
                         <div className="flex flex-col lg:flex-row sm:space-y-6 xl:space-x-6 space-y-4 lg:space-y-0 lg:space-x-4">
                             <div className="flex-1">
                                 <input type="text" name="firstName" placeholder="First Name" ref={inputFname} onChange={(e) => {
-                                    handleInputChange(e, setData, setError, inputPassword, inputConfirmPassword, setInputClassName, 
+                                    handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, setInputClassName, 
                                         setInputClassName1)}}
                                     className="w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 
                                     focus:ring-[#aaabbc] placeholder:text-gray-500
@@ -89,7 +90,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile }) => {
                             </div>
                             <div className="flex-1">
                                 <input type="text" name="lastName" placeholder="Last Name" ref={inputLname} onChange={(e) =>{
-                                    handleInputChange(e, setData, setError, inputPassword, inputConfirmPassword, setInputClassName, 
+                                    handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, setInputClassName, 
                                         setInputClassName1)}}
                                     className="w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2
                                     placeholder:text-gray-500 
@@ -109,7 +110,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile }) => {
                                 placeholder:text-gray-500
                                 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left" 
                                 ref={inputUsername}
-                                onChange={(e) =>{ handleInputChange(e, setData, setError, inputPassword, inputConfirmPassword, 
+                                onChange={(e) =>{ handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, 
                                     setInputClassName, setInputClassName1)}}
                             />
                             {error.username && <p className="text-red-600 font-[Font6] text-sm mt-1 lg:mt-1 font-bold line-clamp-2 ">{error.username}</p>}
@@ -117,7 +118,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile }) => {
                         
                         <div>
                             <input type="email" name="email" placeholder="Email" ref={inputEmail} 
-                                onChange={(e) =>{handleInputChange(e, setData, setError, inputPassword, inputConfirmPassword, 
+                                onChange={(e) =>{handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, 
                                     setInputClassName, setInputClassName1)}}
                                 className="w-full p-3 pl-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 
                                 placeholder:text-gray-500
@@ -146,7 +147,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile }) => {
                                         placeholder="Password"
                                         className={inputClassName} // Use the dynamic class name
                                         ref={inputPassword}
-                                        onChange={(e) =>{handleInputChange(e, setData, setError, inputPassword, inputConfirmPassword, 
+                                        onChange={(e) =>{handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, 
                                             setInputClassName, setInputClassName1)}}
                                     />
                                 </div>
@@ -173,7 +174,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile }) => {
                                         placeholder="Confirm Password"
                                         className={inputClassName1}
                                         ref={inputConfirmPassword}
-                                       onChange={(e) =>{handleInputChange(e, setData, setError, inputPassword, inputConfirmPassword, 
+                                       onChange={(e) =>{handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, 
                                     setInputClassName, setInputClassName1)}}
                                         />
                                 </div>

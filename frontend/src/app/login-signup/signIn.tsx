@@ -16,9 +16,10 @@ import Cookie from 'js-cookie';
 interface SignInProps {
     toggleView: () => void; // Change according to your toggle view logic
     isMobile: boolean;
+    setIsLogin: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile }) => {
+const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => {
     const input = useRef<HTMLInputElement | null>(null);
     const inputPassword = useRef<HTMLInputElement | null>(null);
     const [data, setData] = useState<Record<string, string>>({ email: "", password: "" });
@@ -42,8 +43,8 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile }) => {
             const result = await response.json(); // Only call json() once
             console.log(result)
             const url_42 = result.authorize_link;
-            console.log(url_42)
             router.push(url_42);
+            
         } catch (error) {
             console.error('Error during login:', error);
             setError((prev: any) => ({ ...prev, general: 'An unexpected error occurred. Please try again.' }));
@@ -85,7 +86,7 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile }) => {
                     <div className="flex-grow border-t border-t-2 border-[#0e213f]"></div>
                 </div>
                 <form className="space-y-3 md:space-y-6 w-[100%] lg:w-[80%] " onSubmit={(e) => handleSubmit(e, setError, input, 
-                    data, router, setLoading,inputPassword)}>
+                    data, router, setLoading,inputPassword, setIsLogin)}>
                     
                     <div>
                         <input className="w-full p-3 pl-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 

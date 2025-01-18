@@ -49,13 +49,15 @@ const isAllSpaces = (str: string): boolean => {
     return str.trim().length === 0;
 };
 
-const isValidInput = (input: React.RefObject<HTMLInputElement>) => {
-  
+const isValidInput = (input: React.RefObject<HTMLInputElement | null>) => {
     const value = input.current?.value || "";
 
     if (input.current?.type !== 'password') {
-        if (input.current?.value.trim() === "") {
+        if (value === "") {
             return { valid: false, error: 'Field is required' };
+        }
+        if (isAllSpaces(value)) {
+            return { valid: false, error: 'Field does not accept all spaces' };
         }
     } else if (input.current?.type === 'password') {
         if (value.length === 0) {
@@ -64,18 +66,20 @@ const isValidInput = (input: React.RefObject<HTMLInputElement>) => {
         if (isAllSpaces(value)) {
             return { valid: false, error: 'Field does not accept all spaces' };
         }
-        if (value.length < 6) {
-                return { valid: false, error: 'Password must be at least 8 characters long' };
+        if (value.length < 8) {
+            return { valid: false, error: 'Password must be at least 8 characters long' };
         }
     }
     return { valid: true, error: '' };
 };
 
 
-const getAllData = async (
+
+const CreateAccount = async (
     newData:any, setLoading: React.Dispatch<React.SetStateAction<boolean>>,
     setError: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-    toggleView: () => void
+    toggleView: () => void,
+    setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
     try {
         const response = await axios.post( 'http://localhost:8000/api/users/register/', newData,
@@ -86,7 +90,7 @@ const getAllData = async (
             }
         );
     
-        console.log("Success:", response.data);
+        setIsCreated(true);
         toggleView();
         setLoading(false);
     } catch (error: unknown) {
@@ -110,25 +114,25 @@ const handleSubmit = async (
     setError: React.Dispatch<React.SetStateAction<Record<string, string>>>,
     setData: React.Dispatch<React.SetStateAction<Record<string, string>>>,
     setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    toggleView: () => void
+    toggleView: () => void,
+    setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
     e.preventDefault();
 
     let isFormValid = true;
-    const newError: Record<string, string> = {};
-    const newData: Record<string, string> = {};
+    const newError: Record<string, string> = {}; // Initialize an empty error object
+    const newData: Record<string, string> = {}; // Initialize an empty data object
 
-    const fnameValidation = isValidInput(inputFname as React.RefObject<HTMLInputElement>);
-
+    // Check for each field
+    const fnameValidation = isValidInput(inputFname);
     if (!fnameValidation.valid) {
         isFormValid = false;
-        newError.firstName = fnameValidation.error;
+        newError.firstName = fnameValidation.error; // Assign the error message
     } else {
         newData.first_name = inputFname.current?.value || "";
     }
 
-    const lnameValidation = isValidInput(inputLname as React.RefObject<HTMLInputElement> );
-    
+    const lnameValidation = isValidInput(inputLname);
     if (!lnameValidation.valid) {
         isFormValid = false;
         newError.lastName = lnameValidation.error;
@@ -136,8 +140,7 @@ const handleSubmit = async (
         newData.last_name = inputLname.current?.value || "";
     }
 
-    const emailValidation = isValidInput(inputEmail as React.RefObject<HTMLInputElement>);
-    
+    const emailValidation = isValidInput(inputEmail);
     if (!emailValidation.valid) {
         isFormValid = false;
         newError.email = emailValidation.error;
@@ -145,8 +148,7 @@ const handleSubmit = async (
         newData.email = inputEmail.current?.value || "";
     }
 
-    const usernameValidation = isValidInput(inputUsername as React.RefObject<HTMLInputElement>);
-    
+    const usernameValidation = isValidInput(inputUsername);
     if (!usernameValidation.valid) {
         isFormValid = false;
         newError.username = usernameValidation.error;
@@ -154,8 +156,7 @@ const handleSubmit = async (
         newData.username = inputUsername.current?.value || "";
     }
 
-    const passwordValidation = isValidInput(inputPassword as React.RefObject<HTMLInputElement>);
-    
+    const passwordValidation = isValidInput(inputPassword);
     if (!passwordValidation.valid) {
         isFormValid = false;
         newError.password = passwordValidation.error;
@@ -163,33 +164,34 @@ const handleSubmit = async (
         newData.password = inputPassword.current?.value || "";
     }
 
-    const confirmPasswordValidation = isValidInput(inputConfirmPassword as React.RefObject<HTMLInputElement>);
-    
+    const confirmPasswordValidation = isValidInput(inputConfirmPassword);
     if (!confirmPasswordValidation.valid) {
         isFormValid = false;
         newError.confirmPassword = confirmPasswordValidation.error;
     } else {
-        newData.repassword = inputConfirmPassword.current?.value || ""; // Change confirmPassword to repassword
+        newData.repassword = inputConfirmPassword.current?.value || ""; // Use repassword for consistency
     }
 
-    setError(newError);
-    setData(newData);
+    setData(newData); 
+    setError(newError); 
 
     if (!isFormValid) {
+        // If the form is not valid, focus on the first invalid field with all spaces
         for (const ref of [inputFname, inputLname, inputEmail, inputUsername, inputPassword, inputConfirmPassword]) {
             if (ref.current && isAllSpaces(ref.current.value)) {
                 ref.current.focus();
                 break;
             }
         }
-        return;
+        return; // Exit early if the form is not valid
     }
 
+    // Check if password and confirm password match
     if (newData.password !== newData.repassword) {
         setError((prev: any) => ({ ...prev, confirmPassword: 'Passwords do not match' }));
         return;
     }
-    getAllData(newData, setLoading, setError, toggleView);
+    CreateAccount(newData, setLoading, setError, toggleView, setIsCreated);
 }
 
 const handleInputChange = (

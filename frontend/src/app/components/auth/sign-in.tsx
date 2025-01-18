@@ -53,6 +53,7 @@ const handleSubmit = async ( e: React.FormEvent<HTMLFormElement>,
     input: React.RefObject<HTMLInputElement | null>, data: Record<string, string>,
     router: any, setLoading: React.Dispatch<React.SetStateAction<boolean>>,
     inputPassword: React.RefObject<HTMLInputElement | null>,
+    setIsLogin: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
     e.preventDefault();
     
@@ -85,7 +86,10 @@ const handleSubmit = async ( e: React.FormEvent<HTMLFormElement>,
             if (result.Success && result.access && result.refresh) {
                 Cookie.set("access", result.access);
                 Cookie.set("refresh", result.refresh);
-                router.push('/game');
+                setIsLogin(true);
+                setTimeout(() => {
+                    router.push('/game');
+                }, 3000);
             } else {
                 const errorMsg = result.error || 'Login failed. Please try again.';
                 setError((prev: any) => ({ ...prev, general: errorMsg }));
