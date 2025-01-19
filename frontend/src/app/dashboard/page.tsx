@@ -4,7 +4,7 @@ const DashboardPage = () => {
     return (
         <div className="relative w-screen h-screen bg-gradient-to-br from-[#001219] via-[#031D44] to-[#062A78] overflow-hidden flex items-center justify-center">
 			{/* Glowing Overlay */}
-			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.05)_0%,_rgba(0,0,0,0.8)_100%)]"></div>
+			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.05)_0%,_rgba(0,0,0,0.8)_40%)]"></div>
 
             <h1 className="text-8xl">Home Page Text</h1>
 

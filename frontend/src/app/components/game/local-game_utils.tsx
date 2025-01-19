@@ -1,7 +1,7 @@
 "use client";
 
 import Cookie from "js-cookie";
-import pictureRight from "@/../public/Image/picture1.jpg";
+import pictureRight from "@/../public/Image/picture1.jpg"
 import pictureLeft from "@/../public/Image/picture2.jpg";
 import Image from "next/image";
 import React, { useState } from "react";
@@ -17,14 +17,14 @@ const handleCreateGame = ( player1: string, player2: string, setGameCreated: Rea
     let valid = true;
 
     if (!trimmedPlayer1) {
-        setPlayer1Error("Player 1 name cannot be empty!");
+        setPlayer1Error("Player name cannot be empty");
         valid = false;
     } else {
         setPlayer1Error("");
     }
 
     if (!trimmedPlayer2) {
-        setPlayer2Error("Player 2 name cannot be empty!");
+        setPlayer2Error("Player name cannot be empty");
         valid = false;
     } else {
         setPlayer2Error("");
@@ -59,14 +59,13 @@ const UserCard: React.FC<CardPlayersProps> = ({ player, picture, username, playe
             focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600 transition duration-300 shadow-lg" 
             type="text" value={username} placeholder={player} onChange={(e) => setPlayer(e.target.value)} />
 
-            {playerError && ( <p className="mt-2 ml-4 text-lg font-[Font2] text-red-500">{playerError}</p>)}
+            {playerError && ( <p className="mt-2 text-lg font-[Font3] text-red-500">{playerError}</p>)}
         </div>
     )
 }
 
 interface CreateGameProps {
-    playerLeft: string;
-    playerRight: string;
+    playerLeft: string; playerRight: string;
     setGameCreated: React.Dispatch<React.SetStateAction<boolean>>;
     setPlayer1Error: React.Dispatch<React.SetStateAction<string>>;
     setPlayer2Error: React.Dispatch<React.SetStateAction<string>>;
@@ -100,10 +99,10 @@ const BackButton: React.FC<{router: any}> = ({ router }) => {
 const RulesButton: React.FC<{setIsClicked: React.Dispatch<React.SetStateAction<boolean>>}> = ({ setIsClicked }) => {
     return (
         <div className="absolute bottom-4 text-[#0D0D0D] hover:text-[#FBF2ED] right-4">
-            <motion.button onClick={() => setIsClicked(true)} className="group px-3 font-[Font6] py-2 rounded-full bg-indigo-600 font-semibold 
-            tracking-wide shadow-xl transition transform duration-300 hover:scale-110 flex items-center">
-            <HiQuestionMarkCircle size={30} className="mr-2" />
-            Rules
+            <motion.button onClick={() => setIsClicked(true)} className="group px-3 font-[Font6] py-2 rounded-full bg-indigo-600 
+            font-semibold tracking-wide shadow-xl transition transform duration-300 hover:scale-110 flex items-center">
+                <HiQuestionMarkCircle size={30} className="mr-2" /> 
+                Rules
             </motion.button>
         </div>
     )
@@ -111,8 +110,7 @@ const RulesButton: React.FC<{setIsClicked: React.Dispatch<React.SetStateAction<b
 
 
 interface PreGameLocalProps {
-    playerLeft: string;
-    playerRight: string;
+    playerLeft: string; playerRight: string;
     setGameCreated: React.Dispatch<React.SetStateAction<boolean>>;
     setPlayerLeft: React.Dispatch<React.SetStateAction<string>>;
     setPlayerRight: React.Dispatch<React.SetStateAction<string>>;

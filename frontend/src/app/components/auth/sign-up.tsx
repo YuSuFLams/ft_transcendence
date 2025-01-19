@@ -1,233 +1,244 @@
-import React, { ChangeEvent } from "react";
-import Cookie from 'js-cookie';
+"use client"
+
+import { HalfSideSignIn, handleInputChange, handleSubmit } from "./sign-up_utils";
+
+
 import { motion } from "framer-motion";
-import axios, {AxiosError} from 'axios';
+import { message } from 'antd';
+import { FaEye, FaGoogle } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
+import React, { useRef, useState, ChangeEvent } from "react";
+import { useRouter } from 'next/navigation';
+import { Si42 } from "react-icons/si";
+import axios, { AxiosError } from 'axios';
 
-
-interface SignInProps {
-    toggleView: () => void
+interface SignUpProps {
+    toggleView: () => void; // Change according to your toggle view logic
+    isMobile: boolean;
+    setIsCreated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const HalfSideSignIn:React.FC <SignInProps> = ({toggleView}) => {
-    return (
-        <div className="w-[50%] h-full bg-[#0e213f] rounded-r-2xl flex flex-col items-center justify-center p-8 space-y-6 shadow-lg relative">
+const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) => {
+    const [hidePass, setHidePass] = useState<boolean>(true);
+    const [hideConfirmPass, setHideConfirmPass] = useState<boolean>(true);
+    const router = useRouter();
+    const inputFname = useRef<HTMLInputElement | null>(null);
+    const inputLname = useRef<HTMLInputElement | null>(null);
+    const inputEmail = useRef<HTMLInputElement | null>(null);
+    const inputUsername = useRef<HTMLInputElement | null>(null);
+    const inputPassword = useRef<HTMLInputElement | null>(null);
+    const inputConfirmPassword = useRef<HTMLInputElement | null>(null);
+    const [error, setError] = useState<Record<string, string>>({});
+    const [data, setData] = useState<Record<string, string>>({});
+    const [loading, setLoading] = useState(false);
+    const [inputClassName, setInputClassName] = useState("w-full p-3 pl-4 rounded-lg placeholder:text-gray-500 shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
+                                    focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
+    const [inputClassName1, setInputClassName1] = useState("w-full p-3 pl-4 placeholder:text-gray-500 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
+                                    focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
 
-            <div className="w-full absolute bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.05)_0%,_rgba(0,0,0,0.8)_100%)] 
-                inset-y-0 right-0 pointer-events-none "></div>
+    
+    
+    
+    
+
+    
         
-            <motion.div className="h-full rounded-r-2xl space-y-8 flex flex-col items-center justify-center p-8 space-y-6 shadow-lg 
-                relative z-10" animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
-            >
-                <div>
-                    <h1 className="text-[2.9em] font-[Font3]">
-                        🌟 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ffcc00] to-[#ff6600]">Welcome to Ping Pong Universe!</span> 🎮
-                    </h1>
-                </div>
 
-                <div>
-                    <p className="text-[#f3f3f3] text-3xl font-[Font4] font-extrabold text-center max-w-md">
-                        <span className="text-gray-300"> Get in the game, make new friends, and enjoy some 
-                            <span className="text-[#ffcc00]">ping pong</span> fun!</span> 🏓💥
-                    </p>
-                </div>
-        
-                <div>
-
-                <motion.button className="text-[#001219] bg-[#aaabbc] font-[Font3] text-3xl font-extrabold px-6 py-2 rounded-lg 
-                    shadow-md transition-transform duration-300 ease-in-out hover:scale-105 z-20" whileHover={{ scale: 1.15 }}
-                    onClick={toggleView} whileTap={{ scale: 0.15 }} aria-label="Toggle to Sign In"
-                >
-                    Sign In 
-                </motion.button>
-                </div>
-            </motion.div>
-        </div>
-    )
-}
-
-const isAllSpaces = (str: string): boolean => {
-    return str.trim().length === 0;
-};
-
-const isValidInput = (input: React.RefObject<HTMLInputElement | null>) => {
-    const value = input.current?.value || "";
-
-    if (input.current?.type !== 'password') {
-        if (value === "") {
-            return { valid: false, error: 'Field is required' };
-        }
-        if (isAllSpaces(value)) {
-            return { valid: false, error: 'Field does not accept all spaces' };
-        }
-    } else if (input.current?.type === 'password') {
-        if (value.length === 0) {
-            return { valid: false, error: 'Field is required' };
-        }
-        if (isAllSpaces(value)) {
-            return { valid: false, error: 'Field does not accept all spaces' };
-        }
-        if (value.length < 8) {
-            return { valid: false, error: 'Password must be at least 8 characters long' };
-        }
-    }
-    return { valid: true, error: '' };
-};
-
-
-
-const CreateAccount = async (
-    newData:any, setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    setError: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-    toggleView: () => void,
-    setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
-) => {
-    try {
-        const response = await axios.post( 'http://localhost:8000/api/users/register/', newData,
-            {
+    const handleIntraLogin = async () => {
+        try {
+            const response = await fetch('http://localhost:8000/api/users/42/', {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }
-        );
-    
-        setIsCreated(true);
-        toggleView();
-        setLoading(false);
-    } catch (error: unknown) {
-        if (error instanceof AxiosError) {
-          console.log("Backend Error Response:", error.response?.data['0']);
-          setError((prev: any) => ({ ...prev, general: error.response?.data['0'] || 'Registration failed.' }));
-        } else {
-          setError((prev: any) => ({ ...prev, general: 'Network error: Could not connect to the server.' }));
+            });
+            const result = await response.json(); // Only call json() once
+            console.log(result)
+            const url_42 = result.authorize_link;
+            console.log(url_42)
+            router.push(url_42);
+            // window.location.href = url_42;
+        } catch (error) {
+            console.error('Error during login:', error);
+            setError((prev: any) => ({ ...prev, general: 'An unexpected error occurred. Please try again.' }));
         }
     }
+
+    return (
+        <>
+            <div className="flex w-full h-full ">
+                <motion.div className="w-[50%]  lg:mt-0 h-full bg-[#aaabbc] rounded-l-2xl flex flex-col items-center justify-center p-8 
+                xl:space-y-4 space-y-2 mb-10">
+
+                    <h2 className="lg:text-5xl text-3xl font-[Font3] text-black font-extrabold text-center lg:mb-2 xl:mb-6 ">Create Account.</h2>
+                    
+                    <form className="xl:space-y-4 lg:space-y-3 sm:space-y-3 space-y-1 w-[100%] lg:w-[90%]" onSubmit={ (e) => {
+                        handleSubmit(e, inputFname, inputLname, inputEmail, inputUsername, inputPassword,
+                            inputConfirmPassword, setError, setData, setLoading, toggleView, setIsCreated)}}>
+                    
+                        <div className="flex flex-col lg:flex-row sm:space-y-6 xl:space-x-6 space-y-4 lg:space-y-0 lg:space-x-4">
+                            <div className="flex-1">
+                                <input type="text" name="firstName" placeholder="First Name" ref={inputFname} onChange={(e) => {
+                                    handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, setInputClassName, 
+                                        setInputClassName1)}}
+                                    className="w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 
+                                    focus:ring-[#aaabbc] placeholder:text-gray-500
+                                     focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left"
+                                />
+                                
+                                {error.firstName && <p className="text-red-600 font-[Font6] text-sm mt-1 lg:mt-1 font-bold line-clamp-2">{error.firstName}</p>}
+                            </div>
+                            <div className="flex-1">
+                                <input type="text" name="lastName" placeholder="Last Name" ref={inputLname} onChange={(e) =>{
+                                    handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, setInputClassName, 
+                                        setInputClassName1)}}
+                                    className="w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2
+                                    placeholder:text-gray-500 
+                                    focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left" 
+                                />
+
+                                {error.lastName && <p className="text-red-600 font-[Font6] text-sm mt-1 lg:mt-1 font-bold line-clamp-2">{error.lastName}</p>}
+                            </div>
+                        </div>
+                    
+                        <div>
+                            <input
+                                type="text"
+                                name="username"
+                                placeholder="Username"
+                                className="w-full p-3 pl-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2
+                                placeholder:text-gray-500
+                                focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left" 
+                                ref={inputUsername}
+                                onChange={(e) =>{ handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, 
+                                    setInputClassName, setInputClassName1)}}
+                            />
+                            {error.username && <p className="text-red-600 font-[Font6] text-sm mt-1 lg:mt-1 font-bold line-clamp-2 ">{error.username}</p>}
+                        </div>
+                        
+                        <div>
+                            <input type="email" name="email" placeholder="Email" ref={inputEmail} 
+                                onChange={(e) =>{handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, 
+                                    setInputClassName, setInputClassName1)}}
+                                className="w-full p-3 pl-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 
+                                placeholder:text-gray-500
+                                focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left"
+                            />
+
+                            {error.email && <p className="text-red-600 font-[Font6] text-sm mt-0 lg:mt-1 font-bold line-clamp-2">{error.email}</p>}
+                        </div>
+                        
+                        <div className="flex w-full flex-col lg:flex-row sm:space-y-6 space-y-4 xl:space-x-6 lg:space-y-0 lg:space-x-4">
+                            <div className="flex-1">
+                                <div className="flex-1 w-full relative">
+                                    <span
+                                        className="absolute  top-1/2 right-3 text-black font-[Font4] text-black transform -translate-y-1/2 cursor-pointer"
+                                        onClick={() => setHidePass(!hidePass)}
+                                    >
+                                        {hidePass ? (
+                                            <FaEyeSlash style={{ width: 22, height: 22 }} />
+                                        ) : (
+                                            <FaEye style={{ width: 22, height: 22 }} />
+                                        )}
+                                    </span>
+                                    <input
+                                        type={hidePass ? 'password' : 'text'}
+                                        name="password"
+                                        placeholder="Password"
+                                        className={inputClassName} // Use the dynamic class name
+                                        ref={inputPassword}
+                                        onChange={(e) =>{handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, 
+                                            setInputClassName, setInputClassName1)}}
+                                    />
+                                </div>
+                                {error.password && (
+                                    <p className="text-red-600 font-[Font6] text-sm mt-0 lg:mt-1 font-bold line-clamp-2">{error.password}</p>
+                                )}
+                            </div>
+
+                            <div className="flex-1 w-full relative">
+                                <div className="flex-1 w-full relative">
+                                    <span
+                                        className="absolute top-1/2 right-3 text-black transform -translate-y-1/2 cursor-pointer"
+                                        onClick={() => setHideConfirmPass(!hideConfirmPass)}
+                                        >
+                                        {hideConfirmPass ? (
+                                            <FaEyeSlash style={{ width: 22, height: 22 }} />
+                                        ) : (
+                                            <FaEye style={{ width: 22, height: 22 }} />
+                                        )}
+                                    </span>
+                                    <input
+                                        type={hideConfirmPass ? 'password' : 'text'}
+                                        name="confirmPassword"
+                                        placeholder="Confirm Password"
+                                        className={inputClassName1}
+                                        ref={inputConfirmPassword}
+                                       onChange={(e) =>{handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, 
+                                    setInputClassName, setInputClassName1)}}
+                                        />
+                                </div>
+                                {error.confirmPassword && (
+                                    <p className="text-red-600 font-[Font6] text-sm mt-0 lg:mt-1 font-bold line-clamp-2">{error.confirmPassword}</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Add Sign-In Form Elements Here */}
+                        <motion.div className="flex items-center justify-center">
+                            <motion.button className="sm:mt-2 lg:mt-0 items-center w-[40%] text-white bg-[#0e213f] px-4 py-2 lg:px-8 
+                                lg:py-3 rounded-lg font-[Font4] text-2xl shadow-md transition-transform duration-300 ease-in-out hover:scale-105 
+                                hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0e213f] focus:ring-opacity-50"
+                                whileHover={{ scale: 1.05 }} type="submit" style={loading ? { opacity: 0.5 } : {}} disabled={loading}
+                                whileTap={{ scale: 0.95 }} aria-label="Sign Up"
+                            >
+                                {loading ? 'Signing Up...' : 'Sign Up'}
+                            </motion.button>
+                        </motion.div>
+                        {error.general && <p className=" text-center text-red-600 text-sm mt-0 lg:mt-1 font-bold line-clamp-2">{error.general}</p>}
+                    </form>
+                    {isMobile && <div className=" flex items-center justify-center">
+                        <p className="text-[#0e213f]  lg:text-xl">Already have an account? <button className="text-black underline text-xl" onClick={toggleView}>Sign In</button></p>
+                    </div>}
+
+                    {/* Sign Up View */}
+                    <div className="xl:my-6 flex items-center  w-full">
+                        <div className="flex-grow border-t border-t-2 border-[#0e213f]"></div>
+                        <span className="mx-4 text-lg text-[#0e213f]">Or sign in with email</span>
+                        <div className="flex-grow border-t border-t-2 border-[#0e213f]"></div>
+                    </div>
+                    <motion.div className="flex xl:px-20 px-8 justify-between items-center w-full">
+                        <motion.button
+                            className="w-[50%] justify-center font-[Font4] max-w-[150px] h-[56px] bg-[#0e213f] text-white text-lg 
+                                space-x-4 rounded-xl shadow flex items-center mr-4 p-2"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
+                        >
+                            <FaGoogle style={{ width: 24, height: 24 }} />
+                            <span className="text-2xl">Google</span>
+                        </motion.button>
+                        <motion.button
+                            className="w-[50%] justify-center font-[Font4] max-w-[150px] p-2 h-[56px] bg-[#0e213f] text-white text-lg rounded-xl shadow
+                            space-x-4 flex items-center"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
+                            onClick={handleIntraLogin}
+                        >
+                            <Si42 style={{ width: 24, height: 24 }} />
+                            <span className="text-2xl ">Intra</span>
+                        </motion.button>
+                    </motion.div>
+
+                </motion.div>
+
+
+                {!isMobile && <HalfSideSignIn toggleView={toggleView} />}
+
+            </div>
+        </>
+    );
 }
 
-const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>,
-    inputFname: React.RefObject<HTMLInputElement | null>,
-    inputLname: React.RefObject<HTMLInputElement | null>,
-    inputEmail: React.RefObject<HTMLInputElement | null>,
-    inputUsername: React.RefObject<HTMLInputElement | null>,
-    inputPassword: React.RefObject<HTMLInputElement | null>,
-    inputConfirmPassword: React.RefObject<HTMLInputElement | null>,
-    setError: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-    setData: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    toggleView: () => void,
-    setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
-) => {
-    e.preventDefault();
-
-    let isFormValid = true;
-    const newError: Record<string, string> = {}; // Initialize an empty error object
-    const newData: Record<string, string> = {}; // Initialize an empty data object
-
-    // Check for each field
-    const fnameValidation = isValidInput(inputFname);
-    if (!fnameValidation.valid) {
-        isFormValid = false;
-        newError.firstName = fnameValidation.error; // Assign the error message
-    } else {
-        newData.first_name = inputFname.current?.value || "";
-    }
-
-    const lnameValidation = isValidInput(inputLname);
-    if (!lnameValidation.valid) {
-        isFormValid = false;
-        newError.lastName = lnameValidation.error;
-    } else {
-        newData.last_name = inputLname.current?.value || "";
-    }
-
-    const emailValidation = isValidInput(inputEmail);
-    if (!emailValidation.valid) {
-        isFormValid = false;
-        newError.email = emailValidation.error;
-    } else {
-        newData.email = inputEmail.current?.value || "";
-    }
-
-    const usernameValidation = isValidInput(inputUsername);
-    if (!usernameValidation.valid) {
-        isFormValid = false;
-        newError.username = usernameValidation.error;
-    } else {
-        newData.username = inputUsername.current?.value || "";
-    }
-
-    const passwordValidation = isValidInput(inputPassword);
-    if (!passwordValidation.valid) {
-        isFormValid = false;
-        newError.password = passwordValidation.error;
-    } else {
-        newData.password = inputPassword.current?.value || "";
-    }
-
-    const confirmPasswordValidation = isValidInput(inputConfirmPassword);
-    if (!confirmPasswordValidation.valid) {
-        isFormValid = false;
-        newError.confirmPassword = confirmPasswordValidation.error;
-    } else {
-        newData.repassword = inputConfirmPassword.current?.value || ""; // Use repassword for consistency
-    }
-
-    setData(newData); 
-    setError(newError); 
-
-    if (!isFormValid) {
-        // If the form is not valid, focus on the first invalid field with all spaces
-        for (const ref of [inputFname, inputLname, inputEmail, inputUsername, inputPassword, inputConfirmPassword]) {
-            if (ref.current && isAllSpaces(ref.current.value)) {
-                ref.current.focus();
-                break;
-            }
-        }
-        return; // Exit early if the form is not valid
-    }
-
-    // Check if password and confirm password match
-    if (newData.password !== newData.repassword) {
-        setError((prev: any) => ({ ...prev, confirmPassword: 'Passwords do not match' }));
-        return;
-    }
-    CreateAccount(newData, setLoading, setError, toggleView, setIsCreated);
-}
-
-const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement>,
-    setError: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-    setData: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-    inputPassword: React.RefObject<HTMLInputElement | null>,
-    inputConfirmPassword: React.RefObject<HTMLInputElement | null>,
-    setInputClassName: React.Dispatch<React.SetStateAction<string>>,
-    setInputClassName1: React.Dispatch<React.SetStateAction<string>>
-) => {
-    const { name, value } = e.target;
-    setData((prev) => ({ ...prev, [name]: value }));
-    setError((prev) => ({ ...prev, [name]: "" }));
-
-    // Handle password validation within the change handler
-    if (name === "password") {
-        if (value.length > 0 && value.length < 6 && inputPassword.current) {
-            inputPassword.current.focus();
-            setInputClassName("w-[100%] p-3 pl-4 rounded-lg shadow-md focus:outline-none  placeholder:text-lg border-2 border-red-500 \
-            focus:ring-2 focus:ring-[#aaabbc]  focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
-        } else {
-            setInputClassName("w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
-                focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
-        }
-    }
-    else if (name === "confirmPassword") {
-        if (value.length > 0 && value.length < 6 && inputConfirmPassword.current) {
-            inputConfirmPassword.current.focus();
-            setInputClassName1("w-[100%] p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg border-2 border-red-500  \
-                focus:ring-2 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
-        } else {
-            setInputClassName1("w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2  \
-                focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
-        }
-    }
-};
-
-export {HalfSideSignIn, isValidInput, handleSubmit, handleInputChange};
+export default SignUp;
