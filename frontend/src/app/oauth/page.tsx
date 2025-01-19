@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import './waiting.modue.css'
+import Cookie from 'js-cookie';
 
 const OAuthPage = () => {
   const searchParams = useSearchParams();
@@ -14,12 +15,11 @@ const OAuthPage = () => {
 
   useEffect(() => {
     const handleOAuth = async () => {
-      if (code && state) {
-        console.log(`OAuth code: ${code}, state: ${state}`);
+      if (code) {
 
         // Construct the URL with query parameters
         const url = `http://localhost:8000/api/users/42/callback/?code=${code}`;
-
+        
         try {
           // Make the GET request
           const response = await fetch(url, {
@@ -32,10 +32,12 @@ const OAuthPage = () => {
           if (response.ok) {
             const result = await response.json(); // Await the response to parse it as JSON
             console.log(result);
+            Cookie.set('access', result.access_token);
+            Cookie.set('refresh', result.refresh_token);
             // Optionally, redirect after a successful callback
-            router.push('/game');
+            router.push('/dashboard');
           } else {
-            console.error('Failed to fetch OAuth callback:', response.status);
+            // console.error('Failed to fetch OAuth callback:', response.status);
           }
         } catch (error) {
           console.error('Error during OAuth callback:', error);

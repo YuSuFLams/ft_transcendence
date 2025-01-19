@@ -7,3 +7,4 @@ django-cors-headers
 Pillow==10.3.0
 django-oauth-toolkit
 requests
+django-oauth-toolkit

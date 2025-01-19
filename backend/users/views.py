@@ -1,14 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import  redirect
 from django.contrib.auth.password_validation import validate_password
 from .models import Account
 from .serializer import (
-                         RegisterSerializer,)
+                         RegisterSerializer)
 
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
+from rest_framework.permissions import  AllowAny
 
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
+from rest_framework.response import Response
 
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 import jwt, json, requests
@@ -187,12 +187,13 @@ def oauth2_42_callback(request):
     except:
         return(Response('No code found', status=400))
 
+    print("Code :", code)
     token_url = 'https://api.intra.42.fr/oauth/token'
     data = {
         'code':code,
         'client_id' : settings.CLIENT_ID_42,
         'client_secret': settings.CLIENT_SECRET_42,
-        'redirect_uri' : 'http://localhost:8000/oauth2/42/callback/',
+        'redirect_uri' : 'http://localhost:3000/oauth/',
         'grant_type': 'authorization_code'
     }
 
@@ -227,7 +228,7 @@ def oauth2_42_callback(request):
     access_token = AccessToken.for_user(user)
 
     res = Response()
-    res.data = {'Success':True, 'access':str(access_token), 'refresh':str(refresh_token)}
+    res.data = {'Success':True, 'access_token':str(access_token), 'refresh_token':str(refresh_token)}
 
     res.set_cookie(
         key='access_token',
@@ -244,4 +245,4 @@ def oauth2_42_callback(request):
         httponly=True,
         path='/'
     )
-    return Response(res.data, status=200)
+    return res

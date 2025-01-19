@@ -183,8 +183,7 @@ API_GOOGLE = 'https://accounts.google.com/o/oauth2/v2/auth'
 
 CLIENT_SECRET_42 = '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'
 CLIENT_ID_42 = 'u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6'
-API_42 = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2F42%2Fcallback%2F&response_type=code'
-
+API_42 = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Foauth%2F&response_type=code'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

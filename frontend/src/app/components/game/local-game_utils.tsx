@@ -151,7 +151,7 @@ const RulesGameLocal: React.FC<{ isClicked: boolean; onClose: () => void }> = ({
         "Two players compete against each other.",
         "Score points if opponent fails to return properly.",
         "First to 5 points wins the match.",
-        'Player 1: "W" to move Left, "S" to move Right.',
+        'Player 1: "A" to move Left, "D" to move Right.',
         'Player 2: Use "Left" and "Right" arrows.'
     ]
 

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BackButton, PreGameLocal, RulesButton, RulesGameLocal } from "@/app/components/game/local-game_utils"
 import Cookie from 'js-cookie';
+import { motion } from "framer-motion";
 
 interface GameLocalPre {
     playerLeft: string; playerRight: string; isClicked:boolean;
@@ -38,8 +39,17 @@ const GameLocalPre: React.FC<GameLocalPre> = ({
                 <div> <RulesButton setIsClicked={setIsClicked} /> </div>  
             </div>
 
-            <div className="absolute w-[300px] h-[300px] bg-purple-400 rounded-full opacity-30 blur-3xl animate-move-up left-10 top-10"></div>
-            <div className="absolute w-[200px] h-[200px] bg-blue-500 rounded-full opacity-30 blur-3xl animate-move-down right-20 bottom-20"></div>
+            <motion.div className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-50 blur-sm animate-particle left-[30%] top-[20%]"
+                animate={{ x: [0, 20, -20, 0], y: [0, -20, 20, 0],}} transition={{ duration: 3, repeat: Infinity, repeatDelay: 1, ease: "easeInOut",}}
+                ></motion.div>
+
+            <motion.div className="absolute w-3 h-3 bg-pink-500 rounded-full opacity-60 blur-md animate-particle right-[25%] bottom-[15%]"
+                animate={{ x: [0, -30, 30, 0], y: [0, -30, 30, 0],}} transition={{ duration: 4, repeat: Infinity, repeatDelay: 1, ease: "easeInOut",}}
+            ></motion.div>
+
+            <motion.div className="absolute w-3 h-3 bg-pink-500 rounded-full opacity-60 blur-md animate-particle right-[15%] bottom-[45%]"
+                animate={{ x: [0, 40, -40, 0], y: [0, -40, 40, 0], }} transition={{ duration: 5, repeat: Infinity, repeatDelay: 2, ease: "easeInOut",}}
+            ></motion.div>
         </div>
     )
 } 

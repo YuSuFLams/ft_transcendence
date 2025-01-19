@@ -77,12 +77,19 @@ const NotFound = () => {
 			</motion.div>
 
 
-			<motion.div className="absolute bottom-4 right-10 text-center mb-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 1 }}>
-			
-				<FaHome className="text-3xl text-[#FBF5DD] opacity-80 hover:text-gray-200 cursor-pointer transition-colors duration-300 ease-in-out"
-					style={{ width: 60, height: 60 }} onClick={() => router.push("/")}/>
+			<motion.div 
+				className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-center"
+				initial={{ opacity: 0 }} 
+				animate={{ opacity: 1 }} 
+				transition={{ duration: 1, delay: 1 }}
+				>
+				<FaHome 
+					className="text-3xl text-[#FBF5DD] opacity-80 hover:text-gray-200 cursor-pointer transition-colors duration-300 ease-in-out"
+					style={{ width: 60, height: 60 }} 
+					onClick={() => router.push("/")}
+				/>
+				</motion.div>
 
-			</motion.div>
 			<div className="absolute top-4 left-0 right-0 text-center mt-4 text-xs text-gray-300">
 				<p className="text-lg font-[Font2] font-semibold text-transparent text-[#DBD3D3] shadow-lg mb-4">
 					Error 404: This page is lost in the void!
