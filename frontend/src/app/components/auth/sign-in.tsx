@@ -12,6 +12,9 @@ import { useRouter } from "next/navigation"; // Uncomment this line
 import { Si42 } from "react-icons/si";
 import { message } from "antd";
 import Cookie from 'js-cookie';
+import { Intra42 } from "./oauth";
+
+
 
 interface SignInProps {
     toggleView: () => void; // Change according to your toggle view logic
@@ -26,30 +29,11 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
     const [error, setError] = useState<Record<string, string>>({});
     const [hidePass, setHidePass] = useState<boolean>(true);
     const [loading, setLoading] = useState<boolean>(false);
-    const router = useRouter(); // Add this line
-
-    
+    const router = useRouter();
     const [inputClassName, setInputClassName] = useState<string>("w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
                                     placeholder:text-gray-500 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
 
-    const Intra42 = async () => {
-        try {
-            const response = await fetch('http://localhost:8000/api/users/42/', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            const result = await response.json(); // Only call json() once
-            console.log(result)
-            const url_42 = result.authorize_link;
-            router.push(url_42);
-            
-        } catch (error) {
-            console.error('Error during login:', error);
-            setError((prev: any) => ({ ...prev, general: 'An unexpected error occurred. Please try again.' }));
-        }
-    }
+    
 
     return (
         <div className="flex w-full h-full  items-center  ">
@@ -73,7 +57,7 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
                     
                     <motion.button className="w-[50%] justify-center font-[Font4] max-w-[180px] h-[56px] bg-[#0e213f] text-white text-lg 
                         space-x-4 rounded-xl shadow flex items-center mr-4 p-2" transition={{ type: 'spring', stiffness: 300 }}
-                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={Intra42}
+                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => Intra42(router, setError)}
                     >
                         <Si42 style={{ width: 24, height: 24 }} />
                         <span className="text-2xl">Intra</span>

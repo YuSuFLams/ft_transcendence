@@ -171,4 +171,27 @@ const OAuthPage = () => {
 };
 
 
+const Intra42 = async (
+	router:any, setError: React.Dispatch<React.SetStateAction<Record<string, string>>>
+) => {
+	try {
+		const response = await fetch('http://localhost:8000/api/users/42/', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
+		const result = await response.json(); // Only call json() once
+		console.log(result)
+		const url_42 = result.authorize_link;
+		router.push(url_42);
+		
+	} catch (error) {
+		console.error('Error during login:', error);
+		setError((prev: any) => ({ ...prev, general: 'An unexpected error occurred. Please try again.' }));
+	}
+};
+
+export { Intra42 };
+
 export default OAuthPage

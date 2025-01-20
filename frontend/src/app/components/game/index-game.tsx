@@ -8,10 +8,8 @@ import { useState, useEffect } from "react";
 
 const PageGame = () => {
     const router = useRouter();
-
     const [cursor, setCursor] = useState("default");
 
-    // Function to change cursor style
     const handleMouseEnter = () => setCursor("pointer");
     const handleMouseLeave = () => setCursor("default");
 
@@ -49,7 +47,7 @@ const PageGame = () => {
         {
             label: "Tournament Local",
             icon: <FaDice size={60} className="text-[#16404D]" />,
-            path: "/my/tournament-local",
+            path: "/game/tournament-local",
             delay: 0.2
         },
         {

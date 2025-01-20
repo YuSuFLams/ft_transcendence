@@ -88,10 +88,11 @@ const CreateAccount = async (
                 },
             }
         );
-    
-        setIsCreated(true);
-        toggleView();
-        setLoading(false);
+        if (response.status === 200) {
+            setIsCreated(true);
+            toggleView();
+            setLoading(false);
+        }
     } catch (error: unknown) {
         if (error instanceof AxiosError) {
           console.log("Backend Error Response:", error.response?.data['0']);
@@ -119,14 +120,13 @@ const handleSubmit = async (
     e.preventDefault();
 
     let isFormValid = true;
-    const newError: Record<string, string> = {}; // Initialize an empty error object
-    const newData: Record<string, string> = {}; // Initialize an empty data object
+    const newError: Record<string, string> = {}; 
+    const newData: Record<string, string> = {}; 
 
-    // Check for each field
     const fnameValidation = isValidInput(inputFname);
     if (!fnameValidation.valid) {
         isFormValid = false;
-        newError.firstName = fnameValidation.error; // Assign the error message
+        newError.firstName = fnameValidation.error; 
     } else {
         newData.first_name = inputFname.current?.value || "";
     }
@@ -168,24 +168,22 @@ const handleSubmit = async (
         isFormValid = false;
         newError.confirmPassword = confirmPasswordValidation.error;
     } else {
-        newData.repassword = inputConfirmPassword.current?.value || ""; // Use repassword for consistency
+        newData.repassword = inputConfirmPassword.current?.value || ""; 
     }
 
     setData(newData); 
     setError(newError); 
 
     if (!isFormValid) {
-        // If the form is not valid, focus on the first invalid field with all spaces
         for (const ref of [inputFname, inputLname, inputEmail, inputUsername, inputPassword, inputConfirmPassword]) {
             if (ref.current && isAllSpaces(ref.current.value)) {
                 ref.current.focus();
                 break;
             }
         }
-        return; // Exit early if the form is not valid
+        return; 
     }
 
-    // Check if password and confirm password match
     if (newData.password !== newData.repassword) {
         setError((prev: any) => ({ ...prev, confirmPassword: 'Passwords do not match' }));
         return;
@@ -206,7 +204,6 @@ const handleInputChange = (
     setData((prev) => ({ ...prev, [name]: value }));
     setError((prev) => ({ ...prev, [name]: "" }));
 
-    // Handle password validation within the change handler
     if (name === "password") {
         if (value.length > 0 && value.length < 6 && inputPassword.current) {
             inputPassword.current.focus();
