@@ -12,7 +12,7 @@ const HalfSideSignIn:React.FC <SignInProps> = ({toggleView}) => {
     return (
         <div className="w-[50%] h-full bg-[#0e213f] rounded-r-2xl flex flex-col items-center justify-center p-8 space-y-6 shadow-lg relative">
 
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.05)_0%,_rgba(0,0,0,0.8)_100%)]"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.025)_0%,rgba(0,0,0,0.4)_100%)]"></div>
 
             <motion.div className="h-full rounded-r-2xl space-y-8 flex flex-col items-center justify-center p-8 space-y-6 shadow-lg 
                 relative z-10" animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}

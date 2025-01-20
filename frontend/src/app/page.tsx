@@ -19,7 +19,7 @@ const HomePage = () => {
 				<div className="absolute w-[300px] h-[300px] bg-blue-500 opacity-15 blur-[100px] right-[-50px] bottom-[-50px]"></div>
 			</div>
 
-			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.05)_0%,_rgba(0,0,0,0.8)_100%)]/2"></div>
+			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.025)_0%,rgba(0,0,0,0.4)_100%)]/2"></div>
 
 
 			<div className="relative flex flex-col items-center justify-center z-10 text-center">

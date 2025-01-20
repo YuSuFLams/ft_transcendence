@@ -70,12 +70,12 @@ const PageGame = () => {
                 <div className="absolute w-[300px] h-[300px] bg-blue-500 opacity-15 blur-[100px] right-[-50px] bottom-[-50px] animate__fadeIn animate__delay-0.4s"></div>
             </motion.div>
 
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.05)_0%,_rgba(0,0,0,0.8)_100%)]/2"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.025)_0%,rgba(0,0,0,0.4)_100%)]/2"></div>
 
             {/* Centered welcome message at the top */}
             <div className="flex flex-col absolute top-12 w-full justify-center items-center space-y-4">
                 <div className="flex flex-col items-center">
-                    <motion.h1 className="font-[Font3] flex justify-center text-[2.6em] text-[2.9em] font-extrabold text-transparent 
+                    <motion.h1 className="font-[Font3] flex justify-center items-center md:text-[2.6em] text-[1.8em] text-[2.9em] font-extrabold text-transparent 
                         bg-clip-text bg-gradient-to-r from-[#ffcc00] to-[#ff6600] text-center" initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }}
                     >
@@ -89,10 +89,10 @@ const PageGame = () => {
                     </motion.h1>
                 </div>
 
-                <div className="mt-4 flex justify-center gap-4">
-                    <FaTableTennis size={40} className="text-[#FFD700]" />
-                    <FaTrophy size={40} className="text-[#FFD700]" />
-                    <FaRegLaughBeam size={40} className="text-[#FFD700]" />
+                <div className="mt-4 flex justify-center  gap-4">
+                    <FaTableTennis size={30} className=" w text-[#FFD700]" />
+                    <FaTrophy size={30} className="text-[#FFD700]" />
+                    <FaRegLaughBeam size={30} className="text-[#FFD700]" />
                 </div>
             </div>
 

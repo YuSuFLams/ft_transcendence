@@ -97,7 +97,6 @@ from django.conf import settings
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def lgn_42(request):
-    print("ok")
     data = {
         'authorize_link': settings.API_42  # Corrected typo in 'authorize_link'
     }
@@ -187,7 +186,6 @@ def oauth2_42_callback(request):
     except:
         return(Response('No code found', status=400))
 
-    print("Code :", code)
     token_url = 'https://api.intra.42.fr/oauth/token'
     data = {
         'code':code,
