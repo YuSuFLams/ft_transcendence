@@ -1,6 +1,8 @@
+import Image from "next/image";
 import Cookie from "js-cookie";
 import { motion } from "framer-motion";
-import Image from "next/image";
+import { HiRefresh } from 'react-icons/hi';
+import { removeData } from "./clickEvent";
 import pictureLeft from "@/../public/Image/picture1.jpg";
 import pictureRight from "@/../public/Image/picture2.jpg";
 
@@ -23,7 +25,7 @@ const checkInfoMatch = (
     const game_started = Cookie.get("gameStarted");
     if (game_started) setGameStarted(true);
     const isCreate = Cookie.get("gameCreated");
-    if (!isCreate) router.push("/my/game-local");   
+    if (!isCreate) router.push("/game/game-local");   
 }
 
 
@@ -34,8 +36,6 @@ interface WinnerCardProps {
     setIsDone: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-import { HiRefresh } from 'react-icons/hi';
-import { removeData } from "./clickEvent";
 
 const WinnerCard: React.FC<WinnerCardProps> = ({ playerLeft, winner, router, setIsDone }) => {
 
@@ -43,7 +43,7 @@ const WinnerCard: React.FC<WinnerCardProps> = ({ playerLeft, winner, router, set
     const handlePlayAgain = () => {
         removeData();
         setIsDone(true)
-        router.push('/my/game-local')
+        router.push('/game/game-local')
     };
 
     return (
