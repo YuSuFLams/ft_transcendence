@@ -73,7 +73,7 @@ const MatchLocalGame = () => {
                     removeData();
                     setIsDone(true);
                     clearInterval(intervalId);
-                    router.push("/my/game");
+                    router.push("game");
                 }
             } else if (isDone) {
                 clearInterval(intervalId);

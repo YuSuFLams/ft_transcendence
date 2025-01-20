@@ -8,8 +8,10 @@ from users.views import oauth2_42_callback
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/game', include('game.urls')),
+    path('api/tournament/', include('tournament.urls')),
     path('api/chat', include('chat.urls')),
     path('api/users/', include('users.urls')),
+
     path('', include('users.urls')),
 
     path('oauth/', oauth2_42_callback, name='oauth2_42_callback'),

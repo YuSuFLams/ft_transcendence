@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'users',
     "daphne",
     'channels',
+    'tournament',
 
     "rest_framework_simplejwt",
     "corsheaders",
