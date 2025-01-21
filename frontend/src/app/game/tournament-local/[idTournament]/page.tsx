@@ -206,6 +206,32 @@ const PageTournamentLocal = () => {
             console.log("===> Players:", players8);
         }
     }, [players8]);
+    const [isDone, setIsDone] = useState<boolean>(false);
+
+    useEffect(() => {
+
+        let elapsedTime = 0;
+        const intervalId = setInterval(() => {
+            if (winnerTournament && !isDone) {
+                elapsedTime += 1000;
+                if (elapsedTime >= 10000) {
+                    setIsDone(true);
+                    clearInterval(intervalId);
+                    router.push("/game");
+                    Cookie.remove("idTournament")
+                    Cookie.remove("idMatch")
+                }
+            } else if (isDone) {
+                clearInterval(intervalId);
+            }
+        
+        }, 1000);
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [winnerTournament, isDone]);
+
     
     const [numberMatch, setNumberMatch] = useState<number>(0);
 

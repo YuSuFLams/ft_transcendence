@@ -296,6 +296,10 @@ class PingPongGameLocal(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.user = self.scope.get('user')
+        if not self.user.is_authenticated:
+            await self.close()
+            return
+        print(f"{YELLOW}Connect user: {self.user}.{RESET}")
         await self.accept()
 
     async def disconnect(self, close_code):

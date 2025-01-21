@@ -169,7 +169,7 @@ const openWebSocket = (
     // Ensure GameId exists before opening the WebSocket connection
     if (!token) return;
     
-    const SOCKET_URL = `ws://localhost:8000/ws/match-local-tournament/?token=${token}`;
+    const SOCKET_URL = `ws://localhost:8000/ws/match-local-tournament/?access_token=${token}`;
 
     // Create a new WebSocket instance
     socket.current = new WebSocket(SOCKET_URL);
@@ -314,6 +314,28 @@ const TableLocal: React.FC<TableLocalProps> = (
     )
 }
 
+const checkInfoMatch = (
+    setPlayerLeft: React.Dispatch<React.SetStateAction<string>>,
+    setPlayerRight: React.Dispatch<React.SetStateAction<string>>,
+    setPositionPlayerPaddleLeft: React.Dispatch<React.SetStateAction<number>>,
+    setPositionPlayerPaddleRight: React.Dispatch<React.SetStateAction<number>>,
+    setGameStarted: React.Dispatch<React.SetStateAction<boolean>>,
+    router: any,
+) => {
+    const playerleft = Cookie.get("player1");
+    if (playerleft) setPlayerLeft(playerleft);
+    const playerright = Cookie.get("player2");
+    if (playerright) setPlayerRight(playerright);
+    const paddleLeft = Cookie.get("left_paddle");
+    if (paddleLeft) setPositionPlayerPaddleLeft(parseFloat(paddleLeft));
+    const paddleRight = Cookie.get("right_paddle");
+    if (paddleRight) setPositionPlayerPaddleRight(parseFloat(paddleRight));
+    const game_started = Cookie.get("gameStarted");
+    if (game_started) setGameStarted(true);
+}
+
+
+
 const MatchLocalTournament = () => {
 
     // Player Left 
@@ -356,6 +378,11 @@ const MatchLocalTournament = () => {
             router.push("/game/tournament-local");
         }
     },[gameStarted, idTournament, router]);
+    useEffect(() => {
+		checkInfoMatch(setPlayerLeft, setPlayerRight, setPositionPlayerPaddleLeft, setPositionPlayerPaddleRight, 
+            setGameStarted, router);
+	}, [gameStarted, playerLeft, playerRight, router]);
+
 
     useEffect(() => {
         getPlayers(setPlayerLeft, setPlayerRight, setIfGetPlayers);
@@ -389,6 +416,8 @@ const MatchLocalTournament = () => {
             window.removeEventListener('keydown', handleKeyDownWrapper);
         };
     }, [setPositionPlayerPaddleLeft, setPositionPlayerPaddleRight, winner]);
+
+    
     return (
         <div className="w-screen h-screen bg-gradient-to-b from-[#0A2C57] via-[#1A3B6B] to-gray-600 text-white flex flex-col font-sans">
             <main className="flex flex-col items-center justify-center flex-grow space-y-8">

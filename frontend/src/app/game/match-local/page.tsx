@@ -73,7 +73,7 @@ const MatchLocalGame = () => {
                     removeData();
                     setIsDone(true);
                     clearInterval(intervalId);
-                    router.push("game");
+                    router.push("/game");
                 }
             } else if (isDone) {
                 clearInterval(intervalId);
@@ -88,6 +88,8 @@ const MatchLocalGame = () => {
             window.removeEventListener('keydown', handleKeyDownWrapper);
         };
     }, [setPositionPlayerPaddleLeft, setPositionPlayerPaddleRight, winner, isDone]);
+
+
 
     return (
         <div className="w-screen h-screen bg-gradient-to-b from-[#0A2C57] via-[#1A3B6B] to-gray-600 text-white flex flex-col font-sans">

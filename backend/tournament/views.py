@@ -26,6 +26,7 @@ def delete_all_game(request):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+
 def get_all_game(request):
     try:
         obj = TournamentLocal.objects.all()

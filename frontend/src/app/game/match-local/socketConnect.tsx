@@ -7,7 +7,7 @@ const openWebSocket = (
     // Ensure GameId exists before opening the WebSocket connection
     if (!token) return;
     
-    const SOCKET_URL = `ws://localhost:8000/ws/ping-pong-game-local/?token=${token}`;
+    const SOCKET_URL = `ws://localhost:8000/ws/ping-pong-game-local/?access_token=${token}`;
 
     // Create a new WebSocket instance
     socket.current = new WebSocket(SOCKET_URL);

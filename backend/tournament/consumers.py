@@ -225,8 +225,10 @@ class LocalGameInfo:
             if idGame is None:
                 raise ValueError("idGame is missing in the received data.")
             self.data_game.game.GameId = idGame
+            print("idGame :", self.data_game.game.GameId)
             game_instance = await get_game_local_by_id(self.data_game.game.GameId)
             if game_instance:
+                print("data :", game_instance)
                 self.data_game.game.score_p1 = game_instance.score_p1
                 self.data_game.game.score_p2 = game_instance.score_p2
                 self.data_game.game.player1 = game_instance.player1
@@ -268,6 +270,7 @@ class LocalGameInfo:
 
     async def receive(self, data: dict):
         action = data.get('action')
+        print("Received data:", data)
         try:
             if not action:
                 raise ValueError("Action is missing in the received data.")
@@ -315,7 +318,10 @@ class PingPongMatchTournamentLocal(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.user = self.scope.get('user')
-        print(f"{YELLOW}Connect user: {self.user}.{RESET}")
+        if not self.user.is_authenticated:
+            await self.close()
+            return
+        print(f"{YELLOW}Connect hhh user: {self.user}.{RESET}")
         await self.accept()
 
     async def disconnect(self, close_code):
