@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BackButton, PreGameLocal, RulesButton, RulesGameLocal } from "@/app/components/game/local-game_utils"
+import { BackButton, PreGameLocal, RulesButton, RulesGameLocal } from "@/app/components/game/game-local/local-game_utils"
 import Cookie from 'js-cookie';
 import { motion } from "framer-motion";
 

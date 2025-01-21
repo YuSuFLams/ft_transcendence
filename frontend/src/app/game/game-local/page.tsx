@@ -1,5 +1,5 @@
 "use client";
-import  PageGameLocal  from "@/app/components/game/local-game";
+import  PageGameLocal  from "@/app/components/game/game-local/local-game";
 
 const Page = () => {
 
