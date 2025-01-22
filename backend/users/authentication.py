@@ -1,4 +1,6 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.contrib.auth.backends import ModelBackend
+from .models import Account
 
 class MyJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
@@ -13,9 +15,6 @@ class MyJWTAuthentication(JWTAuthentication):
         except:
             return (None)
         return (user, validated_token)
-
-from django.contrib.auth.backends import ModelBackend
-from .models import Account
 
 class emailORusername(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):

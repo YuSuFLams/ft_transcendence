@@ -78,7 +78,7 @@ def lgn(request):
     base_url = settings.API_GOOGLE
     params = {
         'client_id' : settings.CLIENT_ID_GOOGLE,
-        "redirect_uri" : "http://localhost:8000/oauth2/google/callback/",
+        "redirect_uri" : settings.GOOGLE_REDIRECT,
         'response_type' : 'code',
         'scope' : 'openid email profile',
         'access_type' : 'offline',
@@ -119,12 +119,12 @@ def google_oauth2_callback(request):
     except:
         return (Response('Code not found', status=400))
     
-    token_url = "https://oauth2.googleapis.com/token"
+    token_url = settings.GOOGLE_OAUTH_TOKEN
     data = {
         'code':code,
         'client_id' : settings.CLIENT_ID_GOOGLE,
         'client_secret': settings.CLIENT_SECRET_GOOGLE,
-        'redirect_uri' : 'http://localhost:8000/oauth2/google/callback/',
+        'redirect_uri' : settings.GOOGLE_REDIRECT,
         'grant_type': 'authorization_code'
     }
 
@@ -133,31 +133,47 @@ def google_oauth2_callback(request):
         response_json = json.loads(response.content)
         id_token = response_json['id_token']
     except:
-        return (Response('error'))
+        return (Response('Incorrect response from google api', status=400))
     
-    google_keys_url = "https://www.googleapis.com/oauth2/v3/certs"
-
-    jwks_client = jwt.PyJWKClient(google_keys_url)
-    signing_key = jwks_client.get_signing_key_from_jwt(id_token)
-
-    decoded = jwt.decode(id_token,
-                         signing_key.key, 
-                         algorithms=['RS256'],
-                         audience=settings.CLIENT_ID_GOOGLE)
-    
-
     try:
-        user = Account.objects.get(email=decoded['email'])
+        google_keys_url = settings.GOOGLE_JWKS
+        jwks_client = jwt.PyJWKClient(google_keys_url)
+        signing_key = jwks_client.get_signing_key_from_jwt(id_token)
+        decoded = jwt.decode(id_token,
+                            signing_key.key,
+                            algorithms=['RS256'],
+                            options={'verify_exp':False},
+                            audience=settings.CLIENT_ID_GOOGLE)
     except:
-        user = Account(email=decoded['email'],
-                       username=decoded['name'],
-                       first_name=decoded['given_name'],
-                       last_name=decoded['family_name'],
-                       avatar='https://lh3.googleusercontent.com/a/ACg8ocLc25B6tPSVUUtGeq6Twiosmyf91OgVqOvhEympDON-oBqKv-s=s96-c',
-                       )
-        user.save()
-    refresh_token = RefreshToken.for_user(user)
-    access_token = AccessToken.for_user(user)
+        return (Response('Invalid signature/Failed to decode google response', status=400))
+
+
+    tmp_email = decoded.get('email', '')
+    tmp_username = decoded.get('name', '')
+
+    user_mail = Account.objects.filter(email=tmp_email).first() or ''
+    user_username = Account.objects.filter(username=tmp_username).first() or ''
+    user_obj = None
+
+    if user_mail and user_username:
+        if (user_mail.id == user_username.id and user_username.is_oauth):
+            user_obj = user_mail
+        else:
+            return (Response('Please use the login form.', status=403))
+    elif user_mail or user_username:
+        return (Response('Please use the login form.', status=403))
+    else:
+        user_obj = Account(email=tmp_email,
+                    username=tmp_username,
+                    first_name=decoded['given_name'],
+                    last_name=decoded['family_name'],
+                    avatar=decoded['picture'],
+                    is_oauth=True,
+                    )
+        user_obj.save()
+
+    refresh_token = RefreshToken.for_user(user_obj)
+    access_token = AccessToken.for_user(user_obj)
 
     return Response({'Success':True,
                      'access_token':str(access_token),
@@ -193,7 +209,7 @@ def oauth2_42_callback(request):
     try:
         response_42 = requests.get(intra_me, headers=authorization_header)
     except:
-        return(Response())
+        return(Response('Cannot fetch 42 intra_me', status=400))
 
     decoded = response_42.json()
     tmp_email = decoded.get('email', '')
@@ -203,28 +219,22 @@ def oauth2_42_callback(request):
     user_username = Account.objects.filter(username=tmp_username).first() or ''
     user_obj = None
 
-    try:
-        if user_mail.id == user_username.id:
-            if (user_mail):
-                if (not user_mail.is_oauth):
-                    return (Response('Please use the login form.', status=403))
-                else:
-                    user_obj = user_mail
-            else:
-                img = decoded['image']['versions']['medium']
-                img = unquote(img[7:]) #removing /media/
-                user_obj = Account(email=tmp_email,
-                            username=tmp_username,
-                            first_name=decoded['first_name'],
-                            last_name=decoded['last_name'],
-                            avatar=img,
-                            is_oauth=True,
-                            )
-                user_obj.save()
+    if user_mail and user_username:
+        if (user_mail.id == user_username.id and user_username.is_oauth):
+            user_obj = user_mail
         else:
-            return (Response('Please use the login form.', status=401))
-    except:
-        return (Response('Catched err on 42 oauth', status=401))
+            return (Response('Please use the login form.', status=403))
+    elif user_mail or user_username:
+        return (Response('Please use the login form.', status=403))
+    else:
+        user_obj = Account(email=tmp_email,
+                    username=tmp_username,
+                    first_name=decoded['first_name'],
+                    last_name=decoded['last_name'],
+                    avatar=decoded['image']['versions']['medium'],
+                    is_oauth=True,
+                    )
+        user_obj.save()
 
     refresh_token = RefreshToken.for_user(user_obj)
     access_token = AccessToken.for_user(user_obj)

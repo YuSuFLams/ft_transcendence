@@ -15,6 +15,8 @@ SECRET_KEY = 'django-insecure-9f^l+0p-ssb#3%wi@2hnrjvw7$&xnv!xo_3439$bl$e5=30#vq
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+#FIXME
 AUTH_USER_MODEL = 'users.CustomUser'
 
 # Application definition
@@ -52,9 +54,6 @@ OAUTH2_PROVIDER = {
         }
 }
 
-
-
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
@@ -70,8 +69,9 @@ AUTHENTICATION_BACKENDS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        #FIXME
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         'users.authentication.MyJWTAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ),
@@ -198,6 +198,15 @@ LOGOUT_URL = 'logout'
 
 AUTH_USER_MODEL = 'users.Account'
 
+
+CLIENT_SECRET_GOOGLE = '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'
+CLIENT_ID_GOOGLE = '373713270678-0dro9nrh86tlpcse6a4bia0ssf296o8m.apps.googleusercontent.com'
+API_GOOGLE = 'https://accounts.google.com/o/oauth2/v2/auth'
+
+GOOGLE_JWKS = 'https://www.googleapis.com/oauth2/v3/certs'
+GOOGLE_OAUTH_TOKEN = 'https://oauth2.googleapis.com/token'
+
+GOOGLE_REDIRECT = 'http://127.0.0.1:8000/oauth/google/'
 
 CLIENT_SECRET_42 = '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'
 CLIENT_ID_42 = 'u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6'
