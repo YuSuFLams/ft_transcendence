@@ -4,3 +4,7 @@ daphne
 djangorestframework
 djangorestframework-simplejwt 
 django-cors-headers
+Pillow
+django-oauth-toolkit
+requests
+django-oauth-toolkit

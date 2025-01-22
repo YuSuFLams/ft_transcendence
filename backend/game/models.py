@@ -1,5 +1,6 @@
 from django.db import models
 
+# Create your models here.
 class GameLocal(models.Model):
     player1 = models.CharField(max_length=255)
     player2 = models.CharField(max_length=255)
