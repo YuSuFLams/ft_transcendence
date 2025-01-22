@@ -5,6 +5,7 @@ import { FaTableTennis, FaTrophy, FaRegLaughBeam } from "react-icons/fa";
 import { motion, useAnimate } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { Point } from "@/app/utils/background";
 
 const PageGame = () => {
     const router = useRouter();
@@ -59,16 +60,7 @@ const PageGame = () => {
     ];
 
     return (
-        <div className="min-h-screen flex flex-col bg-[#050A30] overflow-hidden text-white relative"
-            style={{ cursor: cursor }}>
-            <motion.div className="absolute inset-0" animate={{ opacity: [0, 0.2, 0.3, 0.4, 0.3, 0.2, 0], x: [0, 20, 0, -20, 0] }}
-                transition={{ duration: 10, repeat: Infinity, repeatDelay: 2, ease: "easeInOut", }}
-            >
-                <div className="absolute w-[400px] h-[400px] bg-purple-500 opacity-20 blur-[120px] left-[-100px] top-[-100px] animate__fadeIn animate__delay-0.3s"></div>
-                <div className="absolute w-[300px] h-[300px] bg-blue-500 opacity-15 blur-[100px] right-[-50px] bottom-[-50px] animate__fadeIn animate__delay-0.4s"></div>
-            </motion.div>
-
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.025)_0%,rgba(0,0,0,0.4)_100%)]/2"></div>
+        <div className="min-h-screen flex flex-col bg-[#050A30] overflow-hidden text-white relative" style={{ cursor: cursor }}>
 
             {/* Centered welcome message at the top */}
             <div className="flex flex-col absolute top-12 w-full justify-center items-center space-y-4">
@@ -115,18 +107,7 @@ const PageGame = () => {
                 </div>
             </div>
 
-            {/* Decorative background elements */}
-            <motion.div className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-50 blur-sm animate-particle left-[30%] top-[20%]"
-                animate={{ x: [0, 20, -20, 0], y: [0, -20, 20, 0],}} transition={{ duration: 3, repeat: Infinity, repeatDelay: 1, ease: "easeInOut",}}
-                ></motion.div>
-
-            <motion.div className="absolute w-3 h-3 bg-pink-500 rounded-full opacity-60 blur-md animate-particle right-[25%] bottom-[15%]"
-                animate={{ x: [0, -30, 30, 0], y: [0, -30, 30, 0],}} transition={{ duration: 4, repeat: Infinity, repeatDelay: 1, ease: "easeInOut",}}
-            ></motion.div>
-
-            <motion.div className="absolute w-3 h-3 bg-pink-500 rounded-full opacity-60 blur-md animate-particle right-[15%] bottom-[45%]"
-                animate={{ x: [0, 40, -40, 0], y: [0, -40, 40, 0], }} transition={{ duration: 5, repeat: Infinity, repeatDelay: 2, ease: "easeInOut",}}
-            ></motion.div>
+            <Point />
         </div>
     );
 };

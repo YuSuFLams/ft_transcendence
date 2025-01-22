@@ -23,14 +23,14 @@ const WinnerCard: React.FC<WinnerCardProps> = ({ playerLeft, winner, router, set
     const handlePlayAgain = () => {
         removeData();
         setIsDone(true);
-        router.push('/game');
+        router.push('/game/game-local');
     };
 
     return (
-        <motion.div className="flex flex-col items-center w-[420px] h-[550px] rounded-2xl justify-center border-4 border-[#C62300] text-white 
+        <motion.div className="flex flex-col items-center w-[420px] h-[550px] rounded-2xl justify-center border-2 border-[#FFF0DC] text-white 
             bg-gradient-to-bl from-[#09152b]  via-[#082751] to-[#063977] shadow-lg space-y-6" 
         >
-            <motion.div className="rounded-full shadow-lg border-4 border-[#C62300] p-[2px]" whileHover={{ scale: 1.2, transition: { duration: 0.3 } }}>
+            <motion.div className="rounded-full shadow-lg border-4 border-[#FFF0DC] p-[2px]" whileHover={{ scale: 1.2, transition: { duration: 0.3 } }}>
                 <Image className="rounded-full border-4 border-[#1E3A8A] shadow-md" alt={`${winner}'s Avatar`} src={picture} width={150} height={150}/>
             </motion.div>
 
@@ -51,7 +51,7 @@ const WinnerCard: React.FC<WinnerCardProps> = ({ playerLeft, winner, router, set
                 <BiHappyBeaming size={45} className="text-[#38BDF8]" />
             </motion.div>
 
-            <motion.button className="mt-12 px-8 py-4 text-2xl font-extrabold border-4 border-[#C62300] text-[#FFF0DC] rounded-full shadow-lg 
+            <motion.button className="mt-12 px-8 py-4 text-2xl font-extrabold border-2 border-[#FFF0DC] text-[#FFF0DC] rounded-full shadow-lg 
                 bg-gradient-to-br from-gray-800 via-blue-900 to-black transform transition-all duration-300 hover:scale-110 hover:shadow-2xl 
                 focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center justify-center group font-[Font6]" onClick={handlePlayAgain}
                 aria-label="Play Again" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}

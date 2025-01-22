@@ -38,18 +38,6 @@ const GameLocalPre: React.FC<GameLocalPre> = ({
 
                 <div> <RulesButton setIsClicked={setIsClicked} /> </div>  
             </div>
-
-            <motion.div className="absolute w-2 h-2 bg-blue-400 rounded-full  blur-sm animate-particle left-[40%] top-[20%]"
-                animate={{ x: [0, 20, -20, 0], y: [0, -20, 20, 0],}} transition={{ duration: 3, repeat: Infinity, repeatDelay: 1, ease: "easeInOut",}}
-                ></motion.div>
-
-            <motion.div className="absolute w-3 h-3 bg-pink-500 rounded-full blur-md animate-particle right-[25%] bottom-[15%]"
-                animate={{ x: [0, -30, 30, 0], y: [0, -30, 30, 0],}} transition={{ duration: 4, repeat: Infinity, repeatDelay: 1, ease: "easeInOut",}}
-            ></motion.div>
-
-            <motion.div className="absolute w-3 h-3 bg-pink-500 rounded-full blur-md animate-particle right-[15%] bottom-[45%]"
-                animate={{ x: [0, 40, -40, 0], y: [0, -40, 40, 0], }} transition={{ duration: 5, repeat: Infinity, repeatDelay: 2, ease: "easeInOut",}}
-            ></motion.div>
         </div>
     )
 } 

@@ -2,6 +2,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import { Point } from "./utils/background";
 
 const HomePage = () => {
 	const router = useRouter();
@@ -13,13 +14,6 @@ const HomePage = () => {
 
 	return (
 		<div className="relative w-screen h-screen bg-[#050A30] overflow-hidden flex items-center justify-center">
-			{/* Subtle Background Effects */}
-			<div className="absolute inset-0">
-				<div className="absolute w-[400px] h-[400px] bg-purple-500 opacity-20 blur-[120px] left-[-100px] top-[-100px]"></div>
-				<div className="absolute w-[300px] h-[300px] bg-blue-500 opacity-15 blur-[100px] right-[-50px] bottom-[-50px]"></div>
-			</div>
-
-			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.025)_0%,rgba(0,0,0,0.4)_100%)]/2"></div>
 
 
 			<div className="relative flex flex-col items-center justify-center z-10 text-center">
@@ -47,11 +41,7 @@ const HomePage = () => {
 
 
 			</div>
-
-			{/* Floating Particles - More Subtle */}
-			<div className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-50 blur-sm animate-particle left-[30%] top-[20%]"></div>
-			<div className="absolute w-3 h-3 bg-pink-500 rounded-full opacity-60 blur-md animate-particle right-[25%] bottom-[15%]"></div>
-			<div className="absolute w-3 h-3 bg-pink-500 rounded-full opacity-60 blur-md animate-particle right-[15%] bottom-[45%]"></div>
+			<Point />
 		</div>
 	);
 };

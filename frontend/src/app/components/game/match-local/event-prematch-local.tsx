@@ -48,4 +48,23 @@ const handleStartGame = (
 };
 
 
-export { handleExitGame, handleStartGame, removeData };
+const handleQuitGame = (
+    socket: React.MutableRefObject<WebSocket | null>,
+    router: any,
+) => {
+
+    if (socket.current && socket.current.readyState === WebSocket.OPEN) {
+        try {
+            socket.current.send( JSON.stringify({ action: "quitGame" }));
+            removeData()
+            router.push("/game");
+        } catch (error) {
+            console.error("Error during quitting the game:", error);
+        }
+    } else {
+        console.warn("WebSocket is not open or already closed.");
+    }
+};
+
+
+export { handleExitGame, handleStartGame, removeData, handleQuitGame };

@@ -2,9 +2,9 @@ import { useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import React from "react";
-import { handleQuitGame } from "./clickEvent";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
+import { handleQuitGame } from "@/app/components/game/match-local/event-prematch-local";
 
 const Table: React.FC = () => {
     // Load textures for a realistic table appearance
@@ -49,9 +49,6 @@ const Table: React.FC = () => {
 
 const Paddle = React.forwardRef<THREE.Mesh, { position: [number, number, number]; color: string }>(
     ({ position, color }, ref) => {
-        // Convert position array to Vector3 object
-        // const adjustedPosition = new THREE.Vector3(position[0], position[1] + 0.2, position[2]); // Raise paddle by 0.2
-
         return (
             <mesh ref={ref} position={position}>
                 <boxGeometry args={[0.8, 0.1, 0.2]} />

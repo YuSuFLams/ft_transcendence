@@ -12,8 +12,8 @@ import Image from "next/image";
 import axios from 'axios';
 import { Ball, Paddle, Table } from "../../match-local/gameTable";
 import { OrbitControls } from "@react-three/drei";
-import { handleKeyDown } from "../../match-local/mouvePaddle";
-import { removeData } from "../../match-local/clickEvent";
+import { removeData } from "@/app/components/game/match-local/event-prematch-local";
+import { handleKeyDown } from "@/app/components/game/match-local/mouve-paddle";
 
 interface PlayerCradProps {
     player: string;
@@ -320,7 +320,6 @@ const checkInfoMatch = (
     setPositionPlayerPaddleLeft: React.Dispatch<React.SetStateAction<number>>,
     setPositionPlayerPaddleRight: React.Dispatch<React.SetStateAction<number>>,
     setGameStarted: React.Dispatch<React.SetStateAction<boolean>>,
-    router: any,
 ) => {
     const playerleft = Cookie.get("player1");
     if (playerleft) setPlayerLeft(playerleft);
@@ -379,8 +378,7 @@ const MatchLocalTournament = () => {
         }
     },[gameStarted, idTournament, router]);
     useEffect(() => {
-		checkInfoMatch(setPlayerLeft, setPlayerRight, setPositionPlayerPaddleLeft, setPositionPlayerPaddleRight, 
-            setGameStarted, router);
+		checkInfoMatch(setPlayerLeft, setPlayerRight, setPositionPlayerPaddleLeft, setPositionPlayerPaddleRight, setGameStarted);
 	}, [gameStarted, playerLeft, playerRight, router]);
 
 

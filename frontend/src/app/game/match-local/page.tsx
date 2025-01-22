@@ -4,14 +4,14 @@ import Cookie from "js-cookie";
 import * as THREE from "three";
 import { TableLocal } from "./gameTable";
 import { useRouter } from "next/navigation";
-import { handleKeyDown } from "./mouvePaddle";
 import React, { useEffect, useState, useRef } from "react";
-import { checkInfoMatch } from "./utilsGameMatch";
-import { listenConnection, openWebSocket } from "./socketConnect";
 import { motion } from "framer-motion";
 import { removeData } from "@/app/components/game/match-local/event-prematch-local";
 import { CardPlayers } from "@/app/components/game/match-local/prematch-local";
 import { WinnerCard } from "@/app/components/game/match-local/cardWinner";
+import { handleKeyDown } from "@/app/components/game/match-local/mouve-paddle";
+import { listenConnection, openWebSocket } from "@/app/components/game/match-local/socket-connect";
+import { checkInfoMatch } from "@/app/components/game/match-local-utils/utils-match-local";
 
 
 const MatchLocalGame = () => {
@@ -43,7 +43,9 @@ const MatchLocalGame = () => {
 
     useEffect(() => {
 		checkInfoMatch(setPlayerLeft, setPlayerRight, setPositionPlayerPaddleLeft, setPositionPlayerPaddleRight, 
-            setGameStarted, router);
+            setGameStarted);
+        const isCreate = Cookie.get("gameCreated");
+        if (!isCreate) router.push("/game/game-local");   
 	}, [gameStarted, playerLeft, playerRight, router]);
 
     useEffect(() => {
@@ -75,7 +77,7 @@ const MatchLocalGame = () => {
                     removeData();
                     setIsDone(true);
                     clearInterval(intervalId);
-                    // router.push("/game");
+                    router.push("/game");
                 }
             } else if (isDone) {
                 clearInterval(intervalId);
@@ -111,17 +113,6 @@ const MatchLocalGame = () => {
                 }
             </main>
 
-            <motion.div className="absolute w-2 h-2 bg-blue-400 rounded-full  blur-sm animate-particle left-[40%] top-[20%]"
-                animate={{ x: [0, 20, -20, 0], y: [0, -20, 20, 0],}} transition={{ duration: 3, repeat: Infinity, repeatDelay: 1, ease: "easeInOut",}}
-                ></motion.div>
-
-            <motion.div className="absolute w-3 h-3 bg-pink-500 rounded-full blur-md animate-particle right-[25%] bottom-[15%]"
-                animate={{ x: [0, -30, 30, 0], y: [0, -30, 30, 0],}} transition={{ duration: 4, repeat: Infinity, repeatDelay: 1, ease: "easeInOut",}}
-            ></motion.div>
-
-            <motion.div className="absolute w-3 h-3 bg-pink-500 rounded-full blur-md animate-particle right-[15%] bottom-[45%]"
-                animate={{ x: [0, 40, -40, 0], y: [0, -40, 40, 0], }} transition={{ duration: 5, repeat: Infinity, repeatDelay: 2, ease: "easeInOut",}}
-            ></motion.div>
         </div>
     );
 };

@@ -1,18 +1,16 @@
 import Cookie from "js-cookie";
+import { removeData } from "./event-prematch-local";
 
 const openWebSocket = (
     token: string,
     socket: React.MutableRefObject<WebSocket | null>,
 ) => {
-    // Ensure GameId exists before opening the WebSocket connection
     if (!token) return;
     
     const SOCKET_URL = `ws://localhost:8000/ws/ping-pong-game-local/?access_token=${token}`;
 
-    // Create a new WebSocket instance
     socket.current = new WebSocket(SOCKET_URL);
 
-    // Handle WebSocket events
     socket.current.onopen = () => {
         console.log("WebSocket connection opened");
 		if (socket.current?.readyState === WebSocket.OPEN) {
@@ -38,7 +36,6 @@ const openWebSocket = (
         console.log("WebSocket connection closed");
     };
 
-    // Cleanup on component unmount or when dependencies change
     return () => {
         socket.current?.close();
         
@@ -82,5 +79,6 @@ const listenConnection = (
         }
     };
 }
+
 
 export { openWebSocket, listenConnection };

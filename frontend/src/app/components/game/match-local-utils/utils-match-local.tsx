@@ -1,13 +1,11 @@
 import Cookie from "js-cookie";
 
-
 const checkInfoMatch = (
     setPlayerLeft: React.Dispatch<React.SetStateAction<string>>,
     setPlayerRight: React.Dispatch<React.SetStateAction<string>>,
     setPositionPlayerPaddleLeft: React.Dispatch<React.SetStateAction<number>>,
     setPositionPlayerPaddleRight: React.Dispatch<React.SetStateAction<number>>,
     setGameStarted: React.Dispatch<React.SetStateAction<boolean>>,
-    router: any,
 ) => {
     const playerleft = Cookie.get("player1");
     if (playerleft) setPlayerLeft(playerleft);
@@ -19,12 +17,7 @@ const checkInfoMatch = (
     if (paddleRight) setPositionPlayerPaddleRight(parseFloat(paddleRight));
     const game_started = Cookie.get("gameStarted");
     if (game_started) setGameStarted(true);
-    const isCreate = Cookie.get("gameCreated");
-    if (!isCreate) router.push("/game/game-local");   
+    
 }
-
-
-
-
 
 export { checkInfoMatch }

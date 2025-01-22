@@ -107,44 +107,33 @@ const handleSubmit = async ( e: React.FormEvent<HTMLFormElement>,
 
 
 interface LoginProps {
-    toggleView: () => void
+    toggleView: () => void;
 }
 
-const HalfSideSignUp: React.FC<LoginProps> = ({
-    toggleView
-}) => {
+const HalfSideSignUp: React.FC<LoginProps> = ({ toggleView }) => {
     return (
-        <div className="w-[50%] h-full bg-gradient-to-r from-[#0e213f] to-[#1a345d] rounded-r-2xl flex flex-col items-center justify-center p-8 space-y-6 shadow-lg relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.025)_0%,rgba(0,0,0,0.4)_100%)]"></div>
-
-            <motion.div
-                className="h-full rounded-r-2xl flex flex-col items-center justify-center p-8 space-y-6 shadow-lg relative z-10"
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-            >
-                <h1 className=" font-[Font3] text-3xl text-[2.9em] 
-                font-extrabold">
+        <div className="flex-1 h-full bg-gradient-to-r from-[#0e213f] to-[#1a345d] rounded-l-2xl flex flex-col items-center justify-center p-8 space-y-6 shadow-lg relative">
+            <div className="absolute rounded-l-2xl inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.005)_0%,rgba(0,0,0,0.4)_100%)]"></div>
+            <motion.div className="flex-1 flex flex-col items-center rounded-l-2xl justify-center p-8 space-y-6 shadow-lg relative z-10"
+                animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
+                <h1 className="font-[Font3] text-3xl font-extrabold">
                     👋 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ffcc00] to-[#ff6600]">Welcome Back, Champion!</span>
                 </h1>
-                <p className="text-[#ffffff] font-[Font3] text-3xl text-center max-w-md">
-                    🌟 Continue your journey, connect with friends, and compete in thrilling <span className="text-[#ffcc00]">ping pong</span>  matches!
+                <p className="text-white font-[Font3] text-3xl text-center max-w-md">
+                    🌟 Continue your journey, connect with friends, and compete in thrilling <span className="text-[#ffcc00]">ping pong</span> matches!
                 </p>
                 <motion.button
                     onClick={toggleView}
-                    className="text-[#001219] bg-[#aaabbc] font-[Font3] text-3xl font-extrabold 
-                                px-6 py-2 rounded-lg shadow-md 
-                                transition-transform duration-300 ease-in-out hover:scale-105 
-                                focus:outline-none focus:ring-opacity-50 relative z-20"
+                    className="text-[#001219] bg-[#aaabbc] font-[Font3] text-3xl font-extrabold px-6 py-2 rounded-lg shadow-md transition-transform duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-opacity-50 relative z-20"
                     whileHover={{ scale: 1.15 }}
-                    whileTap={{ scale: 0.15 }}
-                    aria-label="Toggle to Sign Up"
-                >
-                Sign Up
+                    whileTap={{ scale: 0.95 }}
+                    aria-label="Toggle to Sign Up">
+                    Sign Up
                 </motion.button>
             </motion.div>
         </div>
-    )
-}
+    );
+};
 
 
 export {isValidInput, handleInputChange, handleSubmit, HalfSideSignUp};
