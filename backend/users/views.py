@@ -1,8 +1,7 @@
 from django.shortcuts import  redirect
 from django.contrib.auth.password_validation import validate_password
 from .models import Account
-from .serializer import (
-                         RegisterSerializer)
+from .serializer import (RegisterSerializer)
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import  AllowAny
@@ -14,8 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 import jwt, json, requests
 from django.conf import settings
 
-from urllib.parse import urlencode
-from urllib.parse import unquote
+from urllib.parse import urlencode, unquote
 
 # Create your views here.
 @api_view(['POST'])

@@ -40,6 +40,9 @@ class Account(AbstractBaseUser):
     date_joined     = models.DateTimeField(auto_now_add=True)
     avatar          = models.ImageField(default='default_avatar.jpg', upload_to='avatars/')
     is_oauth        = models.BooleanField(default=False)
+    is_otp_active   = models.BooleanField(default=False)
+    is_otp_verified = models.BooleanField(default=False)
+    otp_secret      = models.CharField(max_length=32, blank=True)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Account
+import pyotp
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -13,8 +14,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = Account(email=validated_data['email'],
                     username=validated_data['username'],
                     first_name=validated_data['first_name'],
-                    last_name=validated_data['last_name'])
+                    last_name=validated_data['last_name'],
+                    otp_secret=pyotp.random_base32())
         #TODO you can add list.get('key', 'default_value')
         user.set_password(validated_data['password'])
         user.save()
         return user
+
