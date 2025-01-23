@@ -60,6 +60,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True, 
     "ROTATE_REFRESH_TOKENS": False,
     "UPDATE_LAST_LOGIN": False,
+    "TOKEN_OBTAIN_SERIALIZER": "users.serializer.MyTokenObtainPairSerializer",
 }
 
 AUTHENTICATION_BACKENDS = [

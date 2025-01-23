@@ -20,6 +20,10 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('login/refresh/', views.MyTokenRefreshView.as_view(), name='token_refresh'),
+
+    # ####2FA
+    path('otp/', views.VerifyOTP, name='VerifyOTP'),
+    
     # path('logout/', views.logout, name='logout'),
     # path('reset_password/', views.send_reset_mail, name='send_reset_mail'),
     # path('reset_password_success/<uid>/', views.send_reset_mail_success, name='send_reset_mail_success'),

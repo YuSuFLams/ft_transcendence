@@ -43,6 +43,7 @@ class Account(AbstractBaseUser):
     is_otp_active   = models.BooleanField(default=False)
     is_otp_verified = models.BooleanField(default=False)
     otp_secret      = models.CharField(max_length=32, blank=True)
+    otp_code        = models.CharField(max_length=6, blank=True)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']

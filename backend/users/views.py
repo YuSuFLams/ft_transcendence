@@ -1,21 +1,17 @@
-from django.shortcuts import  redirect
-from django.contrib.auth.password_validation import validate_password
-from .models import Account
-from .serializer import (RegisterSerializer)
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import  AllowAny
-
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
-from rest_framework.response import Response
-
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-import jwt, json, requests
+from django.contrib.auth.password_validation import validate_password
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import  AllowAny, IsAuthenticated
+from .serializer import (RegisterSerializer, OTPSerializer)
+from rest_framework.response import Response
+from django.shortcuts import  redirect
+from urllib.parse import urlencode
 from django.conf import settings
+from .models import Account
+import jwt, json, requests
 
-from urllib.parse import urlencode, unquote
 
-# Create your views here.
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -38,6 +34,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
             response = super().post(request, *args, **kwargs)
+            #TODO CONTINUE HERE you should find a place to create otp_code on user obj
             access_token = response.data['access']
             refresh_token = response.data['refresh']
             return Response({'Success':True,
@@ -71,7 +68,6 @@ class MyTokenRefreshView(TokenRefreshView):
             return (Response({'Refreshed':False}))
         
 
-
 def lgn(request):
     base_url = settings.API_GOOGLE
     params = {
@@ -86,28 +82,11 @@ def lgn(request):
     return (redirect(google_lgn))
 
 
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from django.conf import settings
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def lgn_42(request):
-    data = {
-        'authorize_link': settings.API_42  # Corrected typo in 'authorize_link'
-    }
-    return Response(data, status=200)  # Explicitly setting the status code
+    return Response({'authorize_link': settings.API_42}, status=200)
 
-
-
-"""
-    1- get the code from the callback
-    2- preparing the a request with code and params -> api_link
-    3- process data
-    4- check if the email exist, get the cookie JWT->ACCESS && JWT->REFRESH
-    5- else create a new account and get the cookies
-"""
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -240,3 +219,21 @@ def oauth2_42_callback(request):
     return Response({'Success':True,
                      'access_token':str(access_token),
                      'refresh_token':str(refresh_token)})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def VerifyOTP(request):
+    OTP_serial = OTPSerializer(data=request.data)
+    if OTP_serial.is_valid():
+        validated = OTP_serial.validated_data
+        print(f'{validated.get('form_OTP')} -- {request.user.otp_code}')
+        return Response(validated.get('form_OTP') == request.user.otp_code)
+    return(Response())
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def Activate_DesactivateOTP(request):
+    request.user.is_otp_activate = not request.user.is_otp_activate
+    request.user.save()
