@@ -1,9 +1,6 @@
 from django.db import models
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db.models.signals import pre_delete
-from django.dispatch import receiver
-from django.conf import settings
 
 class MyAccountManager(BaseUserManager):
     def create_user(self, email, username, password=None):

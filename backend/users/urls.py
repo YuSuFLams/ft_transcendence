@@ -24,7 +24,8 @@ urlpatterns = [
     # ####2FA
     path('otp/', views.VerifyOTP, name='VerifyOTP'),
     path('otp/check/', views.check_OTP, name='checkOTP'),
-    
+    path('otp/activate_desactivate/', views.Activate_DesactivateOTP, name='Activate_DesactivateOTP'),
+
     # path('logout/', views.logout, name='logout'),
     # path('reset_password/', views.send_reset_mail, name='send_reset_mail'),
     # path('reset_password_success/<uid>/', views.send_reset_mail_success, name='send_reset_mail_success'),

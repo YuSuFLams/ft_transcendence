@@ -239,9 +239,9 @@ def VerifyOTP(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def Activate_DesactivateOTP(request):
-    if  (request.user.is_otp_activate and not request.user.is_otp_verified):
+    if  (request.user.is_otp_active and not request.user.is_otp_verified):
         return(Response('To desactivate 2FA you should verify it first', status=403))
-    request.user.is_otp_activate = not request.user.is_otp_activate
+    request.user.is_otp_active = not request.user.is_otp_active
     request.user.save()
     return(Response({'Success':True}, status=200))
 

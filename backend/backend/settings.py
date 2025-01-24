@@ -16,8 +16,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-#FIXME
-AUTH_USER_MODEL = 'users.CustomUser'
 
 # Application definition
 SITE_ID = 1

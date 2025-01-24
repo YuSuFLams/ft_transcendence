@@ -1,10 +1,10 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.backends import ModelBackend
 from .models import Account
-import pyotp, smtplib
 from django.conf import settings
 from rest_framework.permissions import BasePermission
-#FIXME every request from the front should include Authorization header `bearer`
+
+#FIXME every request from the front should include Authorization header `bearer` with access token
 
 class MyJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
