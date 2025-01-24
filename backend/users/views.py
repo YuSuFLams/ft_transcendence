@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from django.shortcuts import  redirect
 from urllib.parse import urlencode
 from django.conf import settings
+from .authentication import IsOTP
 from .models import Account
 import jwt, json, requests
 
@@ -228,12 +229,24 @@ def VerifyOTP(request):
     if OTP_serial.is_valid():
         validated = OTP_serial.validated_data
         print(f'{validated.get('form_OTP')} -- {request.user.otp_code}')
-        return Response(validated.get('form_OTP') == request.user.otp_code)
-    return(Response())
+        if (validated.get('form_OTP') == request.user.otp_code):
+            request.user.is_otp_verified = True
+            request.user.save()
+            return(Response({'Success':'OTP activated'}, status=200))
+    return(Response({'Success':'False OTP'}, status=400))
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def Activate_DesactivateOTP(request):
+    if  (request.user.is_otp_activate and not request.user.is_otp_verified):
+        return(Response('To desactivate 2FA you should verify it first', status=403))
     request.user.is_otp_activate = not request.user.is_otp_activate
     request.user.save()
+    return(Response({'Success':True}, status=200))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsOTP])
+def check_OTP(request):
+    return (Response('OTP Verified', status=200))

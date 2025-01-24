@@ -23,6 +23,7 @@ urlpatterns = [
 
     # ####2FA
     path('otp/', views.VerifyOTP, name='VerifyOTP'),
+    path('otp/check/', views.check_OTP, name='checkOTP'),
     
     # path('logout/', views.logout, name='logout'),
     # path('reset_password/', views.send_reset_mail, name='send_reset_mail'),

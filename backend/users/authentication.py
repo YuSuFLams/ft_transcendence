@@ -3,6 +3,8 @@ from django.contrib.auth.backends import ModelBackend
 from .models import Account
 import pyotp, smtplib
 from django.conf import settings
+from rest_framework.permissions import BasePermission
+#FIXME every request from the front should include Authorization header `bearer`
 
 class MyJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
@@ -38,4 +40,10 @@ class emailORusername(ModelBackend):
         if user.check_password(password):
             return user
         return None
-    
+
+
+class IsOTP(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_otp_active:
+            return True
+        return request.user.is_otp_verified
