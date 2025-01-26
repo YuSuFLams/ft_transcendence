@@ -228,7 +228,7 @@ def VerifyOTP(request):
     OTP_serial = OTPSerializer(data=request.data)
     if OTP_serial.is_valid():
         validated = OTP_serial.validated_data
-        print(f'{validated.get('form_OTP')} -- {request.user.otp_code}')
+        print(f"{validated.get('form_OTP')} -- {request.user.otp_code}")
         if (validated.get('form_OTP') == request.user.otp_code):
             request.user.is_otp_verified = True
             request.user.save()

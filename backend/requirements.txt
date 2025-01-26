@@ -6,7 +6,7 @@ djangorestframework-simplejwt
 django-cors-headers
 django-oauth-toolkit
 requests
-Pillow
+python-decouple
 pyjwt
 cryptography
 pyotp

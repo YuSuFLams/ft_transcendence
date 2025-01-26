@@ -17,8 +17,8 @@ urlpatterns = [
     path('oauth/google/', views.google_oauth2_callback, name='oauth_google_callback'),
     path('oauth/', views.oauth2_42_callback, name='oauth2_42_callback'),
 
-    path('oauth2/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    # path('oauth2/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# if settings.DEBUG:
+#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
