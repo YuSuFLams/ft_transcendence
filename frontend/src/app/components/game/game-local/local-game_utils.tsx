@@ -85,7 +85,7 @@ const CraeteGame:React.FC<CreateGameProps> = ({ playerLeft, playerRight, setGame
 const BackButton: React.FC<{router: any}> = ({ router }) => {
     return (
         <div className="absolute font-[Font3] text-[#0D0D0D] text-3xl top-4 left-4 flex justify-center">
-            <motion.button onClick={() => router.push("/game")} className="bg-indigo-600 flex group items-center px-3 py-2 
+            <motion.button onClick={() => router.push("/game")} className="bg-indigo-600 flex group items-center px-2 py-2 
                 rounded-full font-semibold tracking-wide shadow-xl transition transform duration-300 hover:scale-110 group">
 
                 <HiArrowSmLeft size={40} className="transition-opacity duration-300 group-hover:opacity-0" />

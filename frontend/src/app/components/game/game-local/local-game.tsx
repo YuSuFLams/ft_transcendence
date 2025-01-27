@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BackButton, PreGameLocal, RulesButton, RulesGameLocal } from "@/app/components/game/game-local/local-game_utils"
 import Cookie from 'js-cookie';
 import { motion } from "framer-motion";
+import { Point } from "@/app/utils/background";
 
 interface GameLocalPre {
     playerLeft: string; playerRight: string; isClicked:boolean;
@@ -22,9 +23,9 @@ const GameLocalPre: React.FC<GameLocalPre> = ({
         <div className="w-screen h-screen bg-[#050A30] overflow-hidden text-white flex flex-col font-sans">
 
 
-            <div className="w-full h-full absolute flex flex-col items-center justify-around">
+            <div className="w-full z-[1] h-full absolute flex flex-col items-center justify-around">
                 <div className="flex items-center justify-center mt-12">
-                    <h1 className="text-8xl font-extrabold font-[Font3] tracking-wider text-indigo-600"> Game Local </h1>
+                    <h1 className="text-8xl font-extrabold font-[Borias] tracking-wider text-indigo-600"> Game Local </h1>
                 </div>
 
                 <div> <RulesGameLocal isClicked={isClicked} onClose={() => setIsClicked(false)} /> </div>
@@ -57,10 +58,13 @@ const PageGameLocal = () => {
     }, [gameCreated, router]);
 
     return (
-        <GameLocalPre playerLeft={playerLeft} setIsClicked={setIsClicked} playerRight={playerRight}
-            isClicked={isClicked} setGameCreated={setGameCreated} setPlayerLeft={setPlayerLeft}
-            setPlayerRight={setPlayerRight} router={router}
-        />
+        <div>
+            <GameLocalPre playerLeft={playerLeft} setIsClicked={setIsClicked} playerRight={playerRight}
+                isClicked={isClicked} setGameCreated={setGameCreated} setPlayerLeft={setPlayerLeft}
+                setPlayerRight={setPlayerRight} router={router}
+                />
+            <Point />  
+        </div>
     );
 };
 

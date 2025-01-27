@@ -24,7 +24,7 @@ interface SignInProps {
 const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => {
     const input = useRef<HTMLInputElement | null>(null);
     const inputPassword = useRef<HTMLInputElement | null>(null);
-    const [data, setData] = useState<Record<string, string>>({ email: "", password: "" });
+    const [data, setData] = useState<Record<string, string>>({ username: "", password: "" });
     const [error, setError] = useState<Record<string, string>>({});
     const [hidePass, setHidePass] = useState<boolean>(true);
     const [loading, setLoading] = useState<boolean>(false);
@@ -56,8 +56,12 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
                 </div>
                 <form className="space-y-3 z-[1] md:space-y-6 w-[100%] lg:w-[80%]" onSubmit={(e) => handleSubmit(e, setError, input, data, router, setLoading, inputPassword, setIsLogin)}>
                     <div>
-                        <input className="w-full p-3 pl-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left" ref={input} type="text" name="email" placeholder="Email Or Username" value={data.email} onChange={(e) => { handleInputChange(e, setData, setError, inputPassword, setInputClassName) }} />
-                        {error.email && <p className="text-red-600 font-[Font6] text-sm mt-1 lg:mt-1 font-bold line-clamp-2">{error.email}</p>}
+                        <input className="w-full p-3 pl-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg 
+                        focus:ring-2 focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold 
+                        font-[Font6] text-black text-2xl text-left" ref={input} type="text" name="username" 
+                        placeholder="Email Or Username" value={data.username} 
+                        onChange={(e) => { handleInputChange(e, setData, setError, inputPassword, setInputClassName) }} />
+                        {error.username && <p className="text-red-600 font-[Font6] text-sm mt-1 lg:mt-1 font-bold line-clamp-2">{error.username}</p>}
                     </div>
                     <div>
                         <div className="relative">

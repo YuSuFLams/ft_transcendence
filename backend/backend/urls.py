@@ -7,7 +7,7 @@ from users.views import oauth2_42_callback
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/game', include('game.urls')),
+    path('api/game/', include('game.urls')),
     path('api/tournament/', include('tournament.urls')),
     path('api/chat', include('chat.urls')),
     path('api/users/', include('users.urls')),

@@ -5,7 +5,6 @@ import * as THREE from "three";
 import { TableLocal } from "./gameTable";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
-import { motion } from "framer-motion";
 import { removeData } from "@/app/components/game/match-local/event-prematch-local";
 import { CardPlayers } from "@/app/components/game/match-local/prematch-local";
 import { WinnerCard } from "@/app/components/game/match-local/cardWinner";

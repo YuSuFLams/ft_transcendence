@@ -5,7 +5,6 @@ import * as THREE from "three";
 import { useRouter } from "next/navigation";
 import { Canvas } from "@react-three/fiber";
 import React, { useEffect, useState, useRef } from "react";
-
 import pictureLeft from "@/../public/Image/picture1.jpg";
 import pictureRight from "@/../public/Image/picture2.jpg";
 import Image from "next/image";

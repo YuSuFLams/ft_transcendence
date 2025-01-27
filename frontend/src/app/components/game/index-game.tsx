@@ -63,9 +63,9 @@ const PageGame = () => {
         <div className="min-h-screen flex flex-col bg-[#050A30] overflow-hidden text-white relative" style={{ cursor: cursor }}>
 
             {/* Centered welcome message at the top */}
-            <div className="flex flex-col absolute top-12 w-full justify-center items-center space-y-4">
+            <div className="flex z-[1] flex-col absolute top-12 w-full justify-center items-center space-y-4">
                 <div className="flex flex-col items-center">
-                    <motion.h1 className="font-[Font3] flex justify-center items-center md:text-[2.6em] text-[1.8em] text-[2.9em] font-extrabold text-transparent 
+                    <motion.h1 className="font-[Borias] flex justify-center items-center md:text-[2.6em] text-[1.8em] text-[2.9em] font-extrabold text-transparent 
                         bg-clip-text bg-gradient-to-r from-[#ffcc00] to-[#ff6600] text-center" initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }}
                     >
@@ -87,7 +87,7 @@ const PageGame = () => {
             </div>
 
             {/* Button grid */}
-            <div className="absolute inset-0 flex flex-1 items-center justify-center mt-24">
+            <div className="absolute z-[1] inset-0 flex flex-1 items-center justify-center mt-24">
                 <div className="grid grid-cols-2 gap-8">
                     {buttons.map(({ label, icon, path, delay }, index) => (
                         <motion.button className="flex flex-col items-center justify-center p-6 bg-[#aaabbc] bg-opacity-60 rounded-3xl 

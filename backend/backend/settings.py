@@ -63,10 +63,16 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": False,
 }
 
+AUTHENTICATION_BACKENDS = [
+    "users.authentication.emailORusername",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         'users.authentication.MyJWTAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ),

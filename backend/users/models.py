@@ -1,9 +1,6 @@
 from django.db import models
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db.models.signals import pre_delete
-from django.dispatch import receiver
-from django.conf import settings
 
 class MyAccountManager(BaseUserManager):
     def create_user(self, email, username, password=None):
@@ -20,7 +17,8 @@ class MyAccountManager(BaseUserManager):
     def create_superuser(self, email, username, password):
         user = self.create_user(email=self.normalize_email(email),
                                 username=username,
-                                password=password)
+                                password=password,
+                                )
         user.is_admin = True
         user.is_superuser = True
         user.is_staff = True
@@ -38,9 +36,14 @@ class Account(AbstractBaseUser):
     is_active       = models.BooleanField(default=True)
     date_joined     = models.DateTimeField(auto_now_add=True)
     avatar          = models.ImageField(default='default_avatar.jpg', upload_to='avatars/')
+    is_oauth        = models.BooleanField(default=False)
+    is_otp_active   = models.BooleanField(default=False)
+    is_otp_verified = models.BooleanField(default=False)
+    otp_secret      = models.CharField(max_length=32, blank=True)
+    otp_code        = models.CharField(max_length=6, blank=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
 
     objects = MyAccountManager()
 

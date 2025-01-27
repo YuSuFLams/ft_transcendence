@@ -69,6 +69,10 @@ body {
   font-family: 'Borias';
   src: url('assets/fonts/BORIASRegular.ttf') format('truetype');
 }
+@font-face {
+  font-family: 'Rock';
+  src: url('assets/fonts/Rock.ttf') format('truetype');
+}
 
 
 @keyframes spin {

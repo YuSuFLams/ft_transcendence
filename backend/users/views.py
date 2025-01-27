@@ -36,18 +36,20 @@ def register(request):
         return Response(user_form.data, status=200)
     return (Response(user_form.errors.values(), status=400))
 
+
 class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
             response = super().post(request, *args, **kwargs)
+            #TODO CONTINUE HERE you should find a place to create otp_code on user obj
             access_token = response.data['access']
             refresh_token = response.data['refresh']
-            res = Response()
-            res.data = {'Success':True, 'access':access_token, 'refresh':refresh_token}
-
-            return res
+            return Response({'Success':True, 'access':access_token,
+                             'refresh':refresh_token},
+                             status=200)
         except:
-            return(Response({'success':False}))
+            return(Response({'success':False}, status=401))
+
 
 
 class MyTokenRefreshView(TokenRefreshView):
