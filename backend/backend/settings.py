@@ -59,6 +59,11 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True, 
     "ROTATE_REFRESH_TOKENS": False,
     "UPDATE_LAST_LOGIN": False,
+    "ALGORITHM": "HS256",
+
+    "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+    "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
     "TOKEN_OBTAIN_SERIALIZER": "users.serializer.MyTokenObtainPairSerializer",
 }
 

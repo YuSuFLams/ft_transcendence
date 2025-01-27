@@ -35,7 +35,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
             response = super().post(request, *args, **kwargs)
-            #TODO CONTINUE HERE you should find a place to create otp_code on user obj
             access_token = response.data['access']
             refresh_token = response.data['refresh']
             return Response({'Success':True,
@@ -54,19 +53,11 @@ class MyTokenRefreshView(TokenRefreshView):
             req = super().post(request, *args, **kwargs)
             access_token = req.data['access']
 
-            resp = Response()
-            resp.set_cookie(
-                key='access_token',
-                value=access_token,
-                secure=True,
-                httponly=True,
-                samesite='None',
-                path='/'
-            )
-            resp.data = {'Refreshed':True}
-            return resp
+            return Response({'Refreshed':True,
+                             'access':access_token},
+                             status=200)
         except:
-            return (Response({'Refreshed':False}))
+            return (Response({'Refreshed':False}, status=401))
         
 
 def lgn(request):

@@ -11,12 +11,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name','email', 'username', 'password', 'repassword']
 
     def create(self, validated_data):
-        user = Account(email=validated_data['email'],
-                    username=validated_data['username'],
-                    first_name=validated_data['first_name'],
-                    last_name=validated_data['last_name'],
+        user = Account(email=validated_data.get('email'),
+                    username=validated_data.get('username'),
+                    first_name=validated_data.get('first_name'),
+                    last_name=validated_data.get('last_name'),
                     otp_secret=pyotp.random_base32())
-        #TODO you can add list.get('key', 'default_value')
         user.set_password(validated_data['password'])
         user.save()
         return user
