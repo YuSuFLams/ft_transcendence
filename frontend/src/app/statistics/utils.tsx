@@ -193,7 +193,7 @@ const TournamentPreCard: React.FC<TournamentPreCardProps> = ({
 	);
   
 	return (
-		<div className="grid grid-cols-4 gap-8 max-h-[60vh] overflow-auto p-6">
+		<div className="grid grid-cols-4 lg:grids-cols-3  gap-8 max-h-[60vh] overflow-auto p-6">
 		  {tournaments.length === 0 ? (
 			<p className="text-xl text-gray-400 p-6">No tournaments available.</p>
 		  ) : (

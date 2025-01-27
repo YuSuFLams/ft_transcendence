@@ -6,11 +6,12 @@ import { GameHistoryItem, GameHistoryTabs, LeaderboardItem, LeaderboardTable, To
 import { Point } from "../utils/background";
 import avatar from "@/../public/Image/picture2.jpg";
 import axios from "axios";
-import { Doughnut, Pie } from "react-chartjs-2";
 import Cookie from 'js-cookie';
+import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from "chart.js";
 import { BackButton } from "../components/game/game-local/local-game_utils";
 import { useRouter } from "next/navigation";
+import { GameLocalData } from "./dataGame";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -84,47 +85,7 @@ const PageHistoryGame = () => {
   const router = useRouter();
 
   useEffect(() => {
-	const GameLocalData = async () => {
-		const token = Cookie.get("access");
-		try {
-			const response = await axios.get("http://localhost:8000/api/game/get-all-game", {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-			const data = await response.data;
-			console.log(data);
-			for (let i = 0; i < data.length; i++) {
-				const game = data[i];
-				// export interface GameHistoryItem {
-					// 	winner: string;
-				// 	gameId: string;
-				// 	player1: string;
-				// 	score: string;
-				// 	player2: string;
-				// 	type: "local" | "online";
-				// }
-				const data1: GameHistoryItem = {
-					gameId: game.id,
-					winner: game.winner,
-					player1: game.player1,
-					score: game.score_p1 + " - " + game.score_p2,
-					player2: game.player2,
-					type: "local",
-				};
-				console.log("data1", data1);
-				setGameHistory((prev) => [
-					...prev,
-					data1,
-				]);
-				
-			}
-		} catch (error) {
-			console.error(error);
-		}
-
-	};
-	GameLocalData();
+	GameLocalData(setGameHistory);
   },[]);
 
   useEffect(() => {
@@ -177,7 +138,7 @@ const PageHistoryGame = () => {
   	return (
     	<div className="bg-[#050A30] text-white min-h-screen flex flex-col font-sans">
 			<div className="flex justify-center mt-8">
-				<motion.h1 className="text-[3.4em] font-extrabold text-indigo-600 font-[Borias] tracking-wider" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+				<motion.h1 className="text-center text-[3.4em] lg:text-[3em] font-extrabold text-indigo-600 font-[Borias] tracking-wider" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
 					transition={{ duration: 0.6 }}
 				>
 					Player Rankings & Game Records
