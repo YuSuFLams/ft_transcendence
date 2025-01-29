@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from users.views import oauth2_42_callback
+from users.views import oauth2_42_callback, google_oauth2_callback
 
 
 urlpatterns = [
@@ -15,6 +15,7 @@ urlpatterns = [
     path('', include('users.urls')),
 
     path('oauth/', oauth2_42_callback, name='oauth2_42_callback'),
+    path('oauth/google/', google_oauth2_callback, name='google_oauth2_callback'),
     path('oauth2/', include('users.urls')),
     path('oauth2/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]

@@ -23,7 +23,7 @@ const GameLocalPre: React.FC<GameLocalPre> = ({
         <div className="w-screen h-screen bg-[#050A30] overflow-hidden text-white flex flex-col font-sans">
 
 
-            <div className="w-full z-[1] h-full absolute flex flex-col items-center justify-around">
+            <div className="w-full z-[50] h-full absolute flex flex-col items-center justify-around">
                 <div className="flex items-center justify-center mt-12">
                     <h1 className="text-8xl font-extrabold font-[Borias] tracking-wider text-indigo-600"> Game Local </h1>
                 </div>

@@ -124,3 +124,12 @@ class GetTournamentLocalMatchById(APIView):
         except Exception as e:
             print(f"Error: {e}")
             return Response({"error": "An unexpected error occurred"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GameTournamnetLocalView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        obj = TournamentLocal.objects.all()
+        serializer = TournamentLocalSerializer(obj, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

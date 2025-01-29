@@ -10,8 +10,8 @@ import { FaEyeSlash } from "react-icons/fa";
 import React, { useRef, useState, ChangeEvent } from "react";
 import { useRouter } from 'next/navigation';
 import { Si42 } from "react-icons/si";
-import { Intra42 } from "./oauth";
 import { Point } from "@/app/utils/background";
+import { Intra42 } from "./sign-in_utils";
 
 interface SignUpProps {
     toggleView: () => void;
@@ -32,9 +32,9 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) =
     const [error, setError] = useState<Record<string, string>>({});
     const [data, setData] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
-    const [inputClassName, setInputClassName] = useState("w-full p-2 pl-4 lg:p-3 rounded-lg placeholder:text-gray-500 shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
+    const [inputClassName, setInputClassName] = useState("w-full p-2 pl-4 lg:p-3 placeholder:truncate rounded-lg placeholder:text-gray-400 shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
                                     focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
-    const [inputClassName1, setInputClassName1] = useState("w-full p-2 pl-4 lg:p-3 placeholder:text-gray-500 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
+    const [inputClassName1, setInputClassName1] = useState("w-full p-2 pl-4  placeholder:truncate lg:p-3 placeholder:text-gray-400 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
                                     focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
 
     return (
@@ -42,15 +42,15 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) =
             <motion.div className={`flex-1 h-full bg-[#aaabbc] rounded-l-2xl flex flex-col items-center justify-center p-8 space-y-4 
                 lg:space-y-6 ${isMobile ? "rounded-r-2xl" : ""}`}>
 
-                <h2 className="z-[1] lg:text-5xl text-3xl font-[Font3] text-black font-extrabold text-center ">Create Account.</h2>
+                <h2 className="z-[50] lg:text-5xl text-3xl font-[Font3] text-black font-extrabold text-center ">Create Account.</h2>
                 
-                <form className="z-[1] space-y-2 lg:space-y-5 w-[100%] lg:w-[90%]" onSubmit={(e) => { 
+                <form className="z-[50] space-y-2 lg:space-y-5 w-[100%] lg:w-[90%]" onSubmit={(e) => { 
                         handleSubmit(e, inputFname, inputLname, inputEmail, inputUsername, inputPassword, inputConfirmPassword, setError, setData, setLoading, toggleView, setIsCreated);
                     }}>
                         <div className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-6">
                             <div className="flex-1">
                                 <input onChange={(e) => handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, setInputClassName, setInputClassName1)} 
-                                    className="w-full p-2 pl-4 lg:p-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left" 
+                                    className="w-full p-2 pl-4 lg:p-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 focus:ring-[#aaabbc] placeholder:text-gray-400 focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left" 
                                     type="text" name="firstName" placeholder="First Name" ref={inputFname} 
                                 />
                                 {error.firstName && <p className="text-red-600 font-[Font6] text-sm mt-1 font-bold line-clamp-2">{error.firstName}</p>}
@@ -59,7 +59,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) =
                             <div className="flex-1">
                                 <input onChange={(e) => handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, setInputClassName, setInputClassName1)} 
                                     type="text" name="lastName" placeholder="Last Name" ref={inputLname} 
-                                    className="w-full p-2 pl-3 lg:p-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 text-2xl placeholder:text-gray-500 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-left" 
+                                    className="w-full p-2 pl-3 lg:p-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 text-2xl placeholder:text-gray-400 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-left" 
                                 />
                                 {error.lastName && <p className="text-red-600 font-[Font6] text-sm mt-1 font-bold line-clamp-2">{error.lastName}</p>}
                             </div>
@@ -67,7 +67,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) =
 
                         <div>
                             <input onChange={(e) => handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, setInputClassName, setInputClassName1)} 
-                                className="w-full p-2 pl-3 lg:p-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 font-[Font6] placeholder:text-gray-500 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold text-black text-2xl text-left" 
+                                className="w-full p-2 pl-3 lg:p-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 font-[Font6] placeholder:text-gray-400 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold text-black text-2xl text-left" 
                                 type="text" name="username" placeholder="Username" ref={inputUsername}
                             />
                             {error.username && <p className="text-red-600 font-[Font6] text-sm mt-1 font-bold line-clamp-2">{error.username}</p>}
@@ -76,7 +76,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) =
                         <div>
                             <input onChange={(e) => handleInputChange(e, setError, setData, inputPassword, inputConfirmPassword, setInputClassName, setInputClassName1)} 
                                 type="email" name="email" placeholder="Email" ref={inputEmail} 
-                                className="w-full p-2 pl-3 lg:p-3  rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 text-2xl placeholder:text-gray-500 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-left" 
+                                className="w-full p-2 pl-3 lg:p-3   rounded-lg shadow-md focus:outline-none  placeholder:text-lg focus:ring-2 text-2xl placeholder:text-gray-400 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-left" 
                             />
                             {error.email && <p className="text-red-600 font-[Font6] text-sm mt-1 font-bold line-clamp-2">{error.email}</p>}
                         </div>
@@ -119,19 +119,19 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) =
             
 
                 {isMobile && 
-                    <div className="z-[1]  flex items-center justify-center">
+                    <div className="z-[50]  flex items-center justify-center">
                         <p className="text-[#0e213f]  lg:text-xl">Already have an account? 
                         <button className="text-black underline text-xl" onClick={toggleView}>Sign In</button></p>
                     </div>
                 }
 
-                <div className="z-[1] xl:my-6 flex items-center  w-full">
+                <div className="z-[50] xl:my-6 flex items-center  w-full">
                     <div className="flex-grow border-t border-t-2 border-[#0e213f]"></div>
                     <span className="mx-4 text-lg text-[#0e213f]">Or sign in with email</span>
                     <div className="flex-grow border-t border-t-2 border-[#0e213f]"></div>
                 </div>
 
-                <motion.div className="z-[1] flex xl:px-20 px-8 justify-between items-center w-full">
+                <motion.div className="z-[50] flex xl:px-20 px-8 justify-between items-center w-full">
                     <motion.button className="w-[50%] justify-center font-[Font4] max-w-[150px] h-[56px] bg-[#0e213f] text-white 
                         text-lg space-x-4 rounded-xl shadow flex items-center mr-4 p-2" transition={{ type: 'spring', stiffness: 300 }}
                         whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}

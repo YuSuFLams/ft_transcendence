@@ -51,19 +51,13 @@ const PageGame = () => {
             path: "/game/tournament-local",
             delay: 0.2
         },
-        {
-            label: "Tournament Invite",
-            icon: <FaEnvelopeOpenText size={60} className="text-[#710000]" />,
-            path: "/tournament-invite",
-            delay: 0.3
-        }
     ];
 
     return (
         <div className="min-h-screen flex flex-col bg-[#050A30] overflow-hidden text-white relative" style={{ cursor: cursor }}>
 
             {/* Centered welcome message at the top */}
-            <div className="flex z-[1] flex-col absolute top-12 w-full justify-center items-center space-y-4">
+            <div className="flex z-[50] flex-col absolute top-12 w-full justify-center items-center space-y-4">
                 <div className="flex flex-col items-center">
                     <motion.h1 className="font-[Borias] flex justify-center items-center md:text-[2.6em] text-[1.8em] text-[2.9em] font-extrabold text-transparent 
                         bg-clip-text bg-gradient-to-r from-[#ffcc00] to-[#ff6600] text-center" initial={{ opacity: 0, y: 20 }}
@@ -87,11 +81,12 @@ const PageGame = () => {
             </div>
 
             {/* Button grid */}
-            <div className="absolute z-[1] inset-0 flex flex-1 items-center justify-center mt-24">
-                <div className="grid grid-cols-2 gap-8">
+            <div className="absolute z-[50] inset-0 flex flex-col flex-1 items-center justify-center mt-24">
+                <div className="grid grid-cols-3 gap-8">
                     {buttons.map(({ label, icon, path, delay }, index) => (
                         <motion.button className="flex flex-col items-center justify-center p-6 bg-[#aaabbc] bg-opacity-60 rounded-3xl 
-                            shadow-lg hover:shadow-xl hover:shadow-[#00eaff] active:scale-95 active:translate-y-1 space-y-4 w-[28em] 
+                            shadow-lg hover:shadow-xl hover:shadow-[#00eaff] active:scale-95 active:translate-y-1 space-y-4 
+                            w-[18em] xl:w-[24em] sm:w-[12em] 
                             h-[12em] active:shadow-[0px_0px_10px_#00eaff,0px_0px_25px_rgba(0,234,255,0.6)] cursor-pointer transition-all"
                             key={index} whileHover={{ scale: 1.03 }} onClick={() => { handleClick(path); }} animate={{ opacity: 1, y: 0 }}
                             onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} initial={{ opacity: 0, y: 20 }}
@@ -101,7 +96,7 @@ const PageGame = () => {
                                 {icon}
                             </motion.div>
 
-                            <div className="text-3xl font-extrabold text-[#082751] font-[Font6] text-center">{label}</div>
+                            <div className="text-5xl font-extrabold text-[#082751] sm:text-2xl xl:text-3xl font-[Font6] text-center">{label}</div>
                         </motion.button>
                     ))}
                 </div>

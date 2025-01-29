@@ -12,15 +12,15 @@ const handleOAuth = async (
     setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
     if (code) {
-      const url = `http://localhost:8000/api/users/42/callback/?code=${code}`;
+      const url = `http://localhost:8000/api/users/google/callback/?code=${code}`;
   
       try {
+        console.log("response");
 		const response = await axios.get(url, {
 			headers: {
 				'Content-Type': 'application/json',
 			},
 			});
-  
         if (response.status === 200) {
 			const result = response.data;
 			Cookie.set('access', result.access_token);
@@ -126,6 +126,7 @@ const OAuthPage = () => {
 		if (token) router.push("/dashboard")
 	}, []);
 
+    console.log(code)
 	useEffect(() => {
 		if (!initializedRef.current) {
 			initializedRef.current = true;

@@ -1,6 +1,7 @@
+from datetime import timedelta
+from decouple import config
 from pathlib import Path
 import os
-from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,7 +16,7 @@ SECRET_KEY = 'django-insecure-9f^l+0p-ssb#3%wi@2hnrjvw7$&xnv!xo_3439$bl$e5=30#vq
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-AUTH_USER_MODEL = 'users.CustomUser'
+
 
 # Application definition
 SITE_ID = 1
@@ -52,15 +53,18 @@ OAUTH2_PROVIDER = {
         }
 }
 
-
-
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
     'BLACKLIST_AFTER_ROTATION': True, 
     "ROTATE_REFRESH_TOKENS": False,
     "UPDATE_LAST_LOGIN": False,
+    "ALGORITHM": "HS256",
+
+    "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+    "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "users.serializer.MyTokenObtainPairSerializer",
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -68,9 +72,9 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        #FIXME
         # 'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         'users.authentication.MyJWTAuthentication',
@@ -190,32 +194,36 @@ CSRF_TRUSTED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-
-LOGIN_REDIRECT_URL = 'dashboard'
 #telling django, if there is no next param, after a login redirect to dash.
 
-LOGIN_URL = 'login'
-LOGOUT_URL = 'logout'
 
 AUTH_USER_MODEL = 'users.Account'
 
-CLIENT_SECRET_GOOGLE = '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'
-CLIENT_ID_GOOGLE = '373713270678-0dro9nrh86tlpcse6a4bia0ssf296o8m.apps.googleusercontent.com'
-API_GOOGLE = 'https://accounts.google.com/o/oauth2/v2/auth'
 
-CLIENT_SECRET_42 = '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'
-CLIENT_ID_42 = 'u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6'
-API_42 = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-591b14bf116deb6a4f5f2a34bccb07f3d771efe37ca4f2728d4b30fe3abeb3a6&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Foauth%2F&response_type=code'
+####Oauth2 Google
+CLIENT_SECRET_GOOGLE = config("CLIENT_SECRET_GOOGLE")
+CLIENT_ID_GOOGLE = config("CLIENT_ID_GOOGLE")
+API_GOOGLE = config("API_GOOGLE")
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'butgha91826@gmail.com'
-EMAIL_HOST_PASSWORD = 'tayslqbdwnjyrebx'
+GOOGLE_JWKS = config("GOOGLE_JWKS")
+GOOGLE_OAUTH_TOKEN = config("GOOGLE_OAUTH_TOKEN")
+GOOGLE_REDIRECT = config("GOOGLE_REDIRECT")
+
+####Oauth 42
+CLIENT_SECRET_42 = config("CLIENT_SECRET_42")
+CLIENT_ID_42 = config("CLIENT_ID_42")
+API_42 = config("API_42")
+
+####Email Config
+EMAIL_BACKEND = config("EMAIL_BACKEND")
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS")
+EMAIL_PORT = config("EMAIL_PORT")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+
+#### Helpers
+RESET_BASE_URI = config("RESET_BASE_URI")
+RESET_TOKEN_EXP = config("RESET_TOKEN_EXP", default=300)
 
 #TODO what if i log using oauth, and i requested to change my pass.
-
-RESET_BASE_URI = 'http://localhost:8000/api/users/reset_password_success'
-
-RESET_TOKEN_EXP = 300

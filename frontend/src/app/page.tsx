@@ -16,7 +16,7 @@ const HomePage = () => {
 		<div className="relative w-screen h-screen bg-[#050A30] overflow-hidden flex items-center justify-center">
 
 
-			<div className="relative flex flex-col items-center justify-center z-10 text-center">
+			<div className="relative flex flex-col items-center justify-center z-[10] text-center">
 				{/* Title - Soft Neon Glow with No Strong Shadows */}
 				<h1 className="font-[Font5] text-[3rem] sm:text-[5rem] lg:text-[8rem] uppercase tracking-widest 
 					text-transparent bg-clip-text bg-gradient-to-r from-[#ff00ff] via-[#ff1493] to-[#00eaff] 

@@ -6,7 +6,7 @@ from .views import delete_all_game, get_all_game, TournamentLocalCreate, GetTour
 
 urlpatterns = [
     path('delete-all-game/', delete_all_game, name='delete-all-game'),
-    path('get-all-game/', get_all_game, name='get-all-game'),
+    path('get-all-tournament/', get_all_game, name='get-all-game'),
     path('local-tournament/', TournamentLocalCreate.as_view(), name='localTournament'),
     path('local-tournament/<int:id>/', GetTournamentLocalById.as_view(), name='localTournamentById'),
     path('local-tournament/match/<int:id>/<int:match_id>/', GetTournamentLocalMatchById.as_view(), name='localTournamentMatchById')

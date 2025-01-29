@@ -1,6 +1,6 @@
 "use client"
 
-import { handleSubmit, handleInputChange, HalfSideSignUp } from "./sign-in_utils";
+import { handleSubmit, handleInputChange, HalfSideSignUp, Intra42, Google } from "./sign-in_utils";
 
 
 
@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation"; // Uncomment this line
 import { Si42 } from "react-icons/si";
 import { message } from "antd";
 import Cookie from 'js-cookie';
-import { Intra42 } from "./oauth";
 import { Point } from "@/app/utils/background";
 
 interface SignInProps {
@@ -37,9 +36,9 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
             <motion.div className={`flex-1 h-full bg-[#aaabbc] rounded-r-2xl flex flex-col items-center justify-center p-8 space-y-4 
                 lg:space-y-6 ${isMobile ? "rounded-l-2xl" : ""}`}>
                 <h2 className="  text-6xl font-[Font3] text-black font-extrabold text-center mb-4 lg:mb-6">Sign In</h2>
-                <motion.div className="flex z-[1] space-x-6 justify-center mb-6 w-full">
+                <motion.div className="flex z-[50] space-x-6 justify-center mb-6 w-full">
                     <motion.button className="w-[50%] justify-center font-[Font4] max-w-[180px] h-[56px] bg-[#0e213f] text-white text-lg space-x-4 rounded-xl shadow flex items-center mr-4 p-2" transition={{ type: 'spring', stiffness: 300 }}
-                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => Google(router, setError)}>
                         <FaGoogle style={{ width: 24, height: 24 }} />
                         <span className="text-2xl">Google</span>
                     </motion.button>
@@ -49,12 +48,12 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
                         <span className="text-2xl">Intra</span>
                     </motion.button>
                 </motion.div>
-                <div className="my-6 z-[1] flex items-center w-full">
+                <div className="my-6 z-[50] flex items-center w-full">
                     <div className="flex-grow border-t border-t-2 border-[#0e213f]"></div>
                     <span className="mx-4 text-lg text-[#0e213f]">Or sign in with email</span>
                     <div className="flex-grow border-t border-t-2 border-[#0e213f]"></div>
                 </div>
-                <form className="space-y-3 z-[1] md:space-y-6 w-[100%] lg:w-[80%]" onSubmit={(e) => handleSubmit(e, setError, input, data, router, setLoading, inputPassword, setIsLogin)}>
+                <form className="space-y-3 z-[50] md:space-y-6 w-[100%] lg:w-[80%]" onSubmit={(e) => handleSubmit(e, setError, input, data, router, setLoading, inputPassword, setIsLogin)}>
                     <div>
                         <input className="w-full p-3 pl-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg 
                         focus:ring-2 focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold 
@@ -86,7 +85,7 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
                         </Link>
                     </div>
                 </form>
-                {isMobile && <div className="z-[1] flex items-center justify-center">
+                {isMobile && <div className="z-[50] flex items-center justify-center">
                     <p className="text-[#0e213f] text-xl">Don't have an account? <button className="text-black underline text-xl" onClick={toggleView}>Sign Up</button></p>
                 </div>}
             </motion.div>

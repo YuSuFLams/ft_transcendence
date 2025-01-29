@@ -26,8 +26,8 @@ urlpatterns = [
 
     # ####Oauth2
     path('google/', views.lgn, name='lgn'),
-    path('42/', views.lgn_42, name='lgn_42'),
     path('google/callback/', views.google_oauth2_callback, name='oauth2_google_callback'),
+    path('42/', views.lgn_42, name='lgn_42'),
     path('42/callback/', views.oauth2_42_callback, name='oauth2_42_callback'),
 
     # ####Helpers
