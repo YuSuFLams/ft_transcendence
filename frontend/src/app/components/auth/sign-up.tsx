@@ -4,14 +4,13 @@ import { HalfSideSignIn, handleInputChange, handleSubmit } from "./sign-up_utils
 
 
 import { motion } from "framer-motion";
-import { message } from 'antd';
 import { FaEye, FaGoogle } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
-import React, { useRef, useState, ChangeEvent } from "react";
+import React, { useRef, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Si42 } from "react-icons/si";
 import { Point } from "@/app/utils/background";
-import { Google, Intra42 } from "./sign-in_utils";
+import { Google, Intra42 } from "../api/auth";
 
 interface SignUpProps {
     toggleView: () => void;

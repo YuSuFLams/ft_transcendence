@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ButtonGameTournament, InputPlayersTournament } from "./utilsTournament";
 import axios from "axios";
 import Cookie from "js-cookie";
+import { Point } from "@/app/utils/background";
 
 export interface ErrorState {
     nameTournament?: string;
@@ -53,13 +54,13 @@ const handleCreateTournament = async (
         }
 
         try {
+            const data = {
+                numberPlayers: numPlayers,
+                nameTournament,
+                playerNames: players,
+            };
             const response = await axios.post(
-                "http://localhost:8000/api/tournament/local-tournament/",
-                {
-                    numberPlayers: numPlayers,
-                    nameTournament,
-                    playerNames: players,
-                },
+                "http://localhost:8000/api/tournament/local-tournament/", data,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -129,11 +130,11 @@ const PageTournamentLocal = () => {
     };
 
     return (
-        <div className="w-full min-h-screen bg-gradient-to-b from-[#0A2C57] via-[#1A3B6B] to-gray-600 text-white flex flex-col font-sans relative">
+        <div className="w-full min-h-screen bg-[#050A30] text-white flex flex-col font-sans relative">
             <main className="flex min-h-screen flex-col font-[ssb] items-center justify-center flex-grow px-4 py-8 z-10 relative">
                 <div className="w-full max-w-4xl bg-[#1A2B47] p-8 rounded-xl shadow-lg">
                     <div className="flex items-center justify-center mb-6">
-                        <h1 className="text-3xl md:text-6xl font-extrabold text-indigo-600"> Game Tournament Local </h1>
+                        <h1 className="text-3xl lg:text-6xl font-[Borias] font-extrabold text-indigo-600"> Game Tournament Local </h1>
                     </div>
 
                     <div className="space-y-6">
@@ -150,6 +151,7 @@ const PageTournamentLocal = () => {
                     </div>
                 </div>
             </main>
+            <Point />  
         </div>
     );
 };

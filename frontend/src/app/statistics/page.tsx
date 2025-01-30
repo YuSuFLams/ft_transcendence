@@ -11,7 +11,7 @@ import { Doughnut, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from "chart.js";
 import { BackButton } from "../components/game/game-local/local-game_utils";
 import { useRouter } from "next/navigation";
-import { GameHistoryItem, GameLocalData, GameTournamentLocalData, LeaderboardItem, TournamentItem } from "./dataGame";
+import { GameHistoryItem, GameLocalData, GameTournamentLocalData, LeaderboardItem, TournamentItem } from "../components/api/statisticsGame";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 

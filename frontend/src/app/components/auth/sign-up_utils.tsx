@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from "react";
-import Cookie from 'js-cookie';
+
 import { motion } from "framer-motion";
-import axios, {AxiosError} from 'axios';
+import { CreateAccount } from "../api/auth";
 
 
 interface SignInProps {
@@ -74,34 +74,6 @@ const isValidInput = (input: React.RefObject<HTMLInputElement | null>) => {
 
 
 
-const CreateAccount = async (
-    newData:any, setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    setError: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-    toggleView: () => void,
-    setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
-) => {
-    try {
-        const response = await axios.post( 'http://localhost:8000/api/users/register/', newData,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        if (response.status === 200) {
-            setIsCreated(true);
-            toggleView();
-            setLoading(false);
-        }
-    } catch (error: unknown) {
-        if (error instanceof AxiosError) {
-          console.log("Backend Error Response:", error.response?.data['0']);
-          setError((prev: any) => ({ ...prev, general: error.response?.data['0'] || 'Registration failed.' }));
-        } else {
-          setError((prev: any) => ({ ...prev, general: 'Network error: Could not connect to the server.' }));
-        }
-    }
-}
 
 const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>,

@@ -61,11 +61,18 @@ const MatchLocalGame = () => {
         }
 	}, [playerLeft, playerRight, token]);
 
-    if (gameStarted) listenConnection(socket, setBallPosition, setScorePlayerLeft, setScorePlayerRight, setWinner);
+    if (gameStarted) listenConnection(socket, setBallPosition, setPositionPlayerPaddleRight, setPositionPlayerPaddleLeft, setScorePlayerLeft,
+         setScorePlayerRight, setWinner);
+
+        useEffect(() => {
+            if (positionPlayerPaddleLeft) {
+                console.log("Position Player Paddle Left:", positionPlayerPaddleLeft);
+            }
+        }, [positionPlayerPaddleLeft]);
 
     useEffect(() => {
         const handleKeyDownWrapper = (event: KeyboardEvent) => 
-            handleKeyDown(event, socket, setPositionPlayerPaddleLeft, setPositionPlayerPaddleRight, paddlePlayerLeftRef, paddlePlayerRightRef  );
+            handleKeyDown(event, socket);
 
         let elapsedTime = 0;
 

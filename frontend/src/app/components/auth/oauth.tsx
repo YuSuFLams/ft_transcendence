@@ -1,9 +1,12 @@
 "use client";
-import { useRouter } from 'next/navigation';
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Point } from '@/app/utils/background';
 import { FaCheckCircle, FaExclamationTriangle, FaGamepad } from 'react-icons/fa';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useEffect, useRef, useState } from 'react';
+import Cookie from 'js-cookie';
+import { handleOAuth } from '../api/oauth';
+
 
 const FirstFunc: React.FC <{}> = ({}) => {
 	return (
@@ -99,4 +102,40 @@ const OuthPage: React.FC<OuthPageProps> = ({ loading, errorMessage, router }) =>
 	);
 };
 
-export {OuthPage}
+
+const OAuthPage:React.FC<{ url: string }> = ({url}) => {
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	const initializedRef = useRef<boolean>(false);
+	const [errorMessage, setErrorMessage] = useState<string>("");
+	const [loading, setLoading] = useState<boolean>(true);
+	const code = searchParams.get("code");
+  
+	useEffect(() => {
+        const token = Cookie.get("access");
+        if (token) router.push("/dashboard");
+	}, [router]);
+  
+	useEffect(() => {
+	  if (!initializedRef.current && code) {
+		initializedRef.current = true;
+		const url42 = url.concat(code);
+		console.log(url42);
+		handleOAuth(code, setErrorMessage, setLoading, url42);
+	  }
+	}, [code, url]);
+  
+	useEffect(() => {
+        if (!loading && !errorMessage) {
+            const timeout = setTimeout(() => {
+                router.push("/dashboard");
+            }, 2000);
+            return () => clearTimeout(timeout);
+        }
+	}, [loading, errorMessage, router]);
+  
+	return <OuthPage loading={loading} errorMessage={errorMessage} router={router} />;
+};
+  
+export default OAuthPage;
+

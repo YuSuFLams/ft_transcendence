@@ -5,9 +5,7 @@ import { useEffect, useState } from 'react';
 import SignIn from "./sign-in"
 import SignUp from "./sign-up";
 import Cookie from 'js-cookie';
-import { Router } from 'next/router';
 import { useRouter } from 'next/navigation';
-import { Point } from '@/app/utils/background';
 
 export type Size = {
     width: number;

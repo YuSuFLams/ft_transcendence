@@ -1,8 +1,6 @@
 import React, { ChangeEvent } from "react";
-import Cookie from 'js-cookie';
+import { handleLogin } from "../api/auth";
 import { motion } from "framer-motion";
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
 
 const isValidInput = (input: React.RefObject<HTMLInputElement>) => {
     const isAllSpaces = (str: string): boolean => str.trim().length === 0;
@@ -49,6 +47,8 @@ const handleInputChange = (
         }
 };
 
+
+
 const handleSubmit = async ( e: React.FormEvent<HTMLFormElement>,
     setError: React.Dispatch<React.SetStateAction<Record<string, string>>>,
     input: React.RefObject<HTMLInputElement | null>, data: Record<string, string>,
@@ -75,32 +75,7 @@ const handleSubmit = async ( e: React.FormEvent<HTMLFormElement>,
 
     if (Object.keys(newError).length === 0) {
         setLoading(true);
-        try {
-            console.log(data);
-            const response = await axios.post('http://localhost:8000/api/users/login/', data, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-        
-            const result = response.data; // The response data is already parsed
-        
-            if (result.Success && result.access && result.refresh) {
-                Cookie.set("access", result.access);
-                Cookie.set("refresh", result.refresh);
-                setIsLogin(true);
-                setTimeout(() => {
-                    router.push('/game');
-                }, 3000);
-            } else {
-                const errorMsg = result.error || 'Login failed. Please try again.';
-                setError((prev: any) => ({ ...prev, general: errorMsg }));
-            }
-        } catch (error) {
-            setError((prev: any) => ({ ...prev, general: 'An unexpected error occurred. Please try again.' }));
-        } finally {
-            setLoading(false);
-        }
+        handleLogin(data, setError, setLoading, router, setIsLogin);
         
     } else {
         setLoading(false);
@@ -124,12 +99,10 @@ const HalfSideSignUp: React.FC<LoginProps> = ({ toggleView }) => {
                 <p className="text-white font-[Font3] text-3xl text-center max-w-md">
                     🌟 Continue your journey, connect with friends, and compete in thrilling <span className="text-[#ffcc00]">ping pong</span> matches!
                 </p>
-                <motion.button
-                    onClick={toggleView}
-                    className="text-[#001219] bg-[#aaabbc] font-[Font3] text-3xl font-extrabold px-6 py-2 rounded-lg shadow-md transition-transform duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-opacity-50 relative z-20"
-                    whileHover={{ scale: 1.15 }}
-                    whileTap={{ scale: 0.95 }}
-                    aria-label="Toggle to Sign Up">
+                <motion.button className="text-[#001219] bg-[#aaabbc] font-[Font3] text-3xl font-extrabold px-6 py-2 rounded-lg shadow-md 
+                    transition-transform duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-opacity-50 relative z-20"
+                    onClick={toggleView} whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.95 }} aria-label="Toggle to Sign Up"
+                >
                     Sign Up
                 </motion.button>
             </motion.div>
@@ -137,46 +110,5 @@ const HalfSideSignUp: React.FC<LoginProps> = ({ toggleView }) => {
     );
 };
 
-const Intra42 = async (
-	router:any, setError: React.Dispatch<React.SetStateAction<Record<string, string>>>
-) => {
-    try {
-		const response = await fetch('http://localhost:8000/api/users/42/', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-		const result = await response.json(); // Only call json() once
-		console.log(result)
-		const url_42 = result.authorize_link;
-		router.push(url_42);
-		
-	} catch (error) {
-		console.error('Error during login:', error);
-		setError((prev: any) => ({ ...prev, general: 'An unexpected error occurred. Please try again.' }));
-	}
-};
-const Google = async (
-    router: ReturnType<typeof useRouter>, setError: React.Dispatch<React.SetStateAction<Record<string, string>>>
-) => {
-	try {
-		const response = await fetch('http://localhost:8000/api/users/google/', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-		const result = await response.json(); // Only call json() once
-		console.log(result)
-		const url_42 = result.authorize_link;
-		router.push(url_42);
-		
-	} catch (error) {
-		console.error('Error during login:', error);
-		setError((prev: any) => ({ ...prev, general: 'An unexpected error occurred. Please try again.' }));
-	}
-};
 
-
-export {isValidInput, handleInputChange, handleSubmit, HalfSideSignUp, Intra42, Google};
+export {isValidInput, handleInputChange, handleSubmit, HalfSideSignUp};

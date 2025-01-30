@@ -1,13 +1,11 @@
 "use client";
 
-import OAuth42Page from "@/app/components/auth/42";
-
-
+import OAuthPage from "../components/auth/oauth";
 
 const Page = () => {
-
+    const url = `http://localhost:8000/api/users/42/callback/?code=`;
     return (
-        <div> <OAuth42Page /> </div>
+        <div> <OAuthPage url={url} /> </div>
     )
 }
 

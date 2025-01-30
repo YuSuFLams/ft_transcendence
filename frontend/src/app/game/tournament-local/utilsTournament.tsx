@@ -12,7 +12,7 @@ const ButtonGameTournament:React.FC<{handleCreateTournament: () => void, router:
 
             <button className="px-6 py-4 text-2xl font-extrabold text-white bg-red-800 rounded-xl hover:bg-gradient-to-l shadow-lg 
                 hover:from-red-800 hover:to-red-600 hover:scale-105 transition duration-300 ease-in-out focus:outline-none 
-                focus:ring-4 focus:ring-red-600" onClick={() => router.push("game")}
+                focus:ring-4 focus:ring-red-600" onClick={() => router.push("/game")}
             >
                 Cancel
             </button>
@@ -37,11 +37,12 @@ const InputPlayersTournament: React.FC<InputPlayersTournamentProps> = ({
         <div>
             {/* Tournament Name Input */}
             <div className="mb-6">
-                <label className="block text-lg font-bold mb-2 text-indigo-300"> Tournament Name </label>
+                <label className="block text-lg font-[Borias] font-bold mb-2 text-indigo-300"> Tournament Name </label>
             
                 <input placeholder="Tournament Name" onChange={(e) => setNameTournament(e.target.value)} value={nameTournament}
-                    className="w-full p-3 rounded-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-400 duration-300
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm" type="text" />
+                    className="w-full p-2 pl-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg 
+                        focus:ring-2 focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold 
+                        font-[Font6] text-black text-2xl text-left" type="text" />
 
                 {errors.nameTournament && ( <p className="mt-2 ml-2 text-sm text-red-500">{errors.nameTournament}</p> )}
             </div>
@@ -50,7 +51,7 @@ const InputPlayersTournament: React.FC<InputPlayersTournamentProps> = ({
             <div className="mb-6">
                 <label className="block text-lg font-bold mb-2 text-indigo-300"> Number of Players </label>
           
-                <select className="w-full p-3 font-[ssb] rounded-lg border border-gray-600 bg-gray-800 text-white focus:outline-none 
+                <select className="w-full p-3 font-[Font6] rounded-lg border border-gray-600 bg-gray-800 text-white focus:outline-none 
                     focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 shadow-sm" value={numPlayers}
                     onChange={handleNumPlayersChange}
                 >
@@ -66,9 +67,9 @@ const InputPlayersTournament: React.FC<InputPlayersTournamentProps> = ({
                     
                         <label className="block text-lg font-bold mb-2 text-indigo-300"> {key.replace("player", "Player ")} </label>
                 
-                        <input className="w-full p-3 rounded-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-400 
-                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 
-                            shadow-sm" type="text" placeholder={`${key.replace("player", "Player ")} Name`} value={player}
+                        <input className="w-full p-2 pl-3 rounded-lg shadow-md focus:outline-none placeholder:text-lg 
+                        focus:ring-2 focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold 
+                        font-[Font6] text-black text-2xl text-left" type="text" placeholder={`${key.replace("player", "Player ")} Name`} value={player}
                             onChange={(e) => handlePlayerChange(key, e.target.value)}
                         />
 

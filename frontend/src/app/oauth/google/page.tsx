@@ -1,11 +1,11 @@
 "use client";
 
-import OAuthGooglePage from "@/app/components/auth/google";
+import OAuthPage from "@/app/components/auth/oauth";
 
 const Page = () => {
-
+    const url = `http://localhost:8000/api/users/google/callback/?code=`;
     return (
-        <div> <OAuthGooglePage /> </div>
+        <div> <OAuthPage url={url} /> </div>
     )
 }
 

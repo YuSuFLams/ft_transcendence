@@ -238,6 +238,42 @@ class LocalGameInfo:
         except Exception as e:
             pass
 
+    async def paddle_move(self, data: dict):
+        try:
+            table_width = self.data_game.game.table_game['width']
+            half_width = table_width / 2
+            move_amount = 0.3
+            lerp_speed = 0.3 
+
+            prev_pos_right = self.data_game.game.paddle2['x']
+            prev_pos_left = self.data_game.game.paddle1['x']
+
+            if data.get('direction') == 'right':
+                if data.get('event') == 'ArrowRight':
+                    target_position = min(prev_pos_right + move_amount, half_width - 0.4)  
+                elif data.get('event') == 'ArrowLeft':
+                    target_position = max(prev_pos_right - move_amount, -half_width + 0.4)
+                else:
+                    target_position = prev_pos_right  
+
+                new_position = prev_pos_right + (target_position - prev_pos_right) * lerp_speed
+                self.data_game.game.paddle2['x'] = new_position
+                await self.consumer.send_data({'type': 'paddle', 'data': {'right_paddle': new_position}})
+            elif data.get('direction') == 'left':
+                if data.get('event') == 'D':
+                    target_position = max(prev_pos_left - move_amount, -half_width + 0.4)
+                elif data.get('event') == 'A':
+                    target_position = min(prev_pos_left + move_amount, half_width - 0.4) 
+                else:
+                    target_position = prev_pos_left  
+
+                new_position = prev_pos_left + (target_position - prev_pos_left) * lerp_speed
+                self.data_game.game.paddle1['x'] = new_position
+                await self.consumer.send_data({'type': 'paddle', 'data': {'left_paddle': new_position}})
+        except Exception as e:
+            pass
+            
+
     async def receive(self, data: dict):
         action = data.get('action')
         try:
@@ -276,13 +312,8 @@ class LocalGameInfo:
                     self.data_game.game.GameId = None
 
             elif action == 'paddle':
-                direction = data.get('direction')
-                paddle_position = data.get('paddlePosition')
-                if direction == 'left' and paddle_position != None:
-                    self.data_game.game.paddle1['x'] = float(paddle_position)
-                elif direction == 'right' and paddle_position != None:
-                    self.data_game.game.paddle2['x'] = float(paddle_position)
-            
+                await self.paddle_move(data)
+                
         except json.JSONDecodeError as e:
             pass
         except Exception as e:
@@ -299,7 +330,6 @@ class PingPongGameLocal(AsyncWebsocketConsumer):
         if not self.user.is_authenticated:
             await self.close()
             return
-        print(f"{YELLOW}Connect user: {self.user}.{RESET}")
         await self.accept()
 
     async def disconnect(self, close_code):

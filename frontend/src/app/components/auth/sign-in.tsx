@@ -1,18 +1,14 @@
 "use client"
 
-import { handleSubmit, handleInputChange, HalfSideSignUp, Intra42, Google } from "./sign-in_utils";
-
-
-
-import React, { useRef, useState, ChangeEvent, useEffect } from "react";
-import { motion } from "framer-motion";
+import { handleSubmit, handleInputChange, HalfSideSignUp } from "./sign-in_utils";
 import { FaGoogle, FaEye, FaEyeSlash } from "react-icons/fa";
-import Link from "next/link";
-import { useRouter } from "next/navigation"; // Uncomment this line
-import { Si42 } from "react-icons/si";
-import { message } from "antd";
-import Cookie from 'js-cookie';
+import React, { useRef, useState } from "react";
 import { Point } from "@/app/utils/background";
+import { Google, Intra42 } from "../api/auth";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Si42 } from "react-icons/si";
+import Link from "next/link";
 
 interface SignInProps {
     toggleView: () => void;
