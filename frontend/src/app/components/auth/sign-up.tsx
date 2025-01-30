@@ -11,7 +11,7 @@ import React, { useRef, useState, ChangeEvent } from "react";
 import { useRouter } from 'next/navigation';
 import { Si42 } from "react-icons/si";
 import { Point } from "@/app/utils/background";
-import { Intra42 } from "./sign-in_utils";
+import { Google, Intra42 } from "./sign-in_utils";
 
 interface SignUpProps {
     toggleView: () => void;
@@ -38,7 +38,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) =
                                     focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
 
     return (
-        <div className="flex flex-row w-full h-full items-center">
+        <div className="fixed flex flex-row w-full h-full items-center">
             <motion.div className={`flex-1 h-full bg-[#aaabbc] rounded-l-2xl flex flex-col items-center justify-center p-8 space-y-4 
                 lg:space-y-6 ${isMobile ? "rounded-r-2xl" : ""}`}>
 
@@ -134,7 +134,7 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, isMobile, setIsCreated }) =
                 <motion.div className="z-[50] flex xl:px-20 px-8 justify-between items-center w-full">
                     <motion.button className="w-[50%] justify-center font-[Font4] max-w-[150px] h-[56px] bg-[#0e213f] text-white 
                         text-lg space-x-4 rounded-xl shadow flex items-center mr-4 p-2" transition={{ type: 'spring', stiffness: 300 }}
-                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => Google(router, setError)}
                     >
                         <FaGoogle style={{ width: 24, height: 24 }} />
                         <span className="text-2xl">Google</span>

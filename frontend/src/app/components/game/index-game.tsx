@@ -86,7 +86,7 @@ const PageGame = () => {
                     {buttons.map(({ label, icon, path, delay }, index) => (
                         <motion.button className="flex flex-col items-center justify-center p-6 bg-[#aaabbc] bg-opacity-60 rounded-3xl 
                             shadow-lg hover:shadow-xl hover:shadow-[#00eaff] active:scale-95 active:translate-y-1 space-y-4 
-                            w-[18em] xl:w-[24em] sm:w-[12em] 
+                            w-[18em] xl:w-[24em] lg:w-[20em] md:w-[16em] sm:w-[12em]  
                             h-[12em] active:shadow-[0px_0px_10px_#00eaff,0px_0px_25px_rgba(0,234,255,0.6)] cursor-pointer transition-all"
                             key={index} whileHover={{ scale: 1.03 }} onClick={() => { handleClick(path); }} animate={{ opacity: 1, y: 0 }}
                             onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} initial={{ opacity: 0, y: 20 }}

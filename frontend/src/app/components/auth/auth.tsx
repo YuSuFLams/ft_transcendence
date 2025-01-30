@@ -68,7 +68,7 @@ const LogInUp = () => {
     }, [isCreated, isLogin]);
 
     return (
-        <div className="fixed w-full h-full bg-[#050A30] top-0 left-0 right-0 bottom-0 flex items-center justify-center overflow-hidden">
+        <div className="fixed w-full h-full bg-[#050A30] top-0 left-0 right-0 bottom-0 flex  items-center justify-center overflow-hidden">
             <div className={`${isMobile ? "fixed mt-auto w-[95dvw] h-[95dvh] min-w-[340px] min-h-[660px] max-w-[500px] max-h-[800px] rounded-2xl"
                 : "fixed rounded-2xl w-[95dvw] h-[95dvh] min-w-[750px]  min-h-[590px] max-w-[1300px] max-h-[800px]"} transform ease-in-out flex`}
             >

@@ -31,7 +31,7 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
     const [inputClassName, setInputClassName] = useState<string>("w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none font-[Font6] placeholder:text-lg focus:ring-2 placeholder:text-gray-500 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold text-black text-2xl text-left");
 
     return (
-        <div className="flex flex-row w-full h-full items-center">
+        <div className="fixed flex flex-row w-full h-full items-center">
             {!isMobile && <HalfSideSignUp toggleView={toggleView} />}
             <motion.div className={`flex-1 h-full bg-[#aaabbc] rounded-r-2xl flex flex-col items-center justify-center p-8 space-y-4 
                 lg:space-y-6 ${isMobile ? "rounded-l-2xl" : ""}`}>

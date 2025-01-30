@@ -2,6 +2,7 @@ import React, { ChangeEvent } from "react";
 import Cookie from 'js-cookie';
 import { motion } from "framer-motion";
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 const isValidInput = (input: React.RefObject<HTMLInputElement>) => {
     const isAllSpaces = (str: string): boolean => str.trim().length === 0;
@@ -157,7 +158,7 @@ const Intra42 = async (
 	}
 };
 const Google = async (
-    router:any, setError: React.Dispatch<React.SetStateAction<Record<string, string>>>
+    router: ReturnType<typeof useRouter>, setError: React.Dispatch<React.SetStateAction<Record<string, string>>>
 ) => {
 	try {
 		const response = await fetch('http://localhost:8000/api/users/google/', {

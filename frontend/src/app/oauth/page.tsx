@@ -1,12 +1,13 @@
 "use client";
 
-import OAuthPage from "../components/auth/oauth";
+import OAuth42Page from "@/app/components/auth/42";
+
 
 
 const Page = () => {
 
     return (
-        <div> <OAuthPage /> </div>
+        <div> <OAuth42Page /> </div>
     )
 }
 
