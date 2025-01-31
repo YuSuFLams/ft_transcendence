@@ -6,6 +6,18 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import Cookie from 'js-cookie';
 import axios from 'axios';
 
+export const removeAllData = () => {
+    Cookie.remove("step");
+    Cookie.remove("username");
+    Cookie.remove("full_name");
+    Cookie.remove("email");
+    Cookie.remove("picture");
+    Cookie.remove("is_me");
+    Cookie.remove("isPasswordVisible");
+    Cookie.remove("isSuccessful");
+  }
+  
+
 const FirstStep = () => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [loading, setLoading] = useState(false);
@@ -13,11 +25,7 @@ const FirstStep = () => {
     const [error, setError] = useState<Record<string, string>>({});
 
     useEffect(() => {
-        Cookie.remove("step");
-        Cookie.remove("username");
-        Cookie.remove("full_name");
-        Cookie.remove("picture");
-        Cookie.remove("email");
+        removeAllData()
     }, []);
 
     const isValidInput = (value: string) => {
@@ -45,31 +53,29 @@ const FirstStep = () => {
 
         setLoading(true);
         try {
-            const token = Cookie.get("access");
-            if (!token) {
-                setError({ general: "An unexpected error occurred." });
-                return;
-            }
-            const response = await axios.get(`http://localhost:8000/secure/reset-password/locate/?account=${value}`,{
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+            const data = {"email": value};
+            const response = await axios.post(`http://localhost:8000/api/users/reset_mail_pub/`,data, {
+                headers: {
+                    "Content-Type": "application/json",
                 }
-            );
-
+            });
+            console.log("response", response.data);
+            // Object { username: "youssef lamssieh", first_name: "youssef", last_name: "lamssieh" }
             if (response.status !== 200) {
                 const errorData = response.data;
                 setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || "",});
                 return;
             }
-
+            
             const responseData = response.data;
+            console.log("data :", responseData.username + "  - " + responseData.first_name + " - " + responseData.last_name);
 
             Cookie.set("step", "1");
-            Cookie.set("username", value);
-            Cookie.set("full_name", responseData.success.full_name);
-            Cookie.set("picture", responseData.success.picture);
-            Cookie.set("email", responseData.success.email);
+            Cookie.set("username", responseData.username);
+            const fullname = responseData.first_name + " " + responseData.last_name;
+            Cookie.set("full_name", fullname);
+            // // Cookie.set("picture", responseData.success.picture);
+            Cookie.set("email", value);
         } catch (error) {
             console.error("Error during fetch:", error);
             setError({ general: "An unexpected error occurred." });
@@ -82,7 +88,7 @@ const FirstStep = () => {
         <div className="mt-8 flex flex-col space-y-2 items-center justify-center mb-8">
             <motion.div className="w-[90%] max-w-[600px] space-y-6" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                 
-                <div> <h2 className="text-4xl font-[Borias] font-bold text-black text-center">Reset Password</h2> </div>
+                <div> <h2 className="text-4xl font-[Borias] font-bold text-[#9AB5D9] text-center">Reset Password</h2> </div>
 
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     <div className="flex flex-col items-center space-y-2">
@@ -96,9 +102,9 @@ const FirstStep = () => {
                     </div>
 
                     <motion.div className="flex items-center justify-center">
-                        <motion.button className="items-center w-[40%] h-[56px] font-[Font6] text-white bg-[#0e213f] px-8 py-3 rounded-xl 
+                        <motion.button className="items-center w-[40%] h-[56px] font-[Font6] text-[#050A30] bg-[#9AB5D9] px-8 py-2 rounded-xl 
                             font-semibold shadow-md transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-lg focus:outline-none 
-                            focus:ring-2 focus:ring-[#aaabbc] focus:ring-opacity-50" whileHover={{ scale: 1.05 }} style={{ opacity: loading ? 0.5 : 1 }}
+                            focus:ring-2 focus:ring-[#aaabbc] focus:ring-opacity-50 text-3xl" whileHover={{ scale: 1.05 }} style={{ opacity: loading ? 0.5 : 1 }}
                             type="submit" whileTap={{ scale: 0.95 }} disabled={loading} aria-label="Reset Password"
                         >
                             {loading ? "Processing..." : "Send"}

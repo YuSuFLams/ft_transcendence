@@ -272,6 +272,20 @@ class LocalGameInfo:
                 await self.consumer.send_data({'type': 'paddle', 'data': {'left_paddle': new_position}})
         except Exception as e:
             pass
+
+    async def start_game(self, data: dict, action: str):
+        try:
+            self.data_game.game.player1 = data.get('player1')
+            self.data_game.game.player2 = data.get('player2')
+            self.data_game.game.GameId = await create_or_update_game_local(action, player1=self.data_game.game.player1, 
+                player2=self.data_game.game.player2)
+            self.data_game.game.start_game = True
+            await self.consumer.send_data({'type': 'startGame', 'data': {'idGame': self.data_game.game.GameId}})
+            await asyncio.sleep(2)
+            if not self.data_game.game.game_loop_task or self.data_game.game.game_loop_task.done():
+                self.data_game.game.game_loop_task = asyncio.create_task(self.data_game.game_loop())
+        except Exception as e:
+            pass
             
 
     async def receive(self, data: dict):
@@ -286,15 +300,7 @@ class LocalGameInfo:
                 await self.cleanup() 
 
             if action == "startGame":
-                self.data_game.game.player1 = data.get('player1')
-                self.data_game.game.player2 = data.get('player2')
-                self.data_game.game.GameId = await create_or_update_game_local(action, player1=self.data_game.game.player1, 
-                    player2=self.data_game.game.player2)
-                self.data_game.game.start_game = True
-                await self.consumer.send_data({'type': 'startGame', 'data': {'idGame': self.data_game.game.GameId}})
-                await asyncio.sleep(2)
-                if not self.data_game.game.game_loop_task or self.data_game.game.game_loop_task.done():
-                    self.data_game.game.game_loop_task = asyncio.create_task(self.data_game.game_loop())
+                await self.start_game(data, action)
             
             elif action == 'resetGame':
                 await self.reset_data_game(data)

@@ -7,6 +7,7 @@ import SecondStep from './verify-code/page';
 import ThirdStep from './confirm-pass/page';
 import Success from './successfull/page';
 import { use } from 'framer-motion/m';
+import Cookie from 'js-cookie';
 import { Point } from "../utils/background";
 
 const steps = [
@@ -33,7 +34,7 @@ const App: React.FC = () => {
   const [current, setCurrent] = useState(0);
 
   const updateStep = () => {
-    const stepCompleted = sessionStorage.getItem("step");
+    const stepCompleted = Cookie.get("step");
     
     if (stepCompleted && (stepCompleted === "1" || stepCompleted === "2" || stepCompleted === "3" || stepCompleted === "0")) {
       const stepNumber = parseInt(stepCompleted, 10);
@@ -78,12 +79,12 @@ const items = steps.map((item) => ({ key: item.title, title: !isSmallScreen ? it
 
 return (
   <div className="fixed w-full h-full bg-[#050A30]  top-0 left-0 flex items-center justify-center">
-    <div className="z-[50] min-w-[330px] h-[60%] max-h-[400px] w-[95%] max-w-[700px] bg-[#164773] rounded-3xl shadow-lg flex flex-col">
+    <div className="z-[50] min-w-[330px] h-[60%] max-h-[400px] w-[95%] max-w-[700px] bg-[#011C40] rounded-3xl shadow-lg flex flex-col">
         <Steps 
         className="p-4  rounded-t-xl lg:rounded-t-3xl justify-between w-full" 
         current={current} 
         items={items}
-        style={{ display: 'flex', flexDirection: 'row', color: token.colorPrimary, backgroundColor: "#b6a972" }} // Force steps to display in a row
+        style={{ display: 'flex', flexDirection: 'row', color: token.colorPrimary, backgroundColor: "#9AB5D9" }} // Force steps to display in a row
       />
       <div className=" w-full rounded-b-3xl flex-grow mb-12">
         {steps[current].content}

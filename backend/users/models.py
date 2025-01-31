@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db.models.signals import pre_delete
+from django.utils import timezone
 
 class MyAccountManager(BaseUserManager):
     def create_user(self, email, username, password=None):
@@ -56,3 +57,11 @@ class Account(AbstractBaseUser):
 
     def __str__(self):
         return (self.username)
+
+####### RESET_PASS
+class ResetPassword(models.Model):
+    email = models.EmailField()
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    def is_valid(self):
+        return (timezone.now() - self.created_at).total_seconds() < 600

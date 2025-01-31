@@ -10,7 +10,6 @@ const handleOAuth = async (
       
   
       try {
-        console.log("response");
 		const response = await axios.get(url, {
 			headers: {
 				'Content-Type': 'application/json',

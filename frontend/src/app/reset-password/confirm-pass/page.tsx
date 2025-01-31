@@ -6,6 +6,9 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Make sure to import FaEye
 import { Flex, Spin, message } from "antd";
 import { LoadingOutlined } from '@ant-design/icons';
+import Cookie from 'js-cookie';
+import axios from "axios";
+
 
 const ThirdStep = () => {
     const [hidePass, setHidePass] = useState<boolean>(true);
@@ -15,48 +18,27 @@ const ThirdStep = () => {
     const inputPassword = useRef<HTMLInputElement>(null);
     const inputConfirmPassword = useRef<HTMLInputElement>(null); // Fixed typo here
     const [loading, setLoading] = useState(false);
-    const [inputClassName, setInputClassName] = useState("w-[100%] p-3 lg:px-4 lg:py-4 rounded-lg shadow-md focus:outline-none placeholder:text-xl focus:ring-2 focus:ring-[#b6a972] focus:ring-opacity-50");
-    const [inputClassName1, setInputClassName1] = useState("w-[100%] p-3 lg:px-4 lg:py-4 rounded-lg shadow-md focus:outline-none placeholder:text-xl focus:ring-2 focus:ring-[#b6a972] focus:ring-opacity-50");
+    const [inputClassName, setInputClassName] = useState("w-[100%] p-3 lg:px-4 lg:py-4 \
+        rounded-lg shadow-md focus:outline-none placeholder:text-xl text-black \
+        focus:ring-2 focus:ring-[#b6a972] focus:ring-opacity-50");
+    const [inputClassName1, setInputClassName1] = useState("w-[100%] p-3 lg:px-4 lg:py-4 \
+        rounded-lg shadow-md focus:outline-none \
+        placeholder:text-xl focus:ring-2 focus:ring-[#b6a972] focus:ring-opacity-50");
     const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false);
     const initializedRef = useRef(false);
 
     useEffect(() => {
-        const fetchData = async () => {
-            const token = sessionStorage.getItem('token');
+        setTimeout(() => {
+            setPasswordVisible(true);
+            Cookie.set('isPasswordVisible', '1');
+        }, 2000);
     
-            try {
-                const response = await fetch(`http://127.0.0.1:9003/secure/reset-password/update/${token}/`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-    
-                const data = await response.json();
-                
-                if (response.ok) {
-                    setPasswordVisible(true);
-                    message.success(data.success);
-                } else {
-                    setPasswordVisible(false); // Set to false if there's an error
-                    setTimeout(() => {
-                        message.error(data.error);
-                        sessionStorage.clear();
-                    }, 3000);
-                }
-            } catch (error) {
-                message.error('An error occurred: ' + error);
-                setPasswordVisible(false); // Handle error case
-            }
-        };
-    
-        const isVisible = sessionStorage.getItem('isPasswordVisible');
+        const isVisible = Cookie.get('isPasswordVisible');
         if (!initializedRef.current && isVisible !== '1') {
             initializedRef.current = true; // Set to true after the first run
             setTimeout(() => {
-                fetchData();
-                sessionStorage.setItem('isPasswordVisible', '1');  
-            }, 3000);
+                Cookie.set('isPasswordVisible', '1');  
+            }, 2000);
         }
     }, []);
     
@@ -93,17 +75,17 @@ const ThirdStep = () => {
         if (name === "password") {
             if (value.length > 0 && value.length < 6 && inputPassword.current) {
                 inputPassword.current.focus();
-                setInputClassName("w-[100%] px-4 py-4 rounded-lg shadow-md focus:outline-none placeholder:text-xl border-2 border-red-500");
+                setInputClassName("w-[100%] px-4 py-4 text-black rounded-lg shadow-md focus:outline-none placeholder:text-xl border-2 border-red-500");
             } else {
-                setInputClassName("w-[100%] px-4 py-4 rounded-lg shadow-md focus:outline-none placeholder:text-xl focus:ring-2 focus:ring-[#142c5c] focus:ring-opacity-50");
+                setInputClassName("w-[100%] px-4 py-4 text-black rounded-lg shadow-md focus:outline-none placeholder:text-xl focus:ring-2 focus:ring-[#142c5c] focus:ring-opacity-50");
             }
         }
         else if (name === "repassword") { // Changed name to repassword
             if (value.length > 0 && value.length < 6 && inputConfirmPassword.current) {
                 inputConfirmPassword.current.focus();
-                setInputClassName1("w-[100%] px-4 py-4 rounded-lg shadow-md focus:outline-none placeholder:text-xl border-2 border-red-500");
+                setInputClassName1("w-[100%] px-4 py-4 text-black rounded-lg shadow-md focus:outline-none placeholder:text-xl border-2 border-red-500");
             } else {
-                setInputClassName1("w-[100%] px-4 py-4 rounded-lg shadow-md focus:outline-none placeholder:text-xl focus:ring-2 focus:ring-[#b6a972] focus:ring-opacity-50");
+                setInputClassName1("w-[100%] px-4 py-4 text-black rounded-lg shadow-md focus:outline-none placeholder:text-xl focus:ring-2 focus:ring-[#b6a972] focus:ring-opacity-50");
             }
         }
     };
@@ -155,23 +137,29 @@ const ThirdStep = () => {
         }
         
         // Fetch request for updating the password
-        const token = sessionStorage.getItem('token');
+        // const token = Cookie.get('token');
         if (isPasswordVisible) {  
             try {
-                const response = await fetch(`http://127.0.0.1:9003/secure/reset-password/update/${token}/`, {
-                    method: 'POST', // Changed to POST as you typically send data in a password reset
+                const email = Cookie.get('email');
+                const data_data = {
+                    'email': email,
+                    "new_password1": newData.password,
+                    "new_password2": newData.repassword
+                }
+                console.log(data_data);
+                const response = await axios.post(`http://localhost:8000/api/users/reset_mail_success/`,data_data, {
                     headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(newData),
+                        "Content-Type": "application/json",
+                    }
                 });
     
-                if (response.ok) {
-                    sessionStorage.setItem('step', '3'); // Mark step 1 as completed
-                    sessionStorage.setItem('isSuccessful', 'true');
+                console.log("response", response.data);
+                if (response.status === 200) {
+                    Cookie.set('step', '3'); // Mark step 1 as completed
+                    Cookie.set('isSuccessful', 'true');
                 }
                 else {
-                    const errorData = await response.json();
+                    const errorData = await response.data;
                     message.error(`Error: ${errorData.error}`);
                     setError({ general: errorData.error || "An unexpected error occurred." });
                 }   
@@ -183,14 +171,14 @@ const ThirdStep = () => {
     };
     
     useEffect(() => {
-        const isPasswordVisibleValue = sessionStorage.getItem('isPasswordVisible');
+        const isPasswordVisibleValue = Cookie.get('isPasswordVisible');
         if (isPasswordVisibleValue && isPasswordVisibleValue === '1') {
             setPasswordVisible(true);
         }
         if (isPasswordVisibleValue && (isPasswordVisibleValue !== '1' && isPasswordVisibleValue !== '0')) {
-            sessionStorage.clear()
+            Cookie.remove('isPasswordVisible');
         }
-    }, []); // Empty dependency array ensures this runs only on mount
+    }, [setPasswordVisible]); // Empty dependency array ensures this runs only on mount
 
     return (
         <div className="w-full h-full md:mt-0 rounded-r-2xl flex flex-col items-center justify-center space-y-6 mb-16">
@@ -204,7 +192,7 @@ const ThirdStep = () => {
                         <div>
                             <div className="flex-1 relative">
                                 <span
-                                    className="absolute top-1/2 right-2 transform -translate-y-1/2 cursor-pointer mr-2"
+                                    className="absolute text-black top-1/2 right-2 transform -translate-y-1/2 cursor-pointer mr-2"
                                     onClick={() => setHidePass(!hidePass)}
                                     >
                                     {hidePass ? <FaEyeSlash style={{width:22,height:22}}  /> : <FaEye style={{width:22,height:22}}  />}
@@ -224,7 +212,7 @@ const ThirdStep = () => {
                         <div>
                             <div className="flex-1 relative">
                                 <span
-                                    className="absolute top-1/2 right-2 transform -translate-y-1/2 cursor-pointer mr-2"
+                                    className="absolute text-black top-1/2 right-2 transform -translate-y-1/2 cursor-pointer mr-2"
                                     onClick={() => setHideConfirmPass(!hideConfirmPass)}
                                     >
                                     {hideConfirmPass ? <FaEyeSlash style={{width:22,height:22}}  /> : <FaEye style={{width:22,height:22}}  />}

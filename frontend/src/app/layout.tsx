@@ -33,7 +33,8 @@ export const useAuth = (): AuthResult => {
 			const isValidToken = await checkTokenValidity();
 			if (!isValidToken) {
 				setIsAuthenticated(false);
-			if (pathname !== '/login-signup' && pathname !== '/reset-password' && pathname !== '/' && pathname !== '/oauth' && pathname !== '/oauth/google') {
+			if (pathname !== '/login-signup' && pathname !== '/reset-password' && pathname !== '/' && pathname !== '/oauth' 
+				&& pathname !== '/oauth/google') {
 				router.push('/login-signup');
 			}
 		} else {

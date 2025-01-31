@@ -5,7 +5,11 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { message } from "antd";
+import Cookie from 'js-cookie';
 import { CheckCircleOutlined } from '@ant-design/icons';
+import axios from "axios";
+import pictureUser from "@/../public/Image/picture1.jpg";
+import { removeAllData } from "../page";
 
 interface Profile {
     picture: string;
@@ -26,13 +30,13 @@ const SecondStep = () => {
         if (!initializedRef.current) {
             initializedRef.current = true;
     
-            const fullName = sessionStorage.getItem('full_name') || '';
-            const picture = sessionStorage.getItem('picture') || '';
-            const email = sessionStorage.getItem('email') || '';
+            const fullName = Cookie.get('full_name') || '';
+            const picture = Cookie.get('picture') || '';
+            const email = Cookie.get('email') || '';
     
             // Only set 'is_me' if it hasn't been set yet
-            if (!sessionStorage.getItem('is_me')) {
-                sessionStorage.setItem('is_me', JSON.stringify(0));  
+            if (!Cookie.get('is_me')) {
+                Cookie.set('is_me', JSON.stringify(0));  
             }
     
             setProfile({ fullName, picture, email });
@@ -40,12 +44,12 @@ const SecondStep = () => {
     }, []);
     
     useEffect(() => {
-        const isMeValue = sessionStorage.getItem('is_me');
+        const isMeValue = Cookie.get('is_me');
         if (isMeValue && isMeValue === '1') {
             setIsMe(true); // Parse the value or set default to 0
         }
         if (isMeValue && (isMeValue !== '1' && isMeValue !== '0')) {
-            sessionStorage.clear();
+            
             message.error('something went wrong');
         }
     }, []); // Empty dependency array ensures this runs only on mount
@@ -116,29 +120,29 @@ const SecondStep = () => {
     
         // Clear the error if inputs are valid
         setError((prev) => ({ ...prev, enough: '' }));
-        const username = sessionStorage.getItem('username');
+        const username = Cookie.get('username');
         console.log("username", username);
-        const response = await fetch('http://127.0.0.1:9003/secure/reset-password/verify/', {
-            method: 'POST',
+        const data_data = {"email": Cookie.get('email'), "code": code.join('')};
+        console.log("data_data", data_data);
+        const response = await axios.post(`http://localhost:8000/api/users/reset_password_check/`,data_data, {
             headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({"account": username, "code": code.join('') }),
+                "Content-Type": "application/json",
+            }
         });
         
         // Check if the response is ok (status in the range 200-299)
-        if (!response.ok) {
-            const errorData = await response.json();
+        if (response.status !== 200) {
+            const errorData = response.data;
+            console.log("errorData", errorData);
             // Set error message from response or default message
             setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || '' });
             return;
         }
         
         // Parse the response JSON if the request was successful
-        const responseData = await response.json();
-        sessionStorage.setItem('token', responseData.token);
+        const responseData = await response.data;
         console.log(responseData); // Handle success response if needed
-        sessionStorage.setItem('step', '2'); // Mark step 1 as completed
+        Cookie.set('step', '2'); // Mark step 1 as completed
         message.info("Your code has been successfully sent. Please hold on for the next step.", 3); // 2 seconds duration
         
         // Log the current code state to the console
@@ -147,54 +151,52 @@ const SecondStep = () => {
 
     const reSendCode = async () => {
         setError((prev) => ({ ...prev, enough: '', general: '' }));
-        const username = sessionStorage.getItem('username');
-        const response = await fetch('http://127.0.0.1:9003/secure/reset-password/send/', {
-            method: 'POST',
+        // const username = Cookie.get('username');
+        const data_data = {"email": Cookie.get('email')};
+        const response = await axios.post(`http://localhost:8000/api/users/reset_password/`,data_data, {
             headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ account: username }),
+                "Content-Type": "application/json",
+            }
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || '' });
+        if (response.status !== 200) {
+            const errorData = response.data;
+            setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || "",});
             return;
         }
 
+        console.log("response", response.data);
         resetCode();
-        const data = await response.json();
+        const data = await response.data;
         message.info({
-            content: data.success,
+            content: data || "Code sent successfully",
             icon: <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '20px' }} />,
             duration: 5,
         });
     };
 
     const isNotMe = () => {
-        sessionStorage.clear();
+        removeAllData();
     };
 
     const handleContinue = async () => {
         try {
-            const username = sessionStorage.getItem('username');
-            const response = await fetch('http://127.0.0.1:9003/secure/reset-password/send/', {
-                method: 'POST',
+            const data_data = {"email": Cookie.get('email')};
+            const response = await axios.post(`http://localhost:8000/api/users/reset_password/`,data_data, {
                 headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ account: username }),
+                    "Content-Type": "application/json",
+                }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || '' });
+            console.log("response", response.data);
+            if (response.status !== 200) {
+                const errorData = response.data;
+                setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || "",});
                 return;
             }
 
-            const responseData = await response.json();
+            const responseData = response.data;
             if (responseData.success){
-                sessionStorage.setItem('is_me', JSON.stringify(1));
+                Cookie.set('is_me', JSON.stringify(1));
                 message.success(responseData.success);
             }
             toggleView();
@@ -221,7 +223,7 @@ const SecondStep = () => {
                             <Image
                                 width={128}
                                 height={128}
-                                src={profile.picture || "https://media1.tenor.com/m/tNfwApVE9RAAAAAC/orange-cat-laughing.gif"}
+                                src={pictureUser || "https://media1.tenor.com/m/tNfwApVE9RAAAAAC/orange-cat-laughing.gif"}
                                 alt="User Image"
                                 className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-gradient-to-r border-[#DAE1E7] shadow-2xl"
                             />
@@ -261,12 +263,13 @@ const SecondStep = () => {
                         <h1 className="text-3xl font-extrabold text-white">Verify Code</h1>
                         <p className="text-base text-gray-300 m-2">Enter your Code here</p>
                     </div>
-                    <div className="flex md:space-x-2 space-x-1 items-center justify-center">
+                    <div className="flex md:space-x-4 space-x-2 items-center justify-center">
                         {code.map((_, index) => (
                             <input
                                 key={index}
-                                className="text-2xl border border-gray-300 rounded-lg md:w-12 md:h-12 w-10 h-10 p-0 text-center focus:outline-none focus:ring-2 focus:ring-[#b6a972] 
-                                focus:border-[#b6a972] transition-shadow"
+                                className="text-2xl border border-gray-300 rounded-lg md:w-12 md:h-12 w-10 h-10 p-1 text-center focus:outline-none 
+                                focus:ring-2 focus:ring-[#9AB5D9] text-white bg-[#142c5c]
+                                focus:border-[#9AB5D9] transition-shadow"
                                 maxLength={1}
                                 ref={(el: HTMLInputElement | null) => {
                                     if (el) inputRefs.current[index] = el;
@@ -293,7 +296,9 @@ const SecondStep = () => {
                             >
                             {loading ? 'Loading...' : 'SEND CODE'}
                         </motion.button>
-                        <button className="text-base font-medium text-gray-400 underline hover:text-white transition" onClick={reSendCode}>
+                        <button className="text-base font-medium text-gray-400 underline hover:text-white transition" 
+                        onClick={reSendCode}
+                        >
                             Resend Code
                         </button>
                     </div>

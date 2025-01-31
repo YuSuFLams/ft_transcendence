@@ -3,6 +3,9 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { MdOutlineVerifiedUser, MdErrorOutline } from "react-icons/md"; // Import the error icon
 
+import Cookie from "js-cookie";
+import { removeAllData } from "../page";
+
 const Success = () => {
     const router = useRouter();
     const [isSuccessful, setIsSuccessful] = useState(false);
@@ -11,22 +14,24 @@ const Success = () => {
     useEffect(() => {
         if (!initializedRef.current) {
             initializedRef.current = true;
-            const isSuccess = sessionStorage.getItem("isSuccessful");
+            const isSuccess = Cookie.get("isSuccessful");
 
             if (isSuccess) {
                 setIsSuccessful(true);
                 setTimeout(() => {
-                    sessionStorage.clear();
+                    // Cookie.clear();
                     setTimeout(() => {
-                        router.push("/auth");
-                    }, 100); // Delay the sessionStorage.clear() by 100ms after router.push
+                        router.push("/login-signup");
+                        removeAllData()
+                    }, 100); // Delay the Cookie.clear() by 100ms after router.push
                 }, 2000);                
             } else {
                 setIsError(true); // Set error state
                 message.error("An error occurred. Please try again later.");
                 
                 setTimeout(() => {
-                    sessionStorage.clear(); // Clear session after 2 seconds
+                    // Cookie.clear(); // Clear session after 2 seconds
+                    removeAllData()
                 }, 2000);
             }
         }

@@ -20,9 +20,12 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('login/refresh/', views.MyTokenRefreshView.as_view(), name='token_refresh'),
-    # path('logout/', views.logout, name='logout'),
-    # path('reset_password/', views.send_reset_mail, name='send_reset_mail'),
-    # path('reset_password_success/<uid>/', views.send_reset_mail_success, name='send_reset_mail_success'),
+    
+    # ####Reset password
+    path('reset_password/', views.send_reset_mail, name='send_reset_mail'),
+    path('reset_mail_pub/', views.get_pub_data, name='get_pub_data'),
+    path('reset_password_check/', views.reset_mail_check, name='reset_mail_check'),
+    path('reset_mail_success/', views.reset_mail_success, name='reset_mail_success'),
 
     # ####Oauth2
     path('google/', views.lgn, name='lgn'),
@@ -34,3 +37,4 @@ urlpatterns = [
     # path('is_authenticated/', views.is_authenticated, name='is_authenticated'),
     # path('search/', views.search_account, name='search'),
 ]
+

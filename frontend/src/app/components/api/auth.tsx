@@ -91,7 +91,7 @@ const handleLogin = async (
             Cookie.set("access", result.access);
             Cookie.set("refresh", result.refresh);
             setIsLogin(true);
-            setTimeout(() => router.push('/game'), 3000);
+            setTimeout(() => router.push('/dashboard'), 3000);
         } else {
             const errorMsg = result.error || 'Login failed. Please try again.';
             setError((prev: any) => ({ ...prev, general: errorMsg }));
