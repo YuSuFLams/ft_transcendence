@@ -54,12 +54,13 @@ const PageGame = () => {
     ];
 
     return (
-        <div className="min-h-screen flex flex-col bg-[#050A30] overflow-hidden text-white relative" style={{ cursor: cursor }}>
+        <div className="min-h-screen flex flex-col bg-[#050A30] space-y-4 overflow-hidden text-white relative" style={{ cursor: cursor }}>
 
             {/* Centered welcome message at the top */}
             <div className="flex z-[50] flex-col absolute top-12 w-full justify-center items-center space-y-4">
                 <div className="flex flex-col items-center">
-                    <motion.h1 className="font-[Borias] flex justify-center items-center md:text-[2.6em] text-[1.8em] text-[2.9em] font-extrabold text-transparent 
+                    <motion.h1 className="font-[Borias] flex justify-center items-center 
+                    md:text-[2.6em] text-[1.8em] text-[2.9em] font-extrabold text-transparent 
                         bg-clip-text bg-gradient-to-r from-[#ffcc00] to-[#ff6600] text-center" initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }}
                     >
@@ -81,23 +82,28 @@ const PageGame = () => {
             </div>
 
             {/* Button grid */}
-            <div className="absolute z-[50] inset-0 flex flex-col flex-1 items-center justify-center mt-24">
-                <div className="grid grid-cols-3 gap-8">
+            <div className="absolute z-[50] inset-0 flex flex-col flex-wrap items-center justify-center mt-24">
+                <div className="grid grid-cols-1 gap-8 items-center justify-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
                     {buttons.map(({ label, icon, path, delay }, index) => (
-                        <motion.button className="flex flex-col items-center justify-center p-6 bg-[#aaabbc] bg-opacity-60 rounded-3xl 
-                            shadow-lg hover:shadow-xl hover:shadow-[#00eaff] active:scale-95 active:translate-y-1 space-y-4 
-                            w-[18em] xl:w-[24em] lg:w-[20em] md:w-[16em] sm:w-[12em]  
-                            h-[12em] active:shadow-[0px_0px_10px_#00eaff,0px_0px_25px_rgba(0,234,255,0.6)] cursor-pointer transition-all"
-                            key={index} whileHover={{ scale: 1.03 }} onClick={() => { handleClick(path); }} animate={{ opacity: 1, y: 0 }}
-                            onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} initial={{ opacity: 0, y: 20 }}
-                            transition={{ duration: 1, delay: delay }}
-                        >
-                            <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.5 }} className="animate-pulse">
-                                {icon}
-                            </motion.div>
+                        <div>
+                            <motion.button className="flex flex-col   items-center justify-center bg-[#aaabbc] bg-opacity-60 rounded-3xl 
+                                shadow-lg hover:shadow-xl hover:shadow-[#00eaff] active:scale-95 active:translate-y-1 space-y-2 
+                                w-full sm:w-[16em] md:w-[18em] lg:w-[20em] xl:w-[22em]
+                                h-[8em] sm:h-[10em] md:h-[12em] lg:h-[12em]
+                                active:shadow-[0px_0px_10px_#00eaff,0px_0px_25px_rgba(0,234,255,0.6)] cursor-pointer transition-all"
+                                key={index} whileHover={{ scale: 1.03 }} onClick={() => { handleClick(path); }} animate={{ opacity: 1, y: 0 }}
+                                onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} initial={{ opacity: 0, y: 20 }}
+                                transition={{ duration: 1, delay: delay }}
+                                >
+                                <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.5 }} className="animate-pulse">
+                                    {icon}
+                                </motion.div>
 
-                            <div className="text-5xl font-extrabold text-[#082751] sm:text-2xl xl:text-3xl font-[Font6] text-center">{label}</div>
-                        </motion.button>
+                                <div className="font-extrabold text-[#082751] 
+                                text-3xl sm:text-4xl md:text-3xl lg:text-4xl 
+                                font-[Font6] text-center">{label}</div>
+                            </motion.button>
+                        </div>
                     ))}
                 </div>
             </div>

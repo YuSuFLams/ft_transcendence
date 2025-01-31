@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { HiRefresh } from "react-icons/hi";
 import { user } from "@nextui-org/react";
+import { Point } from "@/app/utils/background";
 
 interface PlayerGame {
   username: string;
@@ -255,17 +256,15 @@ const PageTournamentLocal = () => {
     }
 
     return (
-        <div className="w-screen h-screen max-h-screen items-center justify-center bg-gradient-to-b from-[#0A2C57] via-[#1A3B6B] 
-            to-gray-600 text-white flex flex-col font-sans relative">
+        <div className="w-screen bg-[#050A30] h-screen max-h-screen items-center justify-center text-white flex flex-col font-sans relative">
             
             {/* Title */}
     
             {
                 !winnerTournament ? (
-                    <div className="w-screen h-screen max-h-screen items-center bg-gradient-to-b from-[#0A2C57] via-[#1A3B6B] 
-            to-gray-600 text-white flex flex-col font-sans relative">
+                    <div className="w-screen z-[50] h-screen max-h-screen items-center justify-center text-white flex flex-col font-sans relative">
                         <div className="flex items-center justify-center mt-12">
-                            <h1 className="text-6xl font-extrabold font-[ssb] tracking-wider text-[#8C1F28]">Tournament Local</h1>
+                            <h1 className="text-6xl font-extrabold font-[Borias] tracking-wider text-indigo-600">Tournament Local</h1>
                         </div>
                         <div className="flex flex-col w-full items-center justify-center flex-grow">
                             {
@@ -314,6 +313,7 @@ const PageTournamentLocal = () => {
                     </motion.div>
                 )
             }
+            <Point />
         </div>
     );
     
