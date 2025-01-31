@@ -74,9 +74,6 @@ AUTHENTICATION_BACKENDS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #FIXME
-        # 'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         'users.authentication.MyJWTAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ),

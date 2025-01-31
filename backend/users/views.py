@@ -1,7 +1,7 @@
 from django.shortcuts import  redirect
 from django.contrib.auth.password_validation import validate_password
-from .models import Account
-from .serializer import (
+from .models import Account, ResetPassword
+from .serializer import (ResetPasswordSerializerSuccess,
                          RegisterSerializer)
 
 from rest_framework.decorators import api_view, permission_classes
@@ -247,3 +247,65 @@ def oauth2_42_callback(request):
     access_token = AccessToken.for_user(user_obj)
 
     return Response({'Success':True, 'access_token':str(access_token), 'refresh_token':str(refresh_token)})
+
+
+###### RESET PASS
+from django.core.mail import send_mail
+import pyotp
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_reset_mail(request):
+    reset_email = request.data.get('reset_email')
+    if not reset_email:
+        return (Response('The reset_email field is required', status=400))
+    
+    try:
+        user = Account.objects.get(email=reset_email)
+        totp = pyotp.TOTP(pyotp.random_base32())
+        code = totp.now()
+        reseted = ResetPassword(email=reset_email, code=code)
+        reseted.save()
+
+        send_mail('Transcendence Reset Password',
+                f'To reset your password, Use the secret code: {code}',
+                settings.EMAIL_HOST_USER,
+                [reset_email],
+                fail_silently=False)
+        return (Response('The reset email is sent, please check your email', status=200))
+    except Account.DoesNotExist:
+        return (Response('The email is incorrect', status=400))
+    # except:
+    #     return (Response('Error while reseting the password', status=500))
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_mail_check(request):
+    try:
+        reset_user = ResetPassword.objects.get(email=request.data.get('email'),
+                                               code=request.data.get('code'))
+        if (not reset_user.is_valid()):
+            reset_user.delete()
+            return (Response("Reset token is expired", status=400))
+        if (reset_user.code != request.data.get('code')):
+            return (Response("Reset token is invalid", status=400))
+        reset_user.delete()
+        return (Response('valid email', status=200))
+    except ResetPassword.DoesNotExist:
+        return (Response("invalid email", status=400))
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_mail_success(request):
+    user = Account.objects.get(email=request.data.get('email'))
+    new_pass_serialized = ResetPasswordSerializerSuccess(data=request.data)
+
+    if (not new_pass_serialized.is_valid()):
+        return (Response('The new password is not valid', status=400))
+    valid = new_pass_serialized.validated_data
+
+    user.set_password(valid['new_password1'])
+    user.save()
+    return (Response('The password changed successfully', status=200))
