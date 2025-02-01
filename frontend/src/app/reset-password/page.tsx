@@ -11,6 +11,7 @@ export const removeAllData = () => {
     Cookie.remove("username");
     Cookie.remove("full_name");
     Cookie.remove("email");
+    Cookie.remove("code");
     Cookie.remove("picture");
     Cookie.remove("is_me");
     Cookie.remove("isPasswordVisible");
@@ -53,35 +54,45 @@ const FirstStep = () => {
 
         setLoading(true);
         try {
-            const data = {"email": value};
-            const response = await axios.post(`http://localhost:8000/api/users/reset_mail_pub/`,data, {
+            const data = { "email": value };
+            const response = await axios.post(`http://localhost:8000/api/users/reset_mail_pub/`, data, {
                 headers: {
                     "Content-Type": "application/json",
                 }
             });
+        
             console.log("response", response.data);
-            // Object { username: "youssef lamssieh", first_name: "youssef", last_name: "lamssieh" }
+        
             if (response.status !== 200) {
                 const errorData = response.data;
-                setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || "",});
+                setError({ 
+                    general: errorData.error || "An unexpected error occurred.", 
+                });
                 return;
             }
-            
+        
             const responseData = response.data;
             console.log("data :", responseData.username + "  - " + responseData.first_name + " - " + responseData.last_name);
-
+        
             Cookie.set("step", "1");
             Cookie.set("username", responseData.username);
             const fullname = responseData.first_name + " " + responseData.last_name;
             Cookie.set("full_name", fullname);
-            // // Cookie.set("picture", responseData.success.picture);
             Cookie.set("email", value);
-        } catch (error) {
-            console.error("Error during fetch:", error);
-            setError({ general: "An unexpected error occurred." });
-        } finally {
+        
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                console.error("Axios error:", error.response?.data);
+                setError({ general: error.response?.data?.error || "An unexpected error occurred." });
+            } else {
+                console.error("Unexpected error:", error);
+                setError({ general: "An unexpected error occurred." });
+            }
+        }
+         finally {
             setLoading(false);
         }
+        
     };
 
     return (

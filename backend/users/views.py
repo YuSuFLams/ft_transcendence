@@ -28,14 +28,12 @@ def register(request):
     if (user_form.is_valid()):
         valid = user_form.validated_data
         if (valid['password'] != valid['repassword']):
-            return (Response({'Error':'Passwords does not match'},
-                             status=400))     
+            return (Response({'error':'Passwords does not match'}, status=400))     
 
         try:
             validate_password(valid['password'])
         except:
-            return (Response({'Error':'The password does not comply with the requirements'},
-                             status=400))
+            return (Response({'error':'The password does not comply with the requirements'}, status=400))
 
         user_form.save()
         return Response(user_form.data, status=200)
@@ -48,9 +46,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
             response = super().post(request, *args, **kwargs)
             access_token = response.data['access']
             refresh_token = response.data['refresh']
-            return Response({'Success':True, 'access':access_token,
-                             'refresh':refresh_token},
-                             status=200)
+            return Response({'Success':True, 'access':access_token, 'refresh':refresh_token}, status=200)
         except:
             return(Response({'success':False}, status=401))
 
@@ -106,7 +102,7 @@ def google_oauth2_callback(request):
     try:
         code = request.GET.get('code')
     except:
-        return (Response({'Error':'code field is required'},
+        return (Response({'error':'code field is required'},
                          status=400))
     
     token_url = settings.GOOGLE_OAUTH_TOKEN
@@ -123,8 +119,7 @@ def google_oauth2_callback(request):
         response_json = json.loads(response.content)
         id_token = response_json['id_token']
     except:
-        return (Response({'Error':'Incorrect response from google api'},
-                         status=400))
+        return (Response({'error':'Incorrect response from google api'}, status=400))
     
     try:
         google_keys_url = settings.GOOGLE_JWKS
@@ -136,8 +131,7 @@ def google_oauth2_callback(request):
                             options={'verify_exp':False},
                             audience=settings.CLIENT_ID_GOOGLE)
     except:
-        return (Response({'Error':'Invalid signature/Failed to decode google response'},
-                         status=400))
+        return (Response({'error':'Invalid signature/Failed to decode google response'}, status=400))
 
 
     tmp_email = decoded.get('email', '')
@@ -151,9 +145,9 @@ def google_oauth2_callback(request):
         if (user_mail.id == user_username.id and user_username.is_oauth):
             user_obj = user_mail
         else:
-            return (Response({'Error':'Account with the same email/username exist.'}, status=403))
+            return (Response({'error':'Account with the same email/username exist.'}, status=403))
     elif user_mail or user_username:
-        return (Response({'Error':'Account with the same email/username exist'}, status=403))
+        return (Response({'error':'Account with the same email/username exist'}, status=403))
     else:
         user_obj = Account(email=tmp_email,
                     username=tmp_username,
@@ -178,8 +172,7 @@ def oauth2_42_callback(request):
     try:
         code = request.GET.get('code')
     except:
-        return(Response({'Error':'Code field is required'},
-                        status=400))
+        return(Response({'error':'Code field is required'}, status=400))
 
     token_url = 'https://api.intra.42.fr/oauth/token'
     data = {
@@ -194,8 +187,7 @@ def oauth2_42_callback(request):
         response = requests.post(token_url, data=data)
         response_json = json.loads(response.content)
     except:
-        return (Response({'Error':'Failed to fetch data from 42 API'},
-                         status=400))
+        return (Response({'error':'Failed to fetch data from 42 API'}, status=400))
 
     access_token = response_json['access_token']
     intra_me = 'https://api.intra.42.fr/v2/me'
@@ -203,8 +195,7 @@ def oauth2_42_callback(request):
     try:
         response_42 = requests.get(intra_me, headers=authorization_header)
     except:
-        return(Response({'Error':'Cannot fetch 42 intra_me'},
-                        status=400))
+        return(Response({'error':'Cannot fetch 42 intra_me'}, status=400))
 
     decoded = response_42.json()
     tmp_email = decoded.get('email', '')
@@ -249,29 +240,25 @@ def get_pub_data(request):
     try:
         user = Account.objects.get(email=request.data.get('email'))
     except Account.DoesNotExist:
-        return (Response({'Error':'Email field is required'}, status=400))
-    return Response({'username':user.username,
-                     'first_name':user.first_name,
-                     'last_name':user.last_name},
-                     status=200)
+        return (Response({'error':'The email is incorrect'}, status=400))
+    return Response({'username':user.username, 'first_name':user.first_name, 'last_name':user.last_name}, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def send_reset_mail(request):
     reset_email = request.data.get('email')
     if not reset_email:
-        return (Response({'Error': 'The email field is required'}, status=400))
-    
+        return (Response({'error': 'The email field is required'}, status=400))
+
     user = Account.objects.filter(email=reset_email)
     if (not user.exists()):
-        return (Response({'Error':'The email is incorrect'}, status=400))
+        return (Response({'error':'The email is incorrect'}, status=400))
     
     ####FIXME 
-    if (user.first().is_oauth):
-        return (Response({'Error':'Oauth account cannot reset the password'}, status=400))
+    # if (user.first().is_oauth):
+    #     return (Response({'error':'Oauth account cannot reset the password'}, status=400))
     #### the first_name and last_name are optional, so they can be blank
     #### i think using username in case the full_name is blank is better
-
     ResetPassword.objects.filter(email=reset_email).delete()
     totp = pyotp.TOTP(pyotp.random_base32())
     code = totp.now()
@@ -292,35 +279,34 @@ def reset_mail_check(request):
                                                code=request.data.get('code'))
         if (not reset_user.is_valid()):
             reset_user.delete()
-            return (Response({'Error', 'Reset token is expired'}, status=400))
+            return (Response({'error': 'Reset token is invalid'}, status=400))
         if (reset_user.code != request.data.get('code')):
-            return (Response({'Error', 'Reset token is invalid'}, status=400))
+            return (Response({'error': 'The code is incorrect'}, status=400))
         return (Response({'Success': True}, status=200))
     except ResetPassword.DoesNotExist:
-        return (Response({'Error', 'Invalid mail'}, status=400))
+        return (Response({'error': 'Something went wrong'}, status=400))
     
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_mail_success(request):
     user_mail = request.data.get('email')
     if not user_mail:
-        return (Response({'Error':'email field is required'}, status=400))
+        return (Response({'error':'Something went wrong'}, status=400))
     
-
     ####FIXME 
     # add 'code' as post parameter so the process is more secure.
     code = request.data.get('code')
     if not code:
-        return (Response({'Error':'code field is required'}, status=400))
+        return (Response({'error':'Something went wrong'}, status=400))
     
     try:
         user = Account.objects.get(email=user_mail)
     except:
-        return (Response({'Error':'email not found'}, status=400))
+        return (Response({'error':'Something went wrong'}, status=400))
     
     if not ResetPassword.objects.filter(email=user_mail, code=code).exists():
-        return (Response({'Error':'incorrect code'}, status=400))
-
+        return (Response({'error':'Invalid code'}, status=400))
     new_pass_serialized = ResetPasswordSerializerSuccess(data=request.data)
     if (not new_pass_serialized.is_valid()):
         return (Response({'Error', 'The new password is invalid'}  , status=400))

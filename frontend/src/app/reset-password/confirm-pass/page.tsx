@@ -8,6 +8,8 @@ import { Flex, Spin, message } from "antd";
 import { LoadingOutlined } from '@ant-design/icons';
 import Cookie from 'js-cookie';
 import axios from "axios";
+import { circle } from "framer-motion/m";
+import { removeAllData } from "../page";
 
 
 const ThirdStep = () => {
@@ -18,12 +20,10 @@ const ThirdStep = () => {
     const inputPassword = useRef<HTMLInputElement>(null);
     const inputConfirmPassword = useRef<HTMLInputElement>(null); // Fixed typo here
     const [loading, setLoading] = useState(false);
-    const [inputClassName, setInputClassName] = useState("w-[100%] p-3 lg:px-4 lg:py-4 \
-        rounded-lg shadow-md focus:outline-none placeholder:text-xl text-black \
-        focus:ring-2 focus:ring-[#b6a972] focus:ring-opacity-50");
-    const [inputClassName1, setInputClassName1] = useState("w-[100%] p-3 lg:px-4 lg:py-4 \
-        rounded-lg shadow-md focus:outline-none \
-        placeholder:text-xl focus:ring-2 focus:ring-[#b6a972] focus:ring-opacity-50");
+    const [inputClassName, setInputClassName] = useState("w-full p-2 pl-4 lg:p-3 placeholder:truncate rounded-lg placeholder:text-gray-400 shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
+                                    focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
+    const [inputClassName1, setInputClassName1] = useState("w-full p-2 pl-4  placeholder:truncate lg:p-3 placeholder:text-gray-400 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
+                                    focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font6] text-black text-2xl text-left");
     const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false);
     const initializedRef = useRef(false);
 
@@ -75,17 +75,21 @@ const ThirdStep = () => {
         if (name === "password") {
             if (value.length > 0 && value.length < 6 && inputPassword.current) {
                 inputPassword.current.focus();
-                setInputClassName("w-[100%] px-4 py-4 text-black rounded-lg shadow-md focus:outline-none placeholder:text-xl border-2 border-red-500");
+                setInputClassName("w-[100%] p-3 pl-4 rounded-lg shadow-md focus:outline-none  placeholder:text-lg border-2 border-red-500 \
+                    focus:ring-2 focus:ring-[#aaabbc]  focus:ring-opacity-50 font-extrabold font-[Font8] text-black text-2xl text-left");
             } else {
-                setInputClassName("w-[100%] px-4 py-4 text-black rounded-lg shadow-md focus:outline-none placeholder:text-xl focus:ring-2 focus:ring-[#142c5c] focus:ring-opacity-50");
+                setInputClassName("w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
+                    focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold font-[Font8] text-black text-2xl text-left");
             }
         }
         else if (name === "repassword") { // Changed name to repassword
             if (value.length > 0 && value.length < 6 && inputConfirmPassword.current) {
                 inputConfirmPassword.current.focus();
-                setInputClassName1("w-[100%] px-4 py-4 text-black rounded-lg shadow-md focus:outline-none placeholder:text-xl border-2 border-red-500");
+                setInputClassName1("w-[100%] p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg border-2 border-red-500  \
+                    focus:ring-2 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font8] text-black text-2xl text-left");
             } else {
-                setInputClassName1("w-[100%] px-4 py-4 text-black rounded-lg shadow-md focus:outline-none placeholder:text-xl focus:ring-2 focus:ring-[#b6a972] focus:ring-opacity-50");
+                setInputClassName1("w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2  \
+                    focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold font-[Font8] text-black text-2xl text-left");
             }
         }
     };
@@ -140,33 +144,58 @@ const ThirdStep = () => {
         // const token = Cookie.get('token');
         if (isPasswordVisible) {  
             try {
-                const email = Cookie.get('email');
+                const email = Cookie.get("email");
+                const code = Cookie.get("code");
+            
                 const data_data = {
-                    'email': email,
-                    "new_password1": newData.password,
-                    "new_password2": newData.repassword
-                }
+                    email,
+                    code,
+                    new_password1: newData.password,
+                    new_password2: newData.repassword,
+                };
+            
                 console.log(data_data);
-                const response = await axios.post(`http://localhost:8000/api/users/reset_mail_success/`,data_data, {
-                    headers: {
-                        "Content-Type": "application/json",
+            
+                const response = await axios.post(
+                    "http://localhost:8000/api/users/reset_mail_success/",
+                    data_data,
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
                     }
-                });
-    
+                );
+            
                 console.log("response", response.data);
+            
                 if (response.status === 200) {
-                    Cookie.set('step', '3'); // Mark step 1 as completed
-                    Cookie.set('isSuccessful', 'true');
+                    Cookie.set("step", "3"); // Mark step 1 as completed
+                    Cookie.set("isSuccessful", "true");
+                } else {
+                    message.error(`Error: ${response.data.Error}`);
+                    setError({
+                        general: response.data.Error || "An unexpected error occurred.",
+                    });
                 }
-                else {
-                    const errorData = await response.data;
-                    message.error(`Error: ${errorData.error}`);
-                    setError({ general: errorData.error || "An unexpected error occurred." });
-                }   
-                
-            } catch (error) {
-                message.error(`Error: ${error}`);
+            } catch (error: unknown) {
+                if (axios.isAxiosError(error)) {
+                    console.error("Axios error:", error.response?.data);
+                    message.error(`Error: ${error.response?.data?.error || "An error occurred"}`);
+                    setError({
+                        general: error.response?.data?.error || "An unexpected error occurred.",
+                    });
+                    if (error.response?.data?.error === "Something went wrong") {
+                        setTimeout(() => {
+                            removeAllData();
+                        }, 2000);
+                    }
+                } else {
+                    console.error("Unexpected error:", error);
+                    message.error("An unexpected error occurred.");
+                    setError({ general: "An unexpected error occurred." });
+                }
             }
+            
         }
     };
     
@@ -181,66 +210,106 @@ const ThirdStep = () => {
     }, [setPasswordVisible]); // Empty dependency array ensures this runs only on mount
 
     return (
-        <div className="w-full h-full md:mt-0 rounded-r-2xl flex flex-col items-center justify-center space-y-6 mb-16">
+        <div className="w-full h-full md:mt-0 rounded-r-2xl flex flex-col items-center justify-center space-y-6 mb-8">
         
             {isPasswordVisible ? (
-                <div className=" w-[70%]">
-                    <div className="w-full flex justify-center items-center flex-col mb-8 ">
-                        <h1 className="text-3xl font-extrabold text-center text-white"> Enter New Password </h1>
-                    </div>
-                    <form className="space-y-6" onSubmit={handleSubmit}>
-                        <div>
-                            <div className="flex-1 relative">
-                                <span
-                                    className="absolute text-black top-1/2 right-2 transform -translate-y-1/2 cursor-pointer mr-2"
-                                    onClick={() => setHidePass(!hidePass)}
-                                    >
-                                    {hidePass ? <FaEyeSlash style={{width:22,height:22}}  /> : <FaEye style={{width:22,height:22}}  />}
-                                </span>
-                                <input
-                                    type={hidePass ? 'password' : 'text'}
-                                    name="password"
-                                    placeholder="Password"
-                                    className={inputClassName} // Use the dynamic class name
-                                    ref={inputPassword}
-                                    onChange={handleInputChange}
-                                    />
-                            </div>
-                            {error.password && <p className="text-red-600 text-sm mt-2 font-bold line-clamp-2">{error.password}</p>}
-                        </div>
-
-                        <div>
-                            <div className="flex-1 relative">
-                                <span
-                                    className="absolute text-black top-1/2 right-2 transform -translate-y-1/2 cursor-pointer mr-2"
-                                    onClick={() => setHideConfirmPass(!hideConfirmPass)}
-                                    >
-                                    {hideConfirmPass ? <FaEyeSlash style={{width:22,height:22}}  /> : <FaEye style={{width:22,height:22}}  />}
-                                </span>
-                                <input
-                                    type={hideConfirmPass ? 'password' : 'text'}
-                                    name="repassword"
-                                    placeholder="Confirm Password"
-                                    className={inputClassName1} // Use the dynamic class name
-                                    ref={inputConfirmPassword}
-                                    onChange={handleInputChange}
-                                    />
-                            </div>
-                            {error.repassword && <p className="text-red-600 text-sm mt-2 font-bold line-clamp-2">{error.repassword}</p>}
-                        </div>
-                        {error.general && <p className="text-red-600 text-center text-sm lg:mt-1 font-bold line-clamp-2">{error.general}</p>}
-                        <motion.div className="flex items-center justify-center">
-                            <motion.button
-                                    className="w-[170px] bg-[#b6a972] text-[#142c5c] px-4 py-3 rounded-lg font-semibold shadow-md transition-transform"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    disabled={loading}
-                                >
-                                {loading ? 'Submitting...' : 'Change Password'}
-                            </motion.button>
-                        </motion.div>
-                    </form>
+                <div className="w-full max-w-[500px] mx-auto space-y-4 px-4 py-6">
+                <div className="w-full flex flex-col items-center ">
+                    <h1 className="text-2xl md:text-4xl font-[Borias] font-extrabold text-center text-[#9AB5D9]">
+                        Enter New Password
+                    </h1>
                 </div>
+            
+                <form className="space-y-6" onSubmit={handleSubmit}>
+                    {/* Password Input */}
+                    <div>
+                        <div className="relative w-full">
+                            <span
+                                className="absolute text-black top-1/2 right-4 transform -translate-y-1/2 cursor-pointer"
+                                onClick={() => setHidePass(!hidePass)}
+                            >
+                                {hidePass ? <FaEyeSlash className="w-6 h-6" /> : <FaEye className="w-6 h-6" />}
+                            </span>
+                            <input
+                                type={hidePass ? "password" : "text"}
+                                name="password"
+                                placeholder="Password"
+                                className={`${inputClassName} w-full`}
+                                ref={inputPassword}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        {error.password && (
+                            <p className="text-red-600 text-sm mt-1 font-bold">{error.password}</p>
+                        )}
+                    </div>
+            
+                    {/* Confirm Password Input */}
+                    <div>
+                        <div className="relative w-full">
+                            <span
+                                className="absolute text-black top-1/2 right-4 transform -translate-y-1/2 cursor-pointer"
+                                onClick={() => setHideConfirmPass(!hideConfirmPass)}
+                            >
+                                {hideConfirmPass ? <FaEyeSlash className="w-6 h-6" /> : <FaEye className="w-6 h-6" />}
+                            </span>
+                            <input
+                                type={hideConfirmPass ? "password" : "text"}
+                                name="repassword"
+                                placeholder="Confirm Password"
+                                className={`${inputClassName1} w-full`}
+                                ref={inputConfirmPassword}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        {error.repassword && (
+                            <p className="text-red-600 text-sm mt-1 font-bold">{error.repassword}</p>
+                        )}
+                    </div>
+            
+                    {/* General Error Message */}
+                    {error.general && (
+                        <p className="text-center text-red-600 text-sm mt-1 font-bold">{error.general}</p>
+                    )}
+            
+                    {/* Submit Button */}
+                    <motion.div className="flex items-center justify-center">
+    <motion.button
+        className={`relative flex items-center justify-center w-full sm:w-[50%] md:w-[60%] px-6 py-2 
+            md:py-3 text-white 
+            text-[1.5em] md:text-[2em] font-[Font4] rounded-xl shadow-lg transition-all 
+            duration-300 ease-in-out focus:outline-none focus:ring-4 ${
+            loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-[#08428C] hover:shadow-2xl hover:scale-105 focus:ring-[#0e213f] focus:ring-opacity-50"
+        } whitespace-nowrap`}  // Add this line to prevent text wrapping
+        whileHover={{ scale: loading ? 1 : 1.05 }}
+        whileTap={{ scale: loading ? 1 : 0.95 }}
+        disabled={loading}
+    >
+        {loading ? (
+            <div className="flex items-center">
+                <svg
+                    className="animate-spin h-5 w-5 mr-2 text-white"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                >
+                    <circle cx="12" cy="12" r="10" strokeOpacity="0.25"></circle>
+                    <path d="M12 2a10 10 0 0 1 10 10h-4" strokeOpacity="0.75"></path>
+                </svg>
+                Submitting...
+            </div>
+        ) : (
+            "Change Password"
+        )}
+    </motion.button>
+
+                    </motion.div>
+                </form>
+            </div>
+            
             ) :(
                 <div className="flex flex-col items-center justify-center"> {/* Full viewport height */}
                 <div className="flex flex-col items-center space-y-4 gap-4"> {/* Flex layout */}

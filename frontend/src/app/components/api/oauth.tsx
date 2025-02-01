@@ -21,7 +21,7 @@ const handleOAuth = async (
 			Cookie.set('refresh', result.refresh_token);
 			setLoading(false)
         } else {
-          	setErrorMessage(response.data.message || 'Authentication failed. Please try again.');
+          	setErrorMessage(response.data.error || 'Authentication failed. Please try again.');
         	}
       	} catch (error) {
         	setErrorMessage('An error occurred. Please check your internet connection and try again.');

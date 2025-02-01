@@ -23,8 +23,8 @@ const CreateAccount = async (
         }
     } catch (error: unknown) {
         if (error instanceof AxiosError) {
-          console.log("Backend Error Response:", error.response?.data['0']);
-          setError((prev: any) => ({ ...prev, general: error.response?.data['0'] || 'Registration failed.' }));
+          console.log("Backend Error Response:", error.response?.data.error);
+          setError((prev: any) => ({ ...prev, general: error.response?.data.error || 'Registration failed.' }));
         } else {
           setError((prev: any) => ({ ...prev, general: 'Network error: Could not connect to the server.' }));
         }
@@ -86,7 +86,7 @@ const handleLogin = async (
         });
     
         const result = response.data;
-    
+        console.log(result);
         if (result.Success && result.access && result.refresh) {
             Cookie.set("access", result.access);
             Cookie.set("refresh", result.refresh);

@@ -24,7 +24,7 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
     const [hidePass, setHidePass] = useState<boolean>(true);
     const [loading, setLoading] = useState<boolean>(false);
     const router = useRouter();
-    const [inputClassName, setInputClassName] = useState<string>("w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none font-[Font6] placeholder:text-lg focus:ring-2 placeholder:text-gray-500 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold text-black text-2xl text-left");
+    const [inputClassName, setInputClassName] = useState<string>("w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none font-[Borias] placeholder:font-[Font6] placeholder:text-lg focus:ring-2 placeholder:text-gray-500 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold text-black text-2xl text-left");
 
     return (
         <div className="fixed flex flex-row w-full h-full items-center">
@@ -76,13 +76,13 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
                         {error.general && <p className="text-center text-red-600 font-[Font6] text-sm mt-1 lg:mt-1 font-bold line-clamp-2">{error.general}</p>}
                     </div>
                     <div className="flex justify-center items-center">
-                        <Link className="text-black font-[Font6] font-extrabold text-xl underline" href="/reset-password">
+                        <Link className="text-black font-[TORAJA] font-extrabold text-xl underline" href="/reset-password">
                             Forgot password?
                         </Link>
                     </div>
                 </form>
                 {isMobile && <div className="z-[50] flex items-center justify-center">
-                    <p className="text-[#0e213f] text-xl">Don't have an account? <button className="text-black underline text-xl" onClick={toggleView}>Sign Up</button></p>
+                    <p className="text-[#0e213f] font-[TORAJA] text-extrabold text-xl">Don't have an account? <button className="text-black underline text-xl" onClick={toggleView}>Sign Up</button></p>
                 </div>}
             </motion.div>
             <Point />

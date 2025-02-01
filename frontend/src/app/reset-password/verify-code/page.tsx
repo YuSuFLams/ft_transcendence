@@ -7,12 +7,13 @@ import Link from "next/link";
 import { message } from "antd";
 import Cookie from 'js-cookie';
 import { CheckCircleOutlined } from '@ant-design/icons';
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import pictureUser from "@/../public/Image/picture1.jpg";
 import { removeAllData } from "../page";
 
 interface Profile {
     picture: string;
+    username: string;
     fullName: string;
     email: string;
 }
@@ -33,13 +34,14 @@ const SecondStep = () => {
             const fullName = Cookie.get('full_name') || '';
             const picture = Cookie.get('picture') || '';
             const email = Cookie.get('email') || '';
+            const username = Cookie.get('username') || '';
     
             // Only set 'is_me' if it hasn't been set yet
             if (!Cookie.get('is_me')) {
                 Cookie.set('is_me', JSON.stringify(0));  
             }
     
-            setProfile({ fullName, picture, email });
+            setProfile({ fullName, picture, email, username });
         }
     }, []);
     
@@ -106,48 +108,53 @@ const SecondStep = () => {
         }
     };
     const handleSendCode = async () => {
-        // Check if any of the inputs are empty
         if (code.some(digit => digit === '')) {
-            setError((prev) => ({ ...prev, enough: 'Not enough digits', general: '', time: ''  }));
+            setError((prev) => ({ ...prev, enough: 'Not enough digits', general: '' }));
             return;
         }
     
-        // Check if any of the inputs are not digits
         if (code.some(digit => !/^\d$/.test(digit))) {
             setError((prev) => ({ ...prev, enough: 'Invalid character. Only digits are allowed.', general: '', time: '' }));
             return;
         }
     
-        // Clear the error if inputs are valid
-        setError((prev) => ({ ...prev, enough: '' }));
-        const username = Cookie.get('username');
-        console.log("username", username);
-        const data_data = {"email": Cookie.get('email'), "code": code.join('')};
-        console.log("data_data", data_data);
-        const response = await axios.post(`http://localhost:8000/api/users/reset_password_check/`,data_data, {
-            headers: {
-                "Content-Type": "application/json",
-            }
-        });
-        
-        // Check if the response is ok (status in the range 200-299)
-        if (response.status !== 200) {
-            const errorData = response.data;
-            console.log("errorData", errorData);
-            // Set error message from response or default message
-            setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || '' });
+        const email = Cookie.get('email');
+        if (!email) {
+            setError({ general: "Email is missing. Please try again." });
             return;
         }
-        
-        // Parse the response JSON if the request was successful
-        const responseData = await response.data;
-        console.log(responseData); // Handle success response if needed
-        Cookie.set('step', '2'); // Mark step 1 as completed
-        message.info("Your code has been successfully sent. Please hold on for the next step.", 3); // 2 seconds duration
-        
-        // Log the current code state to the console
-        console.log("Entered Code:", code.join(''));
+    
+        const code_reset = code.join('');
+        if (code_reset.length !== 6) {
+            setError({ general: "Code must be 6 digits long." });
+            return;
+        }
+    
+        const data_data = { "email": email, "code": code_reset };
+        console.log("Sending Data:", data_data);
+    
+        try {
+            const response = await axios.post("http://localhost:8000/api/users/reset_password_check/", data_data, {
+                headers: { "Content-Type": "application/json" },
+            });
+    
+            console.log(response.data);
+            Cookie.set("step", "2");
+            Cookie.set("code", code_reset);
+            message.info("Your code has been successfully sent. Please hold on for the next step.", 3);
+        } catch (error: unknown) {
+            console.error("Axios error:", error);
+    
+            if (error instanceof AxiosError) {
+                setError({ general: error.response?.data.error || "An unexpected error occurred." });
+            } else if (axios.isAxiosError(error) && error.request) {
+                setError({ general: "No response from server. Please check your connection." });
+            } else {
+                setError({ general: "Something went wrong. Please try again later." });
+            }
+        }
     };
+    
 
     const reSendCode = async () => {
         setError((prev) => ({ ...prev, enough: '', general: '' }));
@@ -161,7 +168,7 @@ const SecondStep = () => {
 
         if (response.status !== 200) {
             const errorData = response.data;
-            setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || "",});
+            setError({ general: errorData.Error || "An unexpected error occurred."});
             return;
         }
 
@@ -181,36 +188,50 @@ const SecondStep = () => {
 
     const handleContinue = async () => {
         try {
-            const data_data = {"email": Cookie.get('email')};
-            const response = await axios.post(`http://localhost:8000/api/users/reset_password/`,data_data, {
-                headers: {
-                    "Content-Type": "application/json",
+            const data_data = { email: Cookie.get("email") };
+            const response = await axios.post("http://localhost:8000/api/users/reset_password/",
+                data_data,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
                 }
-            });
-            console.log("response", response.data);
-            if (response.status !== 200) {
-                const errorData = response.data;
-                setError({ general: errorData.error || "An unexpected error occurred.", time: errorData.time || "",});
-                return;
-            }
-
+            );
+    
+            
             const responseData = response.data;
-            if (responseData.success){
-                Cookie.set('is_me', JSON.stringify(1));
-                message.success(responseData.success);
+            if (response.status === 200) {
+                console.log("response", response.data);
+                Cookie.set("is_me", JSON.stringify(1));
+                message.success(responseData);
+                toggleView();
+            } else {
+                setError({
+                    general: responseData.Error || "An unexpected error occurred.",
+                    time: responseData.time || "",
+                });
             }
-            toggleView();
-            console.log(responseData);
-        } catch (error) {
-            console.error("Error during fetch:", error);
-            setError({ general: "An unexpected error occurred." });
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                console.error("Axios error:", error.response?.data);
+                setError({
+                    general:
+                        error.response?.data?.Error || "An unexpected error occurred.",
+                });
+            } else {
+                console.error("Unexpected error:", error);
+                setError({ general: "An unexpected error occurred." });
+            }
         }
     };
+    
 
     return (
         <div className="flex flex-col items-center">
             {!isMe ? (
-                <div className="flex flex-col items-center justify-center md:space-y-12 space-y-8 mb-4 duration-300">
+                <div className="flex flex-col items-center justify-center space-y-8 mb-4 duration-300">
+                    
+                    
                     <div className="flex w-full p-2 items-center justify-between space-y-8 flex-wrap md:flex-nowrap space-x-0 md:space-x-20"> {/* Space-x-0 for mobile, md:space-x-8 for larger screens */}
                         <div className="flex items-center w-full sm:w-[50%] flex-col">
                             <h1 className="lg:text-2xl md:text-3xl sm:text-lg text-white">Send Code via Email</h1>
@@ -227,7 +248,7 @@ const SecondStep = () => {
                                 alt="User Image"
                                 className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-gradient-to-r border-[#DAE1E7] shadow-2xl"
                             />
-                            <p className="lg:text-3xl md:text-2xl text-xl  mt-4 font-semibold text-white">{profile.fullName}</p>
+                            <p className="lg:text-3xl md:text-2xl text-xl  mt-4 font-semibold text-white">{profile.fullName !== ' '? profile.fullName : profile.username}</p>
                         </div>
                     </div>
 
@@ -254,7 +275,7 @@ const SecondStep = () => {
                                 Continue
                             </motion.button>
                         </motion.div>
-                        {error.general && <p className="text-red-600 text-center text-sm lg:mt-1 font-bold line-clamp-2">{error.general} {error.time}</p>}
+                        {error.general && <p className="text-red-600 text-center text-sm lg:mt-1 font-bold line-clamp-2">{error.general}</p>}
                     </motion.div>
                 </div>
             ) : (
@@ -286,7 +307,7 @@ const SecondStep = () => {
                         {error.enough && (
                             <p className="text-sm font-semibold text-red-600 text-center">{error.enough}</p>
                         )}
-                        {error.general && <p className="text-red-600 text-center text-sm lg:mt-1 font-bold line-clamp-2">{error.general} {error.time}</p>}
+                        {error.general && <p className="text-red-600 text-center text-sm lg:mt-1 font-bold line-clamp-2">{error.general}</p>}
                         <motion.button
                             className="w-[150px] bg-[#b6a972] text-[#142c5c] px-4 py-3 rounded-lg font-semibold shadow-md transition-transform"
                             whileHover={{ scale: 1.05 }}
