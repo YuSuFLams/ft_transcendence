@@ -28,12 +28,14 @@ def register(request):
     if (user_form.is_valid()):
         valid = user_form.validated_data
         if (valid['password'] != valid['repassword']):
-            return (Response('Passwords does not match.', status=400))     
+            return (Response({'Error':'Passwords does not match'},
+                             status=400))     
 
         try:
             validate_password(valid['password'])
         except:
-            return (Response('The password does not comply with the requirements.', status=400))
+            return (Response({'Error':'The password does not comply with the requirements'},
+                             status=400))
 
         user_form.save()
         return Response(user_form.data, status=200)
@@ -44,7 +46,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
             response = super().post(request, *args, **kwargs)
-            #TODO CONTINUE HERE you should find a place to create otp_code on user obj
             access_token = response.data['access']
             refresh_token = response.data['refresh']
             return Response({'Success':True, 'access':access_token,
@@ -53,11 +54,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
         except:
             return(Response({'success':False}, status=401))
 
-
-
 class MyTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-
         try:
             refresh_token = request.COOKIES.get('refresh_token')
             request.data['refresh'] = refresh_token
@@ -78,8 +76,6 @@ class MyTokenRefreshView(TokenRefreshView):
         except:
             return (Response({'Refreshed':False}))
         
-
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def lgn(request):
@@ -96,9 +92,6 @@ def lgn(request):
     data = {'authorize_link': google_lgn}
     return Response(data, status=200)
 
-
-
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def lgn_42(request):
@@ -107,23 +100,14 @@ def lgn_42(request):
     }
     return Response(data, status=200)  # Explicitly setting the status code
 
-
-
-"""
-    1- get the code from the callback
-    2- preparing the a request with code and params -> api_link
-    3- process data
-    4- check if the email exist, get the cookie JWT->ACCESS && JWT->REFRESH
-    5- else create a new account and get the cookies
-"""
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def google_oauth2_callback(request):
     try:
         code = request.GET.get('code')
     except:
-        return (Response('Code not found', status=400))
+        return (Response({'Error':'code field is required'},
+                         status=400))
     
     token_url = settings.GOOGLE_OAUTH_TOKEN
     data = {
@@ -139,7 +123,8 @@ def google_oauth2_callback(request):
         response_json = json.loads(response.content)
         id_token = response_json['id_token']
     except:
-        return (Response('Incorrect response from google api', status=400))
+        return (Response({'Error':'Incorrect response from google api'},
+                         status=400))
     
     try:
         google_keys_url = settings.GOOGLE_JWKS
@@ -151,7 +136,8 @@ def google_oauth2_callback(request):
                             options={'verify_exp':False},
                             audience=settings.CLIENT_ID_GOOGLE)
     except:
-        return (Response('Invalid signature/Failed to decode google response', status=400))
+        return (Response({'Error':'Invalid signature/Failed to decode google response'},
+                         status=400))
 
 
     tmp_email = decoded.get('email', '')
@@ -165,9 +151,9 @@ def google_oauth2_callback(request):
         if (user_mail.id == user_username.id and user_username.is_oauth):
             user_obj = user_mail
         else:
-            return (Response('Please use the login form.', status=403))
+            return (Response({'Error':'Account with the same email/username exist.'}, status=403))
     elif user_mail or user_username:
-        return (Response('Please use the login form.', status=403))
+        return (Response({'Error':'Account with the same email/username exist'}, status=403))
     else:
         user_obj = Account(email=tmp_email,
                     username=tmp_username,
@@ -191,9 +177,9 @@ def google_oauth2_callback(request):
 def oauth2_42_callback(request):
     try:
         code = request.GET.get('code')
-        
     except:
-        return(Response('No code found', status=400))
+        return(Response({'Error':'Code field is required'},
+                        status=400))
 
     token_url = 'https://api.intra.42.fr/oauth/token'
     data = {
@@ -208,7 +194,8 @@ def oauth2_42_callback(request):
         response = requests.post(token_url, data=data)
         response_json = json.loads(response.content)
     except:
-        return (Response('error'))
+        return (Response({'Error':'Failed to fetch data from 42 API'},
+                         status=400))
 
     access_token = response_json['access_token']
     intra_me = 'https://api.intra.42.fr/v2/me'
@@ -216,7 +203,8 @@ def oauth2_42_callback(request):
     try:
         response_42 = requests.get(intra_me, headers=authorization_header)
     except:
-        return(Response('Cannot fetch 42 intra_me', status=400))
+        return(Response({'Error':'Cannot fetch 42 intra_me'},
+                        status=400))
 
     decoded = response_42.json()
     tmp_email = decoded.get('email', '')
@@ -246,9 +234,10 @@ def oauth2_42_callback(request):
     refresh_token = RefreshToken.for_user(user_obj)
     access_token = AccessToken.for_user(user_obj)
 
-    return Response({'Success':True, 'access_token':str(access_token), 'refresh_token':str(refresh_token)})
-
-
+    return Response({'Success':True,
+                     'access_token':str(access_token),
+                     'refresh_token':str(refresh_token)},
+                     status=200)
 
 ###### RESET PASS
 from django.core.mail import send_mail
@@ -260,37 +249,40 @@ def get_pub_data(request):
     try:
         user = Account.objects.get(email=request.data.get('email'))
     except Account.DoesNotExist:
-        return (Response('The new password is not valid', status=400))
+        return (Response({'Error':'Email field is required'}, status=400))
     return Response({'username':user.username,
                      'first_name':user.first_name,
-                     'last_name':user.last_name,
-                     },
+                     'last_name':user.last_name},
                      status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def send_reset_mail(request):
     reset_email = request.data.get('email')
-    print(reset_email)
     if not reset_email:
-        return (Response('The reset_email field is required', status=400))
+        return (Response({'Error': 'The email field is required'}, status=400))
     
-    try:
-        user = Account.objects.get(email=reset_email)
-        totp = pyotp.TOTP(pyotp.random_base32())
-        code = totp.now()
-        reseted = ResetPassword(email=reset_email, code=code)
-        reseted.save()
-        send_mail('Transcendence Reset Password',
-                f'To reset your password, Use the secret code: {code}',
-                settings.EMAIL_HOST_USER,
-                [reset_email],
-                fail_silently=False)
-        return (Response('The reset email is sent, please check your email', status=200))
-    except Account.DoesNotExist:
-        return (Response('The email is incorrect', status=400))
-    # except:
-    #     return (Response('Error while reseting the password', status=500))
+    user = Account.objects.filter(email=reset_email)
+    if (not user.exists()):
+        return (Response({'Error':'The email is incorrect'}, status=400))
+    
+    ####FIXME 
+    if (user.first().is_oauth):
+        return (Response({'Error':'Oauth account cannot reset the password'}, status=400))
+    #### the first_name and last_name are optional, so they can be blank
+    #### i think using username in case the full_name is blank is better
+
+    ResetPassword.objects.filter(email=reset_email).delete()
+    totp = pyotp.TOTP(pyotp.random_base32())
+    code = totp.now()
+    reseted = ResetPassword(email=reset_email, code=code)
+    reseted.save()
+    send_mail('Transcendence Reset Password',
+            f'To reset your password, Use the secret code: {code}',
+            settings.EMAIL_HOST_USER,
+            [reset_email],
+            fail_silently=False)
+    return (Response('The reset email is sent, please check your email', status=200))
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -298,25 +290,43 @@ def reset_mail_check(request):
     try:
         reset_user = ResetPassword.objects.get(email=request.data.get('email'),
                                                code=request.data.get('code'))
-        print(reset_user)
         if (not reset_user.is_valid()):
             reset_user.delete()
-            return (Response("Reset token is expired", status=400))
+            return (Response({'Error', 'Reset token is expired'}, status=400))
         if (reset_user.code != request.data.get('code')):
-            return (Response("Reset token is invalid", status=400))
-        reset_user.delete()
-        return (Response('valid email', status=200))
+            return (Response({'Error', 'Reset token is invalid'}, status=400))
+        return (Response({'Success': True}, status=200))
     except ResetPassword.DoesNotExist:
-        return (Response("invalid email", status=400))
+        return (Response({'Error', 'Invalid mail'}, status=400))
+    
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_mail_success(request):
-    print(request.data)
-    user = Account.objects.get(email=request.data.get('email'))
+    user_mail = request.data.get('email')
+    if not user_mail:
+        return (Response({'Error':'email field is required'}, status=400))
+    
+
+    ####FIXME 
+    # add 'code' as post parameter so the process is more secure.
+    code = request.data.get('code')
+    if not code:
+        return (Response({'Error':'code field is required'}, status=400))
+    
+    try:
+        user = Account.objects.get(email=user_mail)
+    except:
+        return (Response({'Error':'email not found'}, status=400))
+    
+    if not ResetPassword.objects.filter(email=user_mail, code=code).exists():
+        return (Response({'Error':'incorrect code'}, status=400))
+
     new_pass_serialized = ResetPasswordSerializerSuccess(data=request.data)
     if (not new_pass_serialized.is_valid()):
-        return (Response('The new password is not valid', status=400))
+        return (Response({'Error', 'The new password is invalid'}  , status=400))
+    
     valid = new_pass_serialized.validated_data
     user.set_password(valid['new_password1'])
     user.save()
-    return (Response('The password changed successfully', status=200))
+    ResetPassword.objects.filter(email=user_mail).delete()
+    return (Response({'Success': True}, status=200))

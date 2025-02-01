@@ -32,7 +32,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         user.otp_code = totp.now()
         user.is_otp_verified = False
         user.save()
-        print(f'FROM GET TOKEN {user.otp_code}')
         send_otp(user)
         return token
         
