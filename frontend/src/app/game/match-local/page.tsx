@@ -30,7 +30,7 @@ const MatchLocalGame = () => {
 
     // Ball
 	const ballRef = useRef<THREE.Mesh | null>(null);
-    const [ballPosition, setBallPosition] = useState<{ x: number; y: number; z: number }>({ x: 0, y: 0.3, z: 0 });
+    const [ballPosition, setBallPosition] = useState<{ x: number; y: number; z: number }>({ x: 0, y: 0.12, z: 0 });
 
     // Utils Match
     const [gameStarted, setGameStarted] = useState<boolean>(false);

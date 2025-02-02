@@ -63,8 +63,8 @@ class GameOnRunning:
         self.start_game: bool = False
         self.winner: str = None
         self.radius: float = 0.1
-        self.fixed_speed: float = 0.02
-        self.ball: dict = {"x": 0, "y": 0.3, "z": 0}
+        self.fixed_speed: float = 0.025
+        self.ball: dict = {"x": 0, "y": 0.12, "z": 0}
         self.paddle = {'width': 0.8, 'height': 0.2}
         self.paddle1: dict = {"x": 0, "y": 0.1, "z": -2.7}
         self.paddle2: dict = {"x": 0, "y": 0.1, "z": 2.7}
@@ -101,14 +101,27 @@ class GameOnRunning:
         return new_ball_position
 
     async def reset_ball(self, scoring_player: str):
-        self.ball = {'x': 0, 'y': 0.3, 'z': 0}
+        self.ball = {'x': 0, 'y': 0.12, 'z': 0}
         self.velocity = {'x': 0.001, 'y': 0.0, 'z': 0.015 if scoring_player == "left" else -0.015}
 
     def normalize_velocity(self):
         magnitude = math.sqrt(self.velocity['x']**2 + self.velocity['z']**2)
         if magnitude > 0:
-            self.velocity['x'] = (self.velocity['x'] / magnitude) * self.fixed_speed
-            self.velocity['z'] = (self.velocity['z'] / magnitude) * self.fixed_speed
+            # Calculate the normalized velocity
+            normalized_x = self.velocity['x'] / magnitude
+            normalized_z = self.velocity['z'] / magnitude
+            
+            # Apply the fixed speed, but limit it if the magnitude exceeds the fixed speed
+            speed_limit = self.fixed_speed  # Define your speed limit (e.g., 10)
+            
+            # Ensure the speed does not exceed the limit
+            if magnitude > speed_limit:
+                self.velocity['x'] = normalized_x * speed_limit
+                self.velocity['z'] = normalized_z * speed_limit
+            else:
+                # If the velocity is within the limit, just scale it to the fixed speed
+                self.velocity['x'] = normalized_x * self.fixed_speed
+                self.velocity['z'] = normalized_z * self.fixed_speed
 
     async def on_score(self, player_side: str, case:str='LocalGame'):
         if player_side == 'left':

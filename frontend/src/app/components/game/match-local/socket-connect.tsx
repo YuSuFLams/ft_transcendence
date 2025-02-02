@@ -74,10 +74,11 @@ const listenConnection = (
             if (message.type === "paddle") {
                 if (message.data.left_paddle != null) {
                     setPositionPlayerPaddleLeft(message.data.left_paddle);
-                    // console.log("paddle", message)
+                    Cookie.set("left_paddle", message.data.left_paddle.toString());
                 }
                 if (message.data.right_paddle != null) {
                     setPositionPlayerPaddleRight(message.data.right_paddle);
+                    Cookie.set("right_paddle", message.data.right_paddle.toString());
                 }
             }
             if (message.type === "endGame") {
