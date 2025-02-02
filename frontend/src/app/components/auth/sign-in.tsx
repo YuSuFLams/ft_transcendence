@@ -69,8 +69,14 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, isMobile, setIsLogin }) => 
                     </div>
                     <div>
                         <motion.div className="flex items-center justify-center">
-                            <motion.button className="items-center w-[40%] h-[56px] font-[Font6] text-white bg-[#0e213f] px-8 py-3 rounded-lg font-semibold shadow-md transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#aaabbc] focus:ring-opacity-50" type="submit" whileHover={{ scale: 1.05 }} style={loading ? { opacity: 0.5 } : {}} whileTap={{ scale: 0.95 }} disabled={loading} aria-label="Sign Up">
-                                {loading ? 'Loading...' : 'Sign In'}
+                            <motion.button className="items-center w-[40%] h-[56px] font-[Font6] text-white 
+                                bg-[#0e213f] px-8 py-3 rounded-lg font-semibold shadow-md transition-transform 
+                                duration-300 ease-in-out hover:scale-105 hover:shadow-lg focus:outline-none 
+                                focus:ring-2 focus:ring-[#aaabbc] focus:ring-opacity-50" type="submit" 
+                                whileHover={{ scale: 1.05 }} style={loading ? { opacity: 0.5 } : {}} 
+                                whileTap={{ scale: 0.95 }} disabled={loading} aria-label="Sign Up"
+                            >
+                                {loading ? 'login...' : 'Sign In'}
                             </motion.button>
                         </motion.div>
                         {error.general && <p className="text-center text-red-600 font-[Font6] text-sm mt-1 lg:mt-1 font-bold line-clamp-2">{error.general}</p>}

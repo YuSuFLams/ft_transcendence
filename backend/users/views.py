@@ -309,7 +309,7 @@ def reset_mail_success(request):
         return (Response({'error':'Invalid code'}, status=400))
     new_pass_serialized = ResetPasswordSerializerSuccess(data=request.data)
     if (not new_pass_serialized.is_valid()):
-        return (Response({'Error', 'The new password is invalid'}  , status=400))
+        return (Response({'error': 'The new password is invalid'}  , status=400))
     
     valid = new_pass_serialized.validated_data
     user.set_password(valid['new_password1'])

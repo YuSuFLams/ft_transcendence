@@ -17,7 +17,7 @@ const isValidInput = (input: React.RefObject<HTMLInputElement>) => {
        if (isAllSpaces(value)) {
             return { valid: false, error: "Field cannot be all spaces" };
         }
-        if (value.length < 6) {
+        if (value.length < 8) {
                 return { valid: false, error: "Password must be at least 6 characters long" };
         }
     }
@@ -36,14 +36,13 @@ const handleInputChange = (
         setError((prev) => ({ ...prev, [name]: "" }));
 
         if (name === "password") {
-            if (value.length > 0 && value.length < 6 && inputPassword.current) {
+            if (value.length > 0 && value.length < 8 && inputPassword.current) {
                 inputPassword.current.focus();
                 setInputClassName("w-[100%] p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg border-2 border-red-500 \
                 focus:ring-2 focus:ring-[#aaabbc] focus:ring-opacity-50 font-extrabold font-[Font8] text-black text-2xl text-left");
             } else {
                 setInputClassName("w-full p-3 pl-4 rounded-lg shadow-md focus:outline-none placeholder:text-lg focus:ring-2 \
-                                    focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold \
-                                    font-[Font8] text-black text-2xl text-left");
+                    focus:ring-[#aaabbc] placeholder:text-gray-500 focus:ring-opacity-50 font-extrabold font-[Font8] text-black text-2xl text-left");
             }
         }
 };
