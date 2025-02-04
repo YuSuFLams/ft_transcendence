@@ -134,7 +134,6 @@ const getPlayers = async (
         const idTournament = Cookie.get("idTournament");
 
         if (!token || !idMatch || !idTournament) {
-            console.error("Missing required cookies.");
             return;
         }
 
@@ -213,6 +212,8 @@ const openWebSocket = (
 const listenConnection = (
     socket: React.MutableRefObject<WebSocket | null>, 
     setBallPosition: React.Dispatch<React.SetStateAction<{ x: number; y: number; z: number }>>,
+    setPositionPlayerPaddleRight: React.Dispatch<React.SetStateAction<number>>,
+    setPositionPlayerPaddleLeft: React.Dispatch<React.SetStateAction<number>>,
     setScorePlayerLeft: React.Dispatch<React.SetStateAction<number>>,
     setScorePlayerRight: React.Dispatch<React.SetStateAction<number>>,
     setWinner: React.Dispatch<React.SetStateAction<string | null>>
@@ -234,6 +235,16 @@ const listenConnection = (
                 if (message.data.winner === null){
                     Cookie.set("ball", JSON.stringify(message.data.ball));
                     Cookie.set("velocity", JSON.stringify(message.data.velocity));
+                }
+            }
+            if (message.type === "paddle") {
+                if (message.data.left_paddle != null) {
+                    setPositionPlayerPaddleLeft(message.data.left_paddle);
+                    Cookie.set("left_paddle", message.data.left_paddle.toString());
+                }
+                if (message.data.right_paddle != null) {
+                    setPositionPlayerPaddleRight(message.data.right_paddle);
+                    Cookie.set("right_paddle", message.data.right_paddle.toString());
                 }
             }
             if (message.type === "endGame") {
@@ -391,11 +402,11 @@ const MatchLocalTournament = () => {
         }
     }, [ifGetPlayers]);
 
-    if (gameStarted) listenConnection(socket, setBallPosition, setScorePlayerLeft, setScorePlayerRight, setWinner);
+    if (gameStarted) listenConnection(socket, setBallPosition, setPositionPlayerPaddleRight, setPositionPlayerPaddleLeft, setScorePlayerLeft,
+        setScorePlayerRight, setWinner);
 
     useEffect(() => {
-        const handleKeyDownWrapper = (event: KeyboardEvent) => 
-            handleKeyDown(event, socket, setPositionPlayerPaddleLeft, setPositionPlayerPaddleRight, paddlePlayerLeftRef, paddlePlayerRightRef  );
+        const handleKeyDownWrapper = (event: KeyboardEvent) => handleKeyDown(event, socket);
 
         setTimeout(() => {
 

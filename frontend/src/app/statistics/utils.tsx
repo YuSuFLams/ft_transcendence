@@ -3,7 +3,7 @@ import classNames from "classnames";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { CalendarX } from "lucide-react"; 
-import { GameHistoryItem, LeaderboardItem, TournamentItem } from "./dataGame";
+import { GameHistoryItem, LeaderboardItem, TournamentItem } from "../components/api/statisticsGame";
 
 
 const GameHistoryList: React.FC<{ title: string; games: GameHistoryItem[] }> = ({ title, games }) => {

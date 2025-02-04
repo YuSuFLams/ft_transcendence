@@ -7,6 +7,8 @@ from channels.db import database_sync_to_async
 import logging
 from asgiref.sync import sync_to_async
 import math
+from django.core.exceptions import ObjectDoesNotExist
+
 from .models import Game, TournamentLocal
 
 # Constants for colored logs (assuming you have these defined somewhere)
@@ -46,25 +48,19 @@ def get_game_local_by_id(game_id):
     except Game.DoesNotExist:
         return None
 
-@database_sync_to_async
+
+@sync_to_async
 def update_tournament(idTournament, idMatch, winner):
     try:
         tournament = TournamentLocal.objects.get(id=idTournament)
-        
-        if tournament and idMatch in tournament.matches:
-            tournament.matches[idMatch]["winner"] = winner
-            
+        if str(idMatch) in tournament.matches:
+            tournament.update_match(str(idMatch), winner)
             tournament.save()
-            all_winners_found = all(
-                match.get("winner") is not None
-                for match in tournament.matches.values()
-            )
-            if all_winners_found:
-                tournament.generate_next_round()
-            
             return tournament.id
         else:
             return None
+    except ObjectDoesNotExist:
+        return None
     except Exception as e:
         return None
 
@@ -81,13 +77,13 @@ class GameOnRunning:
         self.start_game: bool = False
         self.winner: str = None
         self.radius: float = 0.1
-        self.fixed_speed: float = 0.02
+        self.fixed_speed: float = 0.027
         self.ball: dict = {"x": 0, "y": 0.3, "z": 0}
         self.paddle = {'width': 0.8, 'height': 0.2}
         self.paddle1: dict = {"x": 0, "y": 0.1, "z": -2.7}
         self.paddle2: dict = {"x": 0, "y": 0.1, "z": 2.7}
         self.table_game: dict = {"width": 3, "height": 6}
-        self.velocity: dict = {"x": 0.005, "y": 0, "z": 0.015}
+        self.velocity: dict = {"x": 0.007, "y": 0, "z": 0.017}
         self.consumer = consumer
         self.idTournament = None
         self.idMatch = None
@@ -147,12 +143,11 @@ class GameOnRunning:
                 try:
                     await update_tournament(idTournament=self.idTournament, idMatch=self.idMatch, winner=self.winner)
                 except Exception as e:
-                    print ("issue is ; ", e)
+                    pass
                 if self.game_loop_task and not self.game_loop_task.done():
                     self.game_loop_task.cancel()
             else:
                 await create_or_update_game_local(action='updateGame', score_p1=self.score_p1, score_p2=self.score_p2, GameId=self.GameId)
-
 
 class GameRunning:
     def __init__(self, consumer=None):
@@ -225,10 +220,8 @@ class LocalGameInfo:
             if idGame is None:
                 raise ValueError("idGame is missing in the received data.")
             self.data_game.game.GameId = idGame
-            print("idGame :", self.data_game.game.GameId)
             game_instance = await get_game_local_by_id(self.data_game.game.GameId)
             if game_instance:
-                print("data :", game_instance)
                 self.data_game.game.score_p1 = game_instance.score_p1
                 self.data_game.game.score_p2 = game_instance.score_p2
                 self.data_game.game.player1 = game_instance.player1
@@ -268,36 +261,71 @@ class LocalGameInfo:
         except Exception as e:
             pass
 
+    async def paddle_move(self, data: dict):
+        try:
+            table_width = self.data_game.game.table_game['width']
+            half_width = table_width / 2
+            move_amount = 0.3
+            lerp_speed = 0.3 
+
+            prev_pos_right = self.data_game.game.paddle2['x']
+            prev_pos_left = self.data_game.game.paddle1['x']
+
+            if data.get('direction') == 'right':
+                if data.get('event') == 'ArrowRight':
+                    target_position = min(prev_pos_right + move_amount, half_width - 0.4)  
+                elif data.get('event') == 'ArrowLeft':
+                    target_position = max(prev_pos_right - move_amount, -half_width + 0.4)
+                else:
+                    target_position = prev_pos_right  
+
+                new_position = prev_pos_right + (target_position - prev_pos_right) * lerp_speed
+                self.data_game.game.paddle2['x'] = new_position
+                await self.consumer.send_data({'type': 'paddle', 'data': {'right_paddle': new_position}})
+            elif data.get('direction') == 'left':
+                if data.get('event') == 'D':
+                    target_position = max(prev_pos_left - move_amount, -half_width + 0.4)
+                elif data.get('event') == 'A':
+                    target_position = min(prev_pos_left + move_amount, half_width - 0.4) 
+                else:
+                    target_position = prev_pos_left  
+
+                new_position = prev_pos_left + (target_position - prev_pos_left) * lerp_speed
+                self.data_game.game.paddle1['x'] = new_position
+                await self.consumer.send_data({'type': 'paddle', 'data': {'left_paddle': new_position}})
+        except Exception as e:
+            pass
+
+    async def start_game(self, data: dict, action: str):
+        try:
+            self.data_game.game.player1 = data.get('player1')
+            self.data_game.game.player2 = data.get('player2')
+            self.data_game.game.idTournament = data.get('idTournament')
+            self.data_game.game.idMatch = data.get('idMatch')
+            self.data_game.game.GameId = await create_or_update_game_local(action, player1=self.data_game.game.player1, 
+                player2=self.data_game.game.player2)
+            self.data_game.game.start_game = True
+            await self.consumer.send_data({'type': 'startGame', 'data': {'idGame': self.data_game.game.GameId}})
+            await asyncio.sleep(2)
+            if not self.data_game.game.game_loop_task or self.data_game.game.game_loop_task.done():
+                self.data_game.game.game_loop_task = asyncio.create_task(self.data_game.game_loop())
+        except Exception as e:
+            pass
+
     async def receive(self, data: dict):
         action = data.get('action')
-        print("Received data:", data)
         try:
             if not action:
                 raise ValueError("Action is missing in the received data.")
 
             if action == "startGame":
-                self.data_game.game.player1 = data.get('player1')
-                self.data_game.game.player2 = data.get('player2')
-                self.data_game.game.idTournament = data.get('idTournament')
-                self.data_game.game.idMatch = data.get('idMatch')
-                self.data_game.game.GameId = await create_or_update_game_local(action, player1=self.data_game.game.player1, 
-                    player2=self.data_game.game.player2)
-                self.data_game.game.start_game = True
-                await self.consumer.send_data({'type': 'startGame', 'data': {'idGame': self.data_game.game.GameId}})
-                await asyncio.sleep(2)
-                if not self.data_game.game.game_loop_task or self.data_game.game.game_loop_task.done():
-                    self.data_game.game.game_loop_task = asyncio.create_task(self.data_game.game_loop())
+                await self.start_game(data, action)
             
             elif action == 'resetGame':
                 await self.reset_data_game(data)
 
             elif action == 'paddle':
-                direction = data.get('direction')
-                paddle_position = data.get('paddlePosition')
-                if direction == 'left' and paddle_position != None:
-                    self.data_game.game.paddle1['x'] = float(paddle_position)
-                elif direction == 'right' and paddle_position != None:
-                    self.data_game.game.paddle2['x'] = float(paddle_position)
+                await self.paddle_move(data)
             
             # elif action == 'closeGame':
             #     if self.data_game.game.winner is None:
@@ -321,7 +349,6 @@ class PingPongMatchTournamentLocal(AsyncWebsocketConsumer):
         if not self.user.is_authenticated:
             await self.close()
             return
-        print(f"{YELLOW}Connect hhh user: {self.user}.{RESET}")
         await self.accept()
 
     async def disconnect(self, close_code):

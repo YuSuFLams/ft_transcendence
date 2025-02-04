@@ -13,12 +13,11 @@ class Game(models.Model):
     def __str__(self):
         return f"{self.player1} vs {self.player2} - Winner: {self.winner if self.winner else 'Pending'}"
 
-
 class TournamentLocal(models.Model):
-    number_players = models.PositiveIntegerField(default=int)
+    number_players = models.PositiveIntegerField(default=0)
     name = models.CharField(max_length=255)
-    players = models.JSONField(default=dict)  # {"player1": "Youssef", "player2": "Taza", ...}
-    matches = models.JSONField(default=dict)  # {"1": {"player1": 1, "player2": 2, "winner": None}, ...}
+    players = models.JSONField(default=dict)
+    matches = models.JSONField(default=dict)
     winner_team = models.CharField(max_length=255, null=True, blank=True)
     state = models.CharField(max_length=50, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -28,16 +27,13 @@ class TournamentLocal(models.Model):
         return self.name
 
     def add_players(self, player_data):
-        """Add players from a dictionary."""
         if not isinstance(player_data, dict):
             raise ValueError("Player data must be a dictionary.")
-
         self.players = player_data
         self.number_players = len(player_data)
         self.save()
 
     def generate_matches(self):
-        """Generate initial matches based on the number of players."""
         if self.state != "pending":
             raise ValueError("Matches can only be generated when the tournament is pending.")
 
@@ -47,116 +43,65 @@ class TournamentLocal(models.Model):
 
         for i in range(0, len(player_ids), 2):
             if i + 1 < len(player_ids):
-                matches[str(match_id)] = {
-                    "player1": player_ids[i],
-                    "player2": player_ids[i + 1],
-                    "winner": None,
-                }
-                match_id += 1
+                matches[str(match_id)] = {"player1": player_ids[i], "player2": player_ids[i + 1], "winner": None}
+            else:
+                matches[str(match_id)] = {"player1": player_ids[i], "player2": None, "winner": player_ids[i]}
+            match_id += 1
 
         self.matches = matches
         self.state = "ongoing"
         self.save()
 
     def update_match(self, match_id, winner_id):
-        """Update the winner of a specific match."""
-        if not self.matches or match_id not in self.matches:
+        if not self.matches or str(match_id) not in self.matches:
             raise KeyError(f"Match ID '{match_id}' does not exist.")
 
         if winner_id not in self.players.values():
             raise ValueError("Winner ID must be one of the players.")
 
-        self.matches[match_id]["winner"] = winner_id
+        self.matches[str(match_id)]["winner"] = winner_id
         self.save()
+        self._generate_next_match(str(match_id), winner_id)
 
-    def generate_next_round(self):
-        """
-        Generate matches for the next round based on winners,
-        handling both 4 and 8 player tournaments.
-        """
+    def _generate_next_match(self, match_id, winner_id):
         if self.state != "ongoing":
-            raise ValueError("Next round can only be generated when the tournament is ongoing.")
+            return
+        
+        if self.number_players == 4 and match_id == "3" and self.matches["3"].get("winner"):
+            self.winner_team = self.matches["3"]["winner"]
+            self.state = "completed"
+        elif self.number_players == 8 and match_id == "7" and self.matches["7"].get("winner"):
+            self.winner_team = self.matches["7"]["winner"]
+            self.state = "completed"
 
-        # Collect current winners from the existing matches
-        current_winners = [
-            match["winner"]
-            for match in self.matches.values()
-            if match["winner"]
-        ]
+        if self.state == "completed":
+            self.save()
 
-        # Check if all matches in the current round have winners
-        if len(current_winners) < len(self.matches):
-            print("Not all matches have winners yet.")
+        next_match_map = {
+            4: {"1": "3", "2": "3"},
+            8: {"1": "5", "2": "5", "3": "6", "4": "6", "5": "7", "6": "7"},
+        }
+
+        if self.number_players not in next_match_map:
             return
 
-        # If there are 4 players, ensure 3 matches: 2 semi-finals and 1 final
-        if self.number_players == 4:
-            if len(self.matches) < 3:  # Semi-finals and final haven't been created yet
-                # Add semi-finals
-                next_match_id = len(self.matches) + 1
-                for i in range(0, len(current_winners), 2):
-                    if i + 1 < len(current_winners):
-                        self.matches[str(next_match_id)] = {
-                            "player1": current_winners[i],
-                            "player2": current_winners[i + 1],
-                            "winner": None,
-                        }
-                        next_match_id += 1
+        next_match_id = next_match_map[self.number_players].get(match_id)
+        if not next_match_id:
+            return
 
-            # If semi-finals are complete, create the final match
-            elif len(self.matches) == 2:  # Semi-finals complete, generate the final
-                semi_final_winners = [
-                    match["winner"]
-                    for match_id, match in self.matches.items()
-                    if match_id in ["1", "2"] and match["winner"]
-                ]
-                if len(semi_final_winners) == 2:
-                    self.matches["3"] = {
-                        "player1": semi_final_winners[0],
-                        "player2": semi_final_winners[1],
-                        "winner": None,
-                    }
+        if next_match_id in self.matches:
+            if self.matches[next_match_id]["player1"] is None:
+                self.matches[next_match_id]["player1"] = winner_id
+            elif self.matches[next_match_id]["player2"] is None:
+                self.matches[next_match_id]["player2"] = winner_id
+        else:
+            self.matches[next_match_id] = {"player1": winner_id, "player2": None, "winner": None}
 
-            # If the final is complete, set the winner
-            elif "3" in self.matches and self.matches["3"]["winner"]:
-                self.winner_team = self.matches["3"]["winner"]
-                self.state = "completed"
-                print(f"Tournament completed! Winner: {self.winner_team}")
-
-        # If there are 8 players, ensure 7 matches: 4 quarter-finals, 2 semi-finals, and 1 final
-        elif self.number_players == 8:
-            if len(self.matches) < 5:  # Add semi-finals
-                next_match_id = len(self.matches) + 1
-                for i in range(0, len(current_winners), 2):
-                    if i + 1 < len(current_winners):
-                        self.matches[str(next_match_id)] = {
-                            "player1": current_winners[i],
-                            "player2": current_winners[i + 1],
-                            "winner": None,
-                        }
-                        next_match_id += 1
-
-            # If semi-finals are complete, create the final match
-            elif len(self.matches) == 6:  # Semi-finals complete, generate the final
-                semi_final_winners = [
-                    match["winner"]
-                    for match_id, match in self.matches.items()
-                    if match_id in ["5", "6"] and match["winner"]
-                ]
-                if len(semi_final_winners) == 2:
-                    self.matches["7"] = {
-                        "player1": semi_final_winners[0],
-                        "player2": semi_final_winners[1],
-                        "winner": None,
-                    }
-
-            # If the final is complete, set the winner
-            elif "7" in self.matches and self.matches["7"]["winner"]:
-                self.winner_team = self.matches["7"]["winner"]
-                self.state = "completed"
-                print(f"Tournament completed! Winner: {self.winner_team}")
-
-        # Save the updated tournament
         self.save()
 
+        if self.matches[next_match_id]["player1"] and self.matches[next_match_id]["player2"]:
+            self.matches[next_match_id]["winner"] = None
+            self.save()
 
+        
+       

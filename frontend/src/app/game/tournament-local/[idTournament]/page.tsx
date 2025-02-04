@@ -256,7 +256,7 @@ const PageTournamentLocal = () => {
     }
 
     return (
-        <div className="w-screen bg-[#050A30] h-screen max-h-screen items-center justify-center text-white flex flex-col font-sans relative">
+        <div className="w-screen z-50 bg-[#050A30] h-screen max-h-screen items-center justify-center text-white flex flex-col font-sans relative">
             
             {/* Title */}
     
@@ -283,7 +283,7 @@ const PageTournamentLocal = () => {
                         </div>
                     </div>
                 ) : (
-                    <motion.div className="flex border-4 border-[#EDE4C5] flex-col items-center w-[420px] h-[510px] rounded-2xl justify-center 
+                    <motion.div className="flex z-50 border-4 border-[#EDE4C5] flex-col items-center w-[420px] h-[510px] rounded-2xl justify-center 
                         bg-gradient-to-br from-gray-900 via-indigo-900 via-blue-900 via-indigo-900 to-gray-900 text-white shadow-lg"
                         transition={{ duration: 0.8, ease: 'easeOut' }} animate={{ scale: 1, opacity: 1 }} initial={{ scale: 0.5, opacity: 0 }}
                     >

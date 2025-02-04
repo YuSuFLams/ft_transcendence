@@ -9,110 +9,156 @@ import Cookies from 'js-cookie';
 import { Point } from './utils/background';
 
 interface AuthResult {
-	isAuthenticated: boolean;
-	loading: boolean;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error?: string; // Added error handling
 }
 
 export const useAuth = (): AuthResult => {
-	const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-	const [loading, setLoading] = useState<boolean>(true);
-	const router = useRouter();
-	const pathname = usePathname();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | undefined>(undefined); // Track errors
+  const router = useRouter();
+  const pathname = usePathname();
 
-	// Check the token validity
-	const checkTokenValidity = async (): Promise<boolean> => {
-		const token = Cookies.get('access');
-		return !!token; // Returns true if token exists, false otherwise.
-	};
+  // Check the token validity
+  const checkTokenValidity = async (): Promise<boolean> => {
+    try {
+      const token = Cookies.get('access');
+      if (!token) return false;
 
-	// Fetch user data after token validation
-  	useEffect(() => {
-		const checkAuth = async () => {
-			setLoading(true); // Start loading
+      // Optional: Add token expiration check here
+      // Example: Decode the token and check its expiration time
+      // const decodedToken = decodeToken(token);
+      // if (decodedToken.exp < Date.now() / 1000) return false;
 
-			const isValidToken = await checkTokenValidity();
-			if (!isValidToken) {
-				setIsAuthenticated(false);
-			if (pathname !== '/login-signup' && pathname !== '/reset-password' && pathname !== '/' && pathname !== '/oauth' 
-				&& pathname !== '/oauth/google') {
-				router.push('/login-signup');
-			}
-		} else {
-			setIsAuthenticated(true);
-		}
+      return true;
+    } catch (err) {
+      console.error('Token validation error:', err);
+      setError('Failed to validate token');
+      return false;
+    }
+  };
 
-	      setLoading(false);
-    	};
+  // Fetch user data after token validation
+  useEffect(() => {
+    const checkAuth = async () => {
+      setLoading(true); // Start loading
 
-    	checkAuth();
-  	}, [pathname, router]);
+      try {
+        const isValidToken = await checkTokenValidity();
+        if (!isValidToken) {
+          setIsAuthenticated(false);
+          // Redirect to login if not on allowed pages
+          const allowedPaths = ['/login-signup', '/reset-password', '/', '/oauth', '/oauth/google'];
+          if (!allowedPaths.includes(pathname)) {
+            router.push('/login-signup');
+          }
+        } else {
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.error('Authentication error:', err);
+        setError('Authentication failed');
+      } finally {
+        setLoading(false); // Stop loading
+      }
+    };
 
-  	return { isAuthenticated, loading };
+    checkAuth();
+  }, [pathname, router]);
+
+  return { isAuthenticated, loading, error };
 };
-
 
 const Spinner = () => {
-	return (
-		<div className="fixed w-screen h-screen flex overflow-hidden flex-col justify-center items-center bg-[#050A30] ">
-
-			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.025)_0%,rgba(0,0,0,0.4)_100%)]/2"></div>
-
-			<div className="w-24 h-24 border-4 border-t-4 border-blue-400 rounded-full animate-spin ring-4 ring-blue-500 shadow-xl"></div>
-
-			<p className="text-purple-400 mt-4 text-xl font-bold animate-pulse text-shadow-xl">Hold tight, the page is loading... Get ready for an epic adventure!</p>
-
-			<Point />
-		</div>
-	);
+  return (
+    <div className="fixed w-screen h-screen flex overflow-hidden flex-col justify-center items-center bg-[#050A30]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.025)_0%,rgba(0,0,0,0.4)_100%)]/2"></div>
+      <div className="w-24 h-24 border-4 border-t-4 border-blue-400 rounded-full animate-spin ring-4 ring-blue-500 shadow-xl"></div>
+      <p className="text-purple-400 mt-4 text-xl font-bold animate-pulse text-shadow-xl">
+        Hold tight, the page is loading... Get ready for an epic adventure!
+      </p>
+      <Point />
+    </div>
+  );
 };
 
-export default function RootLayout({children,}: Readonly<{children: React.ReactNode;}>) {
-	const pathname = usePathname();
-	const currentPage = pathname.split('/').pop() || 'Home';
-	const formattedTitle = currentPage.charAt(0).toUpperCase() + currentPage.slice(1).replace(/-/g, ' ');
-	const { loading } = useAuth(); 
-	const [showSpinner, setShowSpinner] = useState<boolean>(true);
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const pathname = usePathname();
+  const currentPage = pathname.split('/').pop() || 'Home';
+  const formattedTitle = currentPage.charAt(0).toUpperCase() + currentPage.slice(1).replace(/-/g, ' ');
+  const { loading, error } = useAuth();
+  const [showSpinner, setShowSpinner] = useState<boolean>(true);
 
-	useEffect(() => {
-		// Adding a delay for the spinner to rest longer
-		if (!loading) {
-		const spinnerTimeout = setTimeout(() => {
-			setShowSpinner(false); // Hide spinner after a short delay (e.g., 1s after loading is complete)
-		}, 1000); // Adjust the delay duration (1000ms = 1 second)
-		
-		return () => clearTimeout(spinnerTimeout); // Cleanup timeout on unmount or re-render
-		}
-	}, [loading]);
+  useEffect(() => {
+    if (!loading) {
+      const spinnerTimeout = setTimeout(() => {
+        setShowSpinner(false); // Hide spinner after a short delay
+      }, 1000); // Adjust the delay duration (1000ms = 1 second)
 
+      return () => clearTimeout(spinnerTimeout); // Cleanup timeout on unmount or re-render
+    }
+  }, [loading]);
 
-	if (loading || showSpinner) {
-		return (
-			<html lang="en">
-				<head>
-					<title>{formattedTitle === 'Home' ? 'Ping Pong | Your Ultimate Table Tennis Experience' : `Ping Pong | ${formattedTitle} - Explore More`}</title>
-					<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-					<meta name="description" content={`Explore the ${formattedTitle} page of Ping Pong, your ultimate table tennis experience.`} />
-					<link rel="icon" href="/favicon.ico" />
-				</head>
-	
-				<body>
-					<Spinner />
-				</body>
-			</html>
-		);
-	}
+  if (loading || showSpinner) {
+    return (
+      <html lang="en">
+        <head>
+          <title>
+            {formattedTitle === 'Home'
+              ? 'Ping Pong | Your Ultimate Table Tennis Experience'
+              : `Ping Pong | ${formattedTitle} - Explore More`}
+          </title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <meta
+            name="description"
+            content={`Explore the ${formattedTitle} page of Ping Pong, your ultimate table tennis experience.`}
+          />
+          <link rel="icon" href="/favicon.ico" />
+        </head>
+        <body>
+          <Spinner />
+        </body>
+      </html>
+    );
+  }
 
-	return (
-		<html lang="en">
-			<head>
-				<title>{formattedTitle === 'Home' ? 'Ping Pong | Your Ultimate Table Tennis Experience' : `Ping Pong | ${formattedTitle} - Explore More`}</title>
-				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-				<meta name="description" content={`Explore the ${formattedTitle} page of Ping Pong, your ultimate table tennis experience.`} />
-				<link rel="icon" href="/favicon.ico" />
-			</head>
-			<body>
-				{children}
-			</body>
-		</html>
-	);
+  if (error) {
+    // Handle error state (e.g., show an error page or message)
+    return (
+      <html lang="en">
+        <head>
+          <title>Error | Ping Pong</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <meta name="description" content="An error occurred while loading the page." />
+          <link rel="icon" href="/favicon.ico" />
+        </head>
+        <body>
+          <div className="fixed w-screen h-screen flex justify-center items-center bg-[#050A30]">
+            <p className="text-red-500 text-xl font-bold">Error: {error}</p>
+          </div>
+        </body>
+      </html>
+    );
+  }
+
+  return (
+    <html lang="en">
+      <head>
+        <title>
+          {formattedTitle === 'Home'
+            ? 'Ping Pong | Your Ultimate Table Tennis Experience'
+            : `Ping Pong | ${formattedTitle} - Explore More`}
+        </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+          name="description"
+          content={`Explore the ${formattedTitle} page of Ping Pong, your ultimate table tennis experience.`}
+        />
+        <link rel="icon" href="/favicon.ico" />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
 }
