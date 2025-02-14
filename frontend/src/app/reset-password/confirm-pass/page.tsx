@@ -1,7 +1,7 @@
 
 "use client";
 
-import ThirdStep from "@/app/components/reset-password/third-step";
+import ThirdStep from "../../../components/reset-password/third/third-step";
 
 const Page = () => {
     return (

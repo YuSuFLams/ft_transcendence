@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { ButtonGameTournament, InputPlayersTournament } from "./utilsTournament";
 import axios from "axios";
 import Cookie from "js-cookie";
-import { Point } from "@/app/utils/background";
 
 export interface ErrorState {
     nameTournament?: string;
@@ -151,7 +150,6 @@ const PageTournamentLocal = () => {
                     </div>
                 </div>
             </main>
-            <Point />  
         </div>
     );
 };

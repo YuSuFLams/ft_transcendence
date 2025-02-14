@@ -1,114 +1,94 @@
 "use client";
 
-import { FaUserFriends, FaDice, FaEnvelopeOpenText, FaGlobeAmericas } from "react-icons/fa";
-import { FaTableTennis, FaTrophy, FaRegLaughBeam } from "react-icons/fa";
-import { motion, useAnimate } from "framer-motion";
+import { FaUserFriends, FaDice, FaGlobeAmericas, FaTableTennis, FaTrophy, FaRegLaughBeam } from "react-icons/fa";
+import { motion, useAnimation, useInView } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { Point } from "@/app/utils/background";
+import { useEffect, useRef } from "react";
 
 const PageGame = () => {
     const router = useRouter();
-    const [cursor, setCursor] = useState("default");
 
-    const handleMouseEnter = () => setCursor("pointer");
-    const handleMouseLeave = () => setCursor("default");
-
-    // Navigate to the specified path
-    const handleClick = (path: string) => router.push(path);
-
-    // Animated welcome message
-    const message = "\u2728 Welcome to the Ultimate Ping Pong Experience \u2728";
-    const wordsArray = message.split(" ");
-    const [scope, animate] = useAnimate();
-
-    useEffect(() => {
-        wordsArray.forEach((_, index) => {
-            animate(
-                `span:nth-child(${index + 1})`,
-                { opacity: 1, scale: [0.8, 1.2, 1], filter: "blur(0px)" },
-                { duration: 1, delay: index * 0.25, ease: "easeOut" }
-            );
-        });
-    }, [scope, animate, wordsArray]);
-
-    const buttons = [
+    // Game types data
+    const gameTypes = [
         {
-            label: "Game Local",
-            icon: <FaUserFriends size={60} className="text-[#005f73]" />,
+            title: "Local Game",
+            description: "Play with friends on the same device. Perfect for couch gaming!",
+            icon: <FaUserFriends size={40} className="text-[#FFD700]" />,
             path: "/game/game-local",
-            delay: 0
+            color: "from-[#FFD700] to-[#FFA500]", // Updated gradient colors
         },
         {
-            label: "Game Online",
-            icon: <FaGlobeAmericas size={60} className="text-[#ffd780]" />,
+            title: "Online Match",
+            description: "Challenge players from around the world in real-time matches.",
+            icon: <FaGlobeAmericas size={40} className="text-[#00FFCC]" />,
             path: "/game-online",
-            delay: 0.1
+            color: "from-[#00FFCC] to-[#00BFFF]", // Updated gradient colors
         },
         {
-            label: "Tournament Local",
-            icon: <FaDice size={60} className="text-[#16404D]" />,
+            title: "Local Tournament",
+            description: "Host or join a local tournament with your friends and family.",
+            icon: <FaDice size={40} className="text-[#FF6666]" />,
             path: "/game/tournament-local",
-            delay: 0.2
+            color: "from-[#FF6666] to-[#FF4500]", // Updated gradient colors
         },
     ];
 
+    // Animation for staggered cards
+    const cardVariants = {hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },};
+
+    // Animation for the hero section
+    const heroVariants = {hidden: { opacity: 0, y: -20 }, visible: { opacity: 1, y: 0, transition: { duration: 1 } },};
+
+    // Animation for the footer icons
+    const iconVariants = {hidden: { opacity: 0, scale: [0.7, 1.1, 0.7] }, visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }};
+
+    // Trigger animations when in view
+    const controls = useAnimation();
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true });
+
+    useEffect(() => {
+        if (isInView) controls.start("visible");
+    }, [controls, isInView]);
+
     return (
-        <div className="min-h-screen flex flex-col bg-[#050A30] space-y-4 overflow-hidden text-white relative" style={{ cursor: cursor }}>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#050026] via-[#11002D] to-[#002A52] text-white px-6 py-12">
+            {/* Hero Section */}
+            <motion.div className="text-center mb-12" variants={heroVariants} initial="hidden" animate="visible">
+                <h1 className="text-4xl sm:text-6xl font-[Font2] font-extrabold text-[#D4EBF8] mb-4"> Welcome to Ping Pong Universe! </h1>
+                <p className="text-lg sm:text-xl font-[Font6] text-gray-300"> Choose your game mode and start playing today. Fun, competition, and trophies await!</p>
+            </motion.div>
 
-            {/* Centered welcome message at the top */}
-            <div className="flex z-[50] flex-col absolute top-12 w-full justify-center items-center space-y-4">
-                <div className="flex flex-col items-center">
-                    <motion.h1 className="font-[Borias] flex justify-center items-center 
-                    md:text-[2.6em] text-[1.8em] text-[2.9em] font-extrabold text-transparent 
-                        bg-clip-text bg-gradient-to-r from-[#ffcc00] to-[#ff6600] text-center" initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }}
+            {/* Game Cards Section */}
+            <motion.div ref={ref} initial="hidden" animate={controls} variants={{ visible: { transition: { staggerChildren: 0.2 } }}}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
+                {gameTypes.map((game, index) => (
+                    <motion.div className="flex flex-col items-center p-8 bg-gradient-to-r from-[#152582] via-[#112863] to-[#12195C] rounded-2xl shadow-lg cursor-pointer transition-all transform hover:scale-105 hover:shadow-2xl"
+                        key={index}  whileHover={{ scale: 1.05, boxShadow: "0px 10px 30px rgba(255, 255, 255, 0.3)" }}
+                        onClick={() => router.push(game.path)} variants={cardVariants} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 300, damping: 10 }}
                     >
-                        <div ref={scope} className="flex justify-center items-center">
-                            {wordsArray.map((word, index) => (
-                                <span key={index} className="inline-block opacity-0 filter blur-sm">
-                                    {word} {index < wordsArray.length - 1 && <span className="mr-2" />}
-                                </span>
-                            ))}
-                        </div>
-                    </motion.h1>
-                </div>
+                        {/* Game Icon */}
+                        <motion.div className="mb-6" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} transition={{ type: "spring", stiffness: 300 }} > {game.icon} </motion.div>
 
-                <div className="mt-4 flex justify-center  gap-4">
-                    <FaTableTennis size={30} className=" w text-[#FFD700]" />
-                    <FaTrophy size={30} className="text-[#FFD700]" />
-                    <FaRegLaughBeam size={30} className="text-[#FFD700]" />
-                </div>
-            </div>
+                        {/* Game Title */}
+                        <h2 className="text-3xl font-[Font4] font-bold mb-2 text-center">{game.title}</h2>
 
-            {/* Button grid */}
-            <div className="absolute z-[50] inset-0 flex flex-col flex-wrap items-center justify-center mt-24">
-                <div className="grid grid-cols-1 gap-8 items-center justify-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
-                    {buttons.map(({ label, icon, path, delay }, index) => (
-                        <div>
-                            <motion.button className="flex flex-col   items-center justify-center bg-[#aaabbc] bg-opacity-60 rounded-3xl 
-                                shadow-lg hover:shadow-xl hover:shadow-[#00eaff] active:scale-95 active:translate-y-1 space-y-2 
-                                w-full sm:w-[16em] md:w-[18em] lg:w-[20em] xl:w-[22em]
-                                h-[8em] sm:h-[10em] md:h-[12em] lg:h-[12em]
-                                active:shadow-[0px_0px_10px_#00eaff,0px_0px_25px_rgba(0,234,255,0.6)] cursor-pointer transition-all"
-                                key={index} whileHover={{ scale: 1.03 }} onClick={() => { handleClick(path); }} animate={{ opacity: 1, y: 0 }}
-                                onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} initial={{ opacity: 0, y: 20 }}
-                                transition={{ duration: 1, delay: delay }}
-                                >
-                                <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.5 }} className="animate-pulse">
-                                    {icon}
-                                </motion.div>
+                        {/* Game Description */}
+                        <p className="text-center font-[Font7] text-gray-200">{game.description}</p>
+                    </motion.div>
+                ))}
+            </motion.div>
 
-                                <div className="font-extrabold text-[#082751] 
-                                text-3xl sm:text-4xl md:text-3xl lg:text-4xl 
-                                font-[Font6] text-center">{label}</div>
-                            </motion.button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <Point />
+            {/* Footer Icons */}
+            <motion.div className="flex justify-center gap-6 text-[#89BAD9] text-4xl mt-12" initial="hidden" animate={controls}
+                variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.2 } },}}
+            >
+                {[FaTableTennis, FaTrophy, FaRegLaughBeam].map((Icon, index) => (
+                    <motion.div key={index} variants={iconVariants} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} transition={{ type: "spring", stiffness: 300, damping: 10 }}>
+                        <Icon aria-label="Game Feature" />
+                    </motion.div>
+                ))}
+            </motion.div>
         </div>
     );
 };

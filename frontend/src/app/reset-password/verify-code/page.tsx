@@ -1,7 +1,7 @@
 
 "use client";
 
-import SecondStep from "@/app/components/reset-password/second-step";
+import SecondStep from "../../../components/reset-password/second/second-step";
 
 const Page = () => {
     return (

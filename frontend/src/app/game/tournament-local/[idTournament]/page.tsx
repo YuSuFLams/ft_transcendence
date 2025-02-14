@@ -18,7 +18,6 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { HiRefresh } from "react-icons/hi";
 import { user } from "@nextui-org/react";
-import { Point } from "@/app/utils/background";
 
 interface PlayerGame {
   username: string;
@@ -313,7 +312,6 @@ const PageTournamentLocal = () => {
                     </motion.div>
                 )
             }
-            <Point />
         </div>
     );
     

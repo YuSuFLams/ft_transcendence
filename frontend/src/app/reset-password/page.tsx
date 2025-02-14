@@ -1,7 +1,6 @@
 "use client";
 
-import FirstStep from "../components/reset-password/first-step";
-
+import FirstStep from "../../components/reset-password/first/first-step";
 
 const Page = () => {
     return (

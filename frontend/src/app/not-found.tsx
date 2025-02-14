@@ -1,6 +1,6 @@
 "use client";
 
-import NotFound from "./utils/notFound";
+import NotFound from "../components/utils/notFound";
 
 const Page = () => {
 

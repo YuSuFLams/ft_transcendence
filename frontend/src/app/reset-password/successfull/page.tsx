@@ -1,7 +1,8 @@
 
 "use client";
 
-import Success from "@/app/components/reset-password/fourth-step";
+import Success from "../../../components/reset-password/fourth/fourth-step";
+
 
 const Page = () => {
     return (

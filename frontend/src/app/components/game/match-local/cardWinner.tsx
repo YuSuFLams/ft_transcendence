@@ -6,7 +6,7 @@ import { HiOutlineTrophy } from 'react-icons/hi2'; // Corrected import
 import { IoMdHappy } from 'react-icons/io';
 import pictureLeft from "@/../public/Image/picture1.jpg";
 import pictureRight from "@/../public/Image/picture2.jpg";
-import { removeData } from "@/app/components/game/match-local/event-prematch-local";
+import { removeData } from "./event-prematch-local";
 
 interface WinnerCardProps {
     playerLeft: string;

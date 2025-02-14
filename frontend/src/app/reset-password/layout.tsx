@@ -7,8 +7,7 @@ import SecondStep from './verify-code/page';
 import ThirdStep from './confirm-pass/page';
 
 import Cookie from 'js-cookie';
-import { Point } from "../utils/background";
-import Success from '../components/reset-password/fourth-step';
+import Success from './successfull/page';
 
 const steps = [
     { title: 'First', content: <FirstStep />},
@@ -63,15 +62,14 @@ const App: React.FC = () => {
 
 
 	return (
-		<div className="absolute w-full h-full bg-[#050A30]  top-0 left-0 flex items-center justify-center">
+		<div className="absolute w-full h-full bg-gradient-to-br from-[#050026] via-[#11002D] to-[#002A52] top-0 left-0 flex items-center justify-center">
 			<div className="z-[50] min-w-[330px] h-[60%] max-h-[400px] w-[95%] max-w-[700px] bg-[#011C40] rounded-3xl shadow-lg flex flex-col">
 				<Steps className="p-4 font-[Font4]  rounded-t-xl lg:rounded-t-3xl justify-between w-full" current={current} items={items}
-					style={{ display: 'flex', flexDirection: 'row', color: token.colorPrimary, backgroundColor: "#9AB5D9" }} // Force steps to display in a row
+					style={{ display: 'flex', flexDirection: 'row', color: token.colorPrimary, backgroundColor: "#9AB5D9" }}
 				/>
 				
 				<div className=" w-full rounded-b-3xl flex-grow mb-12"> {steps[current].content}</div>
 			</div>
-			<Point />
 		</div>
 	);
 

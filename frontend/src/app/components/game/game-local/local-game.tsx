@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { BackButton, PreGameLocal, RulesButton, RulesGameLocal } from "@/app/components/game/game-local/local-game_utils"
 import Cookie from 'js-cookie';
 import { motion } from "framer-motion";
-import { Point } from "@/app/utils/background";
 
 interface GameLocalPre {
     playerLeft: string; playerRight: string; isClicked:boolean;
@@ -63,7 +62,6 @@ const PageGameLocal = () => {
                 isClicked={isClicked} setGameCreated={setGameCreated} setPlayerLeft={setPlayerLeft}
                 setPlayerRight={setPlayerRight} router={router}
                 />
-            <Point />  
         </div>
     );
 };
