@@ -1,101 +1,59 @@
-import Image from "next/image";
+"use client";
+import React from "react";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+const HomePage = () => {
+	const router = useRouter();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
-}
+	const handleClick = () => {
+		const token = Cookies.get("access");
+		router.push(token ? "/dashboard" : "/login-signup");
+	};
+
+	return (
+		<div className="relative w-screen h-screen bg-[#050A30] overflow-hidden flex items-center justify-center">
+			{/* Subtle Background Effects */}
+			<div className="absolute inset-0">
+				<div className="absolute w-[400px] h-[400px] bg-purple-500 opacity-20 blur-[120px] left-[-100px] top-[-100px]"></div>
+				<div className="absolute w-[300px] h-[300px] bg-blue-500 opacity-15 blur-[100px] right-[-50px] bottom-[-50px]"></div>
+			</div>
+
+			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.025)_0%,rgba(0,0,0,0.4)_100%)]/2"></div>
+
+
+			<div className="relative flex flex-col items-center justify-center z-10 text-center">
+				{/* Title - Soft Neon Glow with No Strong Shadows */}
+				<h1 className="font-[Font5] text-[3rem] sm:text-[5rem] lg:text-[8rem] uppercase tracking-widest 
+					text-transparent bg-clip-text bg-gradient-to-r from-[#ff00ff] via-[#ff1493] to-[#00eaff] 
+					animate-neon-subtle">
+					PING PONG
+				</h1>
+
+				{/* Subtitle - Clean & Simple */}
+				<p className="font-[Font5] text-blue-300 text-[1.4rem] sm:text-[1.6rem] lg:text-[3rem] tracking-wide opacity-90">
+					Play. Compete. Chat. Have Fun!
+				</p>
+
+				{/* Clean, Minimal Button */}
+				<button onClick={handleClick} className="relative px-14 sm:px-16 lg:px-24 py-4 mt-10 font-extrabold font-[Font8]  
+					sm:text-xl lg:text-2xl uppercase tracking-widest rounded-xl transition-all duration-300 ease-in-out text-white 
+					border-2 border-[#00eaff] hover:shadow-[0px_0px_20px_#00eaff,0px_0px_40px_rgba(0,234,255,0.8)] hover:scale-105 
+					bg-[#0A1F44] backdrop-blur-md bg-opacity-30 shadow-[0px_0px_12px_#00eaff,0px_0px_30px_rgba(0,234,255,0.5)] text-lg
+					active:scale-100 active:translate-y-1 active:shadow-[0px_0px_10px_#00eaff,0px_0px_25px_rgba(0,234,255,0.6)]"
+				>
+					Start Playing
+				</button>
+
+
+			</div>
+
+			{/* Floating Particles - More Subtle */}
+			<div className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-50 blur-sm animate-particle left-[30%] top-[20%]"></div>
+			<div className="absolute w-3 h-3 bg-pink-500 rounded-full opacity-60 blur-md animate-particle right-[25%] bottom-[15%]"></div>
+			<div className="absolute w-3 h-3 bg-pink-500 rounded-full opacity-60 blur-md animate-particle right-[15%] bottom-[45%]"></div>
+		</div>
+	);
+};
+
+export default HomePage;
