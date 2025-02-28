@@ -1,6 +1,5 @@
 from django.db import models
 from users.models import Account
-# Create your models here.
 
 class msgModel(models.Model):
     sender = models.ForeignKey(Account, on_delete=models.PROTECT)
