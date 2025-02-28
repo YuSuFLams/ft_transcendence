@@ -1,0 +1,46 @@
+{
+  "name": "my-threejs-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev ",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@heroui/calendar": "^2.2.15",
+    "@heroui/theme": "^2.4.11",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@react-three/drei": "^9.111.1",
+    "@react-three/fiber": "^8.17.5",
+    "autoprefixer": "^10.4.20",
+    "class-variance-authority": "^0.7.1",
+    "flowbite-react": "^0.10.2",
+    "framer-motion": "^12.4.7",
+    "lucide-react": "^0.476.0",
+    "next": "^14.2.13",
+    "postcss": "^8.5.3",
+    "react": "^18.3.1",
+    "react-day-picker": "^9.5.1",
+    "react-dom": "^18",
+    "recharts": "^2.15.1",
+    "tailwind-merge": "^3.0.2",
+    "tailwind-scrollbar-hide": "^2.0.0",
+    "tailwindcss-animate": "^1.0.7",
+    "three": "^0.167.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/three": "^0.167.1",
+    "eslint": "^9",
+    "eslint-config-next": "^14.2.13",
+    "tailwindcss": "^4.0.9",
+    "typescript": "^5"
+  }
+}
