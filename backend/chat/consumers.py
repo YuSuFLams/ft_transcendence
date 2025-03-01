@@ -4,14 +4,6 @@ from chat.models import msgModel
 from users.models import Account
 import json
 
-
-def is_json(data):
-    try:
-        json.loads(data)
-        return True
-    except:
-        return False
-
 class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_msg(self, msg, sender, channel_name):
@@ -24,8 +16,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             pass
 
     async def connect(self):
-        self.channel_name = ''
-        self.room_group_name = ''
         auth_id = self.scope['user'].id
         other_id = self.scope['url_route']['kwargs']['id']
         if not (isinstance(auth_id, int) and isinstance(other_id, int)):
@@ -38,19 +28,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
         
-        self.channel_name = str(other_id) + "_" + str(auth_id)
+        self.room_name = str(other_id) + "_" + str(auth_id)
         if (auth_id > other_id):
-            self.channel_name = str(auth_id) + "_" + str(other_id)
+            self.room_name = str(auth_id) + "_" + str(other_id)
 
-        self.room_group_name = "chat_" + self.channel_name
+        self.room_group_name = "chat_" + self.room_name
         
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
-        print(f'[+] I am inside {self.room_group_name}')
+        print(f'[+] I am inside |{self.room_group_name}|')
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-        await self.close()
+        await self.close(close_code)
         
 
     async def receive(self, text_data=None, bytes_data=None):
@@ -74,8 +64,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.save_msg(msg, username, self.channel_name)
 
     async def chat_msg(self, event):
-        print("fuck iiiiiiit")
-        print(f"[+] Broadcasting {event['message']} from {event['username']}")
         await self.send(text_data=json.dumps({
             "username": event["username"],
             "message": event["message"],
