@@ -241,3 +241,22 @@ def Activate_DesactivateOTP(request):
 @permission_classes([IsAuthenticated, IsOTP])
 def check_OTP(request):
     return (Response('OTP Verified', status=200))
+
+def next_lvl(lvl):
+    return 200 * pow(lvl, 2) - (200 * lvl)
+
+def which_lvl(xp):
+    for i in range(1, 100):
+        if (next_lvl(i) > xp):
+            diff_xp = next_lvl(i) - xp
+            return i - 1 + xp / next_lvl(i)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_level(request):
+    new_xp = request.POST.get(new_xp)
+    if (new_xp <= 0):
+        return (Response({'error':'the new_xp is not positive'}))
+    request.user.xp += new_xp
+    if (which_lvl(request.user.xp) != request.user.level):
+    
