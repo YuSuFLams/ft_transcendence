@@ -16,6 +16,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             pass
 
     async def connect(self):
+        notif_type = self.scope['url_route']['kwargs']['type']
         auth_id = self.scope['user'].id
         other_id = self.scope['url_route']['kwargs']['id']
         if not (isinstance(auth_id, int) and isinstance(other_id, int)):

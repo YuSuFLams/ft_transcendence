@@ -1,5 +1,9 @@
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import Account, FriendList, FriendRequest
+from django.core.mail import send_mail
 from rest_framework import serializers
-from .models import Account
+from django.conf import settings
+import smtplib
 import pyotp
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -20,7 +24,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -34,11 +37,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         send_otp(user)
         return token
 
-
-
-from django.core.mail import send_mail
-from django.conf import settings
-import smtplib
 
 def send_otp(user):
     try:
@@ -54,3 +52,62 @@ def send_otp(user):
 
 class OTPSerializer(serializers.Serializer):
     form_OTP = serializers.CharField(required=True, max_length=6)
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['id', 'username', 'first_name', 'last_name', 'avatar']
+
+
+class EditAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['first_name', 'last_name', 'avatar']
+        read_only_fields = ['email', 'username']
+
+
+class ChangePassSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+    new_password2 = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Account
+        fields = ['old_password', 'new_password', 'new_password2']
+
+class FriendsListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendList
+        fields = ['friends']
+
+class FriendsReqSentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['sender', 'timestamp']
+
+class FriendsReqReceivedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['receiver', 'timestamp']
+
+class ViewProfileSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    first_name = serializers.CharField()
+    email = serializers.EmailField()
+    avatar = serializers.ImageField()
+    is_self = serializers.BooleanField()
+    friendship = serializers.IntegerField()
+    friends = serializers.ListSerializer(child=FriendsListSerializer(),
+                                         read_only=True)
+
+class ResetPasswordSerializer(serializers.Serializer):
+    reset_email = serializers.EmailField()
+
+class ResetPasswordSerializerSuccess(serializers.Serializer):
+    new_password1 = serializers.CharField(write_only=True)
+    new_password2 = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Account
+        fields = ['new_password1', 'new_password']

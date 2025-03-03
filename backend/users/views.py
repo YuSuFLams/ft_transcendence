@@ -3,13 +3,22 @@ from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import  AllowAny, IsAuthenticated
-from .serializer import (RegisterSerializer, OTPSerializer)
+from .serializer import (AccountSerializer,
+                         RegisterSerializer,
+                         FriendsReqReceivedSerializer,
+                         FriendsReqSentSerializer,
+                         ViewProfileSerializer,
+                         EditAccountSerializer,
+                         ChangePassSerializer,
+                         ResetPasswordSerializer,
+                         ResetPasswordSerializerSuccess,
+                         OTPSerializer,)
 from rest_framework.response import Response
 from django.shortcuts import  redirect
 from urllib.parse import urlencode
 from django.conf import settings
 from .authentication import IsOTP
-from .models import Account
+from .models import Account, FriendList, FriendRequest, ResetPassword
 import jwt, json, requests
 
 
@@ -242,21 +251,269 @@ def Activate_DesactivateOTP(request):
 def check_OTP(request):
     return (Response('OTP Verified', status=200))
 
-def next_lvl(lvl):
-    return 200 * pow(lvl, 2) - (200 * lvl)
-
-def which_lvl(xp):
-    for i in range(1, 100):
-        if (next_lvl(i) > xp):
-            diff_xp = next_lvl(i) - xp
-            return i - 1 + xp / next_lvl(i)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def update_level(request):
-    new_xp = request.POST.get(new_xp)
-    if (new_xp <= 0):
-        return (Response({'error':'the new_xp is not positive'}))
-    request.user.xp += new_xp
-    if (which_lvl(request.user.xp) != request.user.level):
+def edit(request):
+    edit_user = EditAccountSerializer(instance=request.user, 
+                                      data=request.data,
+                                      partial=True)
+    if (edit_user.is_valid()):
+        edit_user.save()
+        return Response(edit_user.data)
+    return (Response(edit_user.errors))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    try:
+        new_instance = ChangePassSerializer(instance=request.user,
+                                            data=request.data)
+        
+        if (not new_instance.is_valid()):
+            return (Response({'error':'Error the data is not valid'}, status=400))
+        
+        valid = new_instance.validated_data
+        
+        if (valid['old_password'] == valid['new_password']):
+            return (Response({'error':'Your new password cannot be like the new one'}, status=400))
+        
+        if (not request.user.check_password(valid['old_password'])):
+            return (Response({'error':'Old_password is invalid'}, status=400))
+            
+        if (valid['new_password'] != valid['new_password2']):
+            return (Response({'error':'Passwords does not match.'}, status=400))
+        
+        try:
+            validate_password(password=valid['new_password'])
+        except:
+            return (Response({'error':'New password does not comply with the requirements.'}, status=400))
+
+        request.user.set_password(valid['new_password'])
+        request.user.save()
+        return (Response('Password updated successfully', status=200))
+    except KeyError:
+        return (Response({'error':'Required fields are missing'}, status=400))
+    except:
+        return (Response({'error':'Error setting new password'}, status=400))
     
+"""
+    overriding the dispatch method to redirect 
+    the logged user from login -> dashboard
+"""
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_profile(request, id):
+    try:
+        user = Account.objects.get(id=id)
+    except :
+        return(Response("Account not found."))
+    
+    context = {}
+    context['username'] = user.username
+    context['avatar'] = user.avatar
+    context['email'] = user.email
+    context['first_name'] = user.first_name
+
+    friend_list, created = FriendList.objects.get_or_create(user=user)
+
+    context['friends'] = friend_list.friends.all()
+
+    is_self = False
+    friendship = 0
+
+    if (request.user.is_authenticated and request.user == user):
+        is_self = True
+        friend_req = FriendRequest.objects.filter(receiver=user, is_active=True)
+        context['friend_req'] = friend_req
+    else :
+        try :
+            friend_list.friends.get(id=request.user.id)
+            friendship = 1 #you're friends
+        except:
+            if (get_friend_request_or_false(sender=request.user, receiver=user)):
+                friendship = 2
+                #you sent a request, we're waiting him to accept or dny, and you can cancel
+            elif (get_friend_request_or_false(sender=user, receiver=request.user)):
+                friendship = 3
+                #he sent a request, you can accept or decline
+                context['friend_req_id'] = get_friend_request_or_false(user, request.user).id
+
+    #TODO add is_online
+    context['is_self'] = is_self
+    context['friendship'] = friendship
+    serializer = ViewProfileSerializer(context)
+    return (Response(serializer.data))
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def me(request):
+    try:
+        user = Account.objects.get(id=request.user.id)
+    except :
+        return(Response("Account not found."))
+    
+    context = {}
+    context['username'] = user.username
+    context['avatar'] = user.avatar
+    context['email'] = user.email
+    context['first_name'] = user.first_name
+    friend_list, created = FriendList.objects.get_or_create(user=user)
+    context['friends'] = friend_list.friends.all()
+    context['friend_req'] = FriendRequest.objects.filter(receiver=user,
+                                                         is_active=True)
+    context['is_self'] = True
+    context['friendship'] = 0
+    serializer = ViewProfileSerializer(context)
+    return (Response(serializer.data))
+
+
+#FRIENDS SYSTEM
+def get_friend_request_or_false(sender, receiver):
+    try:
+        return (FriendRequest.objects.get(sender=sender, receiver=receiver, is_active=True))
+    except FriendRequest.DoesNotExist:
+        return False
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_all_friends(request):
+    try:
+        friend_list = FriendList.objects.filter(user=request.user)
+        serializer = FriendsReqSentSerializer(friend_list, many=True)
+        return (Response(serializer.data))
+    except:
+        return (Response('You have no Friends'))
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_all_req_sent(request):
+    try:
+        friend_request = FriendRequest.objects.filter(receiver=request.user, is_active=True)
+        serializer = FriendsReqReceivedSerializer(friend_request, many=True)
+        return (Response(serializer.data))
+    except:
+        return (Response('You got no friend requests'))
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_all_req_received(request):
+    try:
+        friend_request = FriendRequest.objects.filter(sender=request.user, is_active=True)
+        serializer = FriendsReqReceivedSerializer(friend_request, many=True)
+        return (Response(serializer.data))
+    except:
+        return (Response('You did not sent any friend request'))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def send_friend_req(request):
+    try:
+        friend_id = request.POST.get("friend_id")
+        if (int(friend_id) == request.user.id):
+            return (Response("You can not send a friend request to yourself", status=400))
+
+        try:
+            friend = Account.objects.get(id=friend_id)
+        except Account.DoesNotExist:
+            return (Response("The friend_id does not belong to any user", status=400))
+
+        try:
+            friend_req = FriendRequest.objects.get(sender=request.user,
+                                            receiver=friend,
+                                            is_active=True)
+            return (Response("The Friend request already sent", status=400))
+        except FriendRequest.DoesNotExist:
+            friend_req = FriendRequest(sender=request.user, receiver=friend)
+            friend_req.save()
+            return (Response('The friend request sent successfully', status=200))
+        except Exception as e:
+            return (Response('Failed to send the friend request', status=400))
+    except:
+        return (Response("Cannot find friend_id", status=400))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unfriend_friend(request):
+    try:
+        friend_id = int(request.POST.get("unfriend_id"))
+        if (friend_id == request.user.id):
+            return (Response('You can not unfriend yourself'))
+        try:
+            friend = Account.objects.get(id=friend_id)
+            friend_list = FriendList.objects.get(user=request.user)
+            friend_list.unfriend(fake_friend=friend)
+            return(Response('You unfriended successfully'))
+        except:
+            return(Response('Failed to unfriend'))
+    except:
+        return(Response('There is no unfriend_id', status=400))
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cancel_my_req(request):
+    try:
+        cancel_req_id = int(request.POST.get("cancel_req_id"))
+        try:
+            friend = Account.objects.get(id=cancel_req_id)
+            friend_list = FriendRequest.objects.get(sender=request.user, receiver=friend, is_active=True)
+            friend_list.cancel()
+            return(Response('You cancelled the request successfully'))
+        except:
+            return(Response('Failed to Cancel your request'))
+    except:
+        return(Response('Cannot find cancel_req_id', status=400))
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def decline_friend_req(request):
+    try:
+        decline_friend_req = int(request.POST.get("decline_friend_req"))
+        try:
+            friend = Account.objects.get(id=decline_friend_req)
+            friend_list = FriendRequest.objects.get(sender=friend,
+                                                    receiver=request.user,
+                                                    is_active=True)
+            friend_list.decline()
+            return(Response('You cancelled the request successfully'))
+        except:
+            return(Response('Failed to Cancel your request'))
+    except:
+        return(Response('Cannot find decline_friend_req', status=400))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def accept_friend(request):
+    try:
+        friend_id = request.POST.get("accept_friend_id")
+        if (int(friend_id) == request.user.id):
+            return (Response('You can not accept your self as a friend'))
+        try:
+            friend = Account.objects.get(id=int(friend_id))
+            try:
+                friend_req_list = FriendRequest.objects.get(sender=friend, receiver=request.user, is_active=True)
+                friend_req_list.accept()
+                return(Response({'Friendship_accepted':True}))
+            except:
+                return(Response('failed to accept the friendship'))
+        except:
+            return(Response('accept_friend_id not found', status=400))
+    except:
+        return(Response({'Friendship_accepted':False}))
+    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_account(request):
+    accounts = None
+    searilized = None
+    query_search = request.GET.get('q')
+    if (query_search):
+        accounts = Account.objects.filter(username__contains=query_search)
+        searilized = AccountSerializer(accounts, many=True)
+    return(Response(searilized.data))
