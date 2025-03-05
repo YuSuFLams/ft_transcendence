@@ -84,12 +84,12 @@ class FriendsListSerializer(serializers.ModelSerializer):
 class FriendsReqSentSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
-        fields = ['sender', 'timestamp']
+        fields = ['receiver', 'sender', 'timestamp']
 
 class FriendsReqReceivedSerializer(serializers.ModelSerializer):
     class Meta:
         model = FriendRequest
-        fields = ['receiver', 'timestamp']
+        fields = ['receiver', 'sender', 'timestamp']
 
 class ViewProfileSerializer(serializers.Serializer):
     username = serializers.CharField()

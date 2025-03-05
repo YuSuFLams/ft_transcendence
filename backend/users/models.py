@@ -44,6 +44,7 @@ class Account(AbstractBaseUser):
     is_otp_verified = models.BooleanField(default=False)
     otp_secret      = models.CharField(max_length=32, blank=True)
     otp_code        = models.CharField(max_length=6, blank=True)
+    is_online       = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
@@ -59,7 +60,18 @@ class Account(AbstractBaseUser):
 
     def __str__(self):
         return (self.username)
-    
+
+
+class Notif(models.Model):
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               on_delete=models.CASCADE,
+                               related_name='sender_notif')
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               on_delete=models.CASCADE,
+                               related_name='receiver_notif')
+    msg = models.CharField(max_length=512)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
 
 class FriendList(models.Model):
     #one user -> one friendlist
@@ -70,7 +82,6 @@ class FriendList(models.Model):
     #because it is one to one field
     
     friends = models.ManyToManyField(settings.AUTH_USER_MODEL,
-                                     blank=True,
                                      related_name='friends')
     
     def __str__(self):

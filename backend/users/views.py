@@ -37,6 +37,9 @@ def register(request):
             return (Response('The password does not comply with the requirements.', status=400))
 
         user_form.save()
+        new_user = Account.objects.get(username=request.data.get('username'))
+        friend_list, created = FriendList.objects.get_or_create(user=new_user)
+
         return Response(user_form.data, status=200)
     return (Response(user_form.errors.values(), status=400))
 
@@ -303,7 +306,7 @@ def change_password(request):
     the logged user from login -> dashboard
 """
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def view_profile(request, id):
     try:
@@ -391,7 +394,7 @@ def list_all_friends(request):
 @permission_classes([IsAuthenticated])
 def list_all_req_sent(request):
     try:
-        friend_request = FriendRequest.objects.filter(receiver=request.user, is_active=True)
+        friend_request = FriendRequest.objects.filter(sender=request.user, is_active=True)
         serializer = FriendsReqReceivedSerializer(friend_request, many=True)
         return (Response(serializer.data))
     except:
@@ -401,7 +404,7 @@ def list_all_req_sent(request):
 @permission_classes([IsAuthenticated])
 def list_all_req_received(request):
     try:
-        friend_request = FriendRequest.objects.filter(sender=request.user, is_active=True)
+        friend_request = FriendRequest.objects.filter(receiver=request.user, is_active=True)
         serializer = FriendsReqReceivedSerializer(friend_request, many=True)
         return (Response(serializer.data))
     except:
@@ -413,6 +416,7 @@ def list_all_req_received(request):
 def send_friend_req(request):
     try:
         friend_id = request.POST.get("friend_id")
+        if (FriendList.objects.get())
         if (int(friend_id) == request.user.id):
             return (Response("You can not send a friend request to yourself", status=400))
 

@@ -16,31 +16,34 @@ class ChatConsumer(AsyncWebsocketConsumer):
             pass
 
     async def connect(self):
-        notif_type = self.scope['url_route']['kwargs']['type']
-        auth_id = self.scope['user'].id
-        other_id = self.scope['url_route']['kwargs']['id']
-        if not (isinstance(auth_id, int) and isinstance(other_id, int)):
-            print("[-] did not found int type")
-            await self.close()
-            return
+        if (self.scope['user'].is_authenticated):
+            notif_type = self.scope['url_route']['kwargs']['type']
+            auth_id = self.scope['user'].id
+            other_id = self.scope['url_route']['kwargs']['id']
+            if not (isinstance(auth_id, int) and isinstance(other_id, int)):
+                print("[-] did not found int type")
+                await self.close()
+                return
 
-        if (auth_id == other_id):
-            print("[-] You can not send a msg to yourself")
-            await self.close()
-            return
-        
-        self.room_name = str(other_id) + "_" + str(auth_id)
-        if (auth_id > other_id):
-            self.room_name = str(auth_id) + "_" + str(other_id)
+            if (auth_id == other_id):
+                print("[-] You can not send a msg to yourself")
+                await self.close()
+                return
+            
+            self.room_name = str(other_id) + "_" + str(auth_id)
+            if (auth_id > other_id):
+                self.room_name = str(auth_id) + "_" + str(other_id)
 
-        self.room_group_name = "chat_" + self.room_name
-        
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-        await self.accept()
-        print(f'[+] I am inside {self.room_group_name}')
+            self.room_group_name = "chat_" + self.room_name
+            
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+            await self.accept()
+            print(f'[+] I am inside {self.room_group_name}')
+
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        if (self.scope['user'].is_authenticated):
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
         await self.close(close_code)
         
 

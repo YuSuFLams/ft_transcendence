@@ -9,6 +9,7 @@ urlpatterns = [
     path('me/change_password/', views.change_password, name='change_password'),
     path('me/', views.me, name='me'),
     path('list_all_req_sent/', views.list_all_req_sent, name='list_all_req'),
+    path('list_all_friends/', views.list_all_friends, name='list_all_friends'),
     path('list_all_req_received/', views.list_all_req_received, name='list_all_req'),
     path('send_friend_req/', views.send_friend_req, name='send_friend_req'),
     path('accept_friend/', views.accept_friend, name='accept_friend'),
