@@ -10,6 +10,7 @@ from .serializer import (AccountSerializer,
                          ViewProfileSerializer,
                          EditAccountSerializer,
                          ChangePassSerializer,
+                         FriendsListSerializer,
                          ResetPasswordSerializer,
                          ResetPasswordSerializerSuccess,
                          OTPSerializer,)
@@ -383,14 +384,14 @@ def get_friend_request_or_false(sender, receiver):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_all_friends(request):
-    try:
-        friend_list = FriendList.objects.filter(user=request.user)
-        serializer = FriendsReqSentSerializer(friend_list, many=True)
-        return (Response(serializer.data))
-    except:
-        return (Response('You have no Friends'))
+    # try:
+    friend_list = FriendList.objects.filter(user=request.user)
+    serializer = FriendsListSerializer(friend_list, many=True)
+    return (Response(serializer.data))
+    # except FriendList.DoesNotExist:
+    #     return (Response('You have no Friends'))
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def list_all_req_sent(request):
     try:
@@ -400,7 +401,7 @@ def list_all_req_sent(request):
     except:
         return (Response('You got no friend requests'))
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def list_all_req_received(request):
     try:
@@ -416,7 +417,6 @@ def list_all_req_received(request):
 def send_friend_req(request):
     try:
         friend_id = request.POST.get("friend_id")
-        if (FriendList.objects.get())
         if (int(friend_id) == request.user.id):
             return (Response("You can not send a friend request to yourself", status=400))
 

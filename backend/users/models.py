@@ -91,6 +91,7 @@ class FriendList(models.Model):
         friend_list, created = FriendList.objects.get_or_create(user=self.user)
         if (new_friend not in friend_list.friends.all()):
             friend_list.friends.add(new_friend)
+            self.save()
         else:
             print("already friends")
 

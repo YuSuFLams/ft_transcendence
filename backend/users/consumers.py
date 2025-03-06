@@ -16,17 +16,17 @@ class NotifConsumer(AsyncWebsocketConsumer):
             auth_id = self.scope['user'].id
             self.grp_name = f"room_{auth_id}"
             await self.channel_layer.group_add(self.grp_name, self.channel_name)
-            await self.notify_online()
-            #notify online
+            await self.notify_online(True)
             await self.accept()
 
     async def disconnect(self, code):
         if self.scope['user'].is_authenticated:
             await self.channel_layer.group_discard(self.grp_name, self.channel_name)
-            #notify offline
+            await self.notify_online(False)
+
         await self.close(code)
 
-    async def notify_online(self):
+    async def notify_online(self, is_online):
         friends = await self.get_all_friends()
         for friend in friends:
             # await self.channel_layer.group_add(, self.channel_name)
@@ -35,7 +35,13 @@ class NotifConsumer(AsyncWebsocketConsumer):
                                                     "type": "user_status",
                                                     "username": self.scope['user'].username,
                                                     "msg": f"{self.scope['user'].username} is online",
+                                                    'is_online': is_online,
                                                 })
-
-
-
+    async def user_status(self, event):
+        self.send(
+            {
+                "username":event['username'],
+                'msg':event['msg'],
+                'is_online':event['is_online']
+            }
+        )

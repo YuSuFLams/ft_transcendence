@@ -9,7 +9,7 @@ class AccountAdmin(admin.ModelAdmin):
 @admin.register(models.FriendList)
 class FriendListAdmin(admin.ModelAdmin):
     list_display = ['user__username', 'friends__username']
-    readonly_fields = ['user']
+    readonly_fields = ['user', 'friends']
 
 @admin.register(models.FriendRequest)
 class FriendRequestAdmin(admin.ModelAdmin):
