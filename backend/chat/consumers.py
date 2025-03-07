@@ -2,6 +2,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from chat.models import msgModel
 from users.models import Account
+from datetime import datetime
 import json
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -17,13 +18,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         if (self.scope['user'].is_authenticated):
-            notif_type = self.scope['url_route']['kwargs']['type']
             auth_id = self.scope['user'].id
-            other_id = self.scope['url_route']['kwargs']['id']
-            if not (isinstance(auth_id, int) and isinstance(other_id, int)):
-                print("[-] did not found int type")
-                await self.close()
-                return
+            other_id = int(self.scope['url_route']['kwargs']['id'])
 
             if (auth_id == other_id):
                 print("[-] You can not send a msg to yourself")
@@ -60,8 +56,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'chat.msg',
-                'message': msg,
+                'notif_type': 2,
                 'username': username,
+                "id": self.scope['user'].id,
+                'msg': msg,
+                'timestamp': str(datetime.now()).split('.')[0],
             })
         print(f'[+] Sending {msg} from {username} in grp {self.room_group_name}, channel {self.channel_layer}')
     
@@ -69,6 +68,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_msg(self, event):
         await self.send(text_data=json.dumps({
+            'notif_type': event['notif_type'],
             "username": event["username"],
-            "message": event["message"],
+            "id": event['id'],
+            "msg": event["msg"],
+            'timestamp': event['timestamp'],
         }))

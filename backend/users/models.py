@@ -173,5 +173,6 @@ class Notification(models.Model):
                                  on_delete=models.CASCADE,
                                  related_name="notif_receiver")
     notif_type = models.IntegerField(default=-1)
+    is_readen = models.BooleanField(default=False)
     msg = models.CharField(max_length=128, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)

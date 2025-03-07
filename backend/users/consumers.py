@@ -81,8 +81,9 @@ class NotifConsumer(AsyncWebsocketConsumer):
     async def user_status(self, event):
         await self.send(text_data=json.dumps(
         {
-            'notif_type':event['notif_type'],
-            "username":event['username'],
+            'notif_type': event['notif_type'],
+            "username": event['username'],
             "id": event['id'],
-            'msg':event['msg'],
+            'msg': event['msg'],
+            'timestamp': event['timestamp'],
         }))
