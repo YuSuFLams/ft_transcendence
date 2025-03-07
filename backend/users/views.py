@@ -22,7 +22,7 @@ from .authentication import IsOTP
 from .models import Account, FriendList, FriendRequest, ResetPassword
 import jwt, json, requests
 
-
+#TODO blacklist the old access
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -39,7 +39,7 @@ def register(request):
 
         user_form.save()
         new_user = Account.objects.get(username=request.data.get('username'))
-        friend_list, created = FriendList.objects.get_or_create(user=new_user)
+        # friend_list, created = FriendList.objects.get_or_create(user=new_user)
 
         return Response(user_form.data, status=200)
     return (Response(user_form.errors.values(), status=400))
