@@ -164,3 +164,14 @@ def pre_del_account(sender, instance, **kwargs):
         friend_list.delete()
     except FriendList.DoesNotExist:
         pass
+
+class Notification(models.Model):
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               on_delete=models.CASCADE,
+                               related_name="notif_sender")
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                 on_delete=models.CASCADE,
+                                 related_name="notif_receiver")
+    notif_type = models.IntegerField(default=-1)
+    msg = models.CharField(max_length=128)
+    timestamp = models.DateTimeField(auto_now_add=True)
