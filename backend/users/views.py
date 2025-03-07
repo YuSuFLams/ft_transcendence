@@ -19,7 +19,10 @@ from django.shortcuts import  redirect
 from urllib.parse import urlencode
 from django.conf import settings
 from .authentication import IsOTP
-from .models import Account, FriendList, FriendRequest, ResetPassword
+from .models import Account, FriendList, FriendRequest, ResetPassword, Notification
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from datetime import datetime
 import jwt, json, requests
 
 #TODO blacklist the old access
@@ -433,6 +436,25 @@ def send_friend_req(request):
         except FriendRequest.DoesNotExist:
             friend_req = FriendRequest(sender=request.user, receiver=friend)
             friend_req.save()
+
+            notif_type = 3
+            msg = f"{request.user.username} requests a friendship"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"room_{friend_id}",
+                {
+                    "type": "user.status",
+                    "username": request.user.username,
+                    "id": request.user.id,
+                    "notif_type": notif_type,
+                    "msg": msg,
+                    "timestamp": str(datetime.now()).split('.')[0],
+                })
+            Notification.objects.create(sender=request.user,
+                            receiver=friend,
+                            notif_type=notif_type,
+                            msg=msg)
+
             return (Response('The friend request sent successfully', status=200))
         except Exception as e:
             return (Response('Failed to send the friend request', status=400))
@@ -502,6 +524,25 @@ def accept_friend(request):
             try:
                 friend_req_list = FriendRequest.objects.get(sender=friend, receiver=request.user, is_active=True)
                 friend_req_list.accept()
+
+                notif_type = 4
+                msg = f"{request.user.username} accepted your friendship"
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"room_{friend_id}",
+                    {
+                        "type": "user.status",
+                        "username": request.user.username,
+                        "id": request.user.id,
+                        "notif_type": notif_type,
+                        "msg": msg,
+                        "timestamp": str(datetime.now()).split('.')[0],
+                    })
+                Notification.objects.create(sender=request.user,
+                                receiver=friend,
+                                notif_type=notif_type,
+                                msg=msg)
+
                 return(Response({'Friendship_accepted':True}))
             except:
                 return(Response('failed to accept the friendship'))

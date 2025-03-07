@@ -1,27 +1,26 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from users.models import Account, FriendList, Notification
-import json
 from datetime import datetime
+import json
 
 
 class NotifConsumer(AsyncWebsocketConsumer):
-    def __init__(self, *args, **kwargs):
-        notif_types = {
-            0: "offline",
-            1: "online",
-            2: "msg",
-            3: "requested a friendship",
-            4: "your request accepted"
-        }
+    # def __init__(self, *args, **kwargs):
+    #     notif_types = {
+    #         0: "offline",
+    #         1: "online",
+    #         2: "msg",
+    #         3: "requested a friendship",
+    #         4: "your request accepted"
+    #     }
 
     @database_sync_to_async
     def get_all_friends(self):
         try:
             user = Account.objects.get(id=self.scope['user'].id)
-            print(f'user {user.username} is logged on get all frs')
+            print(f'user {user.username} socket is on')
             fr_list =  FriendList.objects.get(user=user)
-
             return list(fr_list.friends.all())
         except Account.DoesNotExist:
             print('Account does not exist')
@@ -39,7 +38,10 @@ class NotifConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def update_notif_on_db(self, receiver, notif_type, msg=''):
-        Notification.objects.create(sender=self.scope['user'], receiver=receiver, notif_type=notif_type, msg=msg)
+        Notification.objects.create(sender=self.scope['user'],
+                                    receiver=receiver,
+                                    notif_type=notif_type,
+                                    msg=msg)
 
     async def connect(self):
         if self.scope['user'].is_authenticated:
@@ -68,12 +70,14 @@ class NotifConsumer(AsyncWebsocketConsumer):
                 "msg": msg,
                 "timestamp": str(datetime.now()).split('.')[0]
             })
+        await self.update_notif_on_db(friend, notif_type)
+
 
     async def notify_all_friends(self, notif_type, msg=''):
         friends = await self.get_all_friends()
         for friend in friends:
             await self.notify_friend(friend, notif_type)
-            
+
     async def user_status(self, event):
         await self.send(text_data=json.dumps(
         {
