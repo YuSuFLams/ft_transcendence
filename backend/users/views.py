@@ -19,7 +19,12 @@ from django.shortcuts import  redirect
 from urllib.parse import urlencode
 from django.conf import settings
 from .authentication import IsOTP
-from .models import Account, FriendList, FriendRequest, ResetPassword, Notification
+from .models import (Account,
+                     FriendList,
+                     FriendRequest,
+                     ResetPassword,
+                     Notification,
+                     BlackList)
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from datetime import datetime
@@ -562,3 +567,39 @@ def search_account(request):
         accounts = Account.objects.filter(username__contains=query_search)
         searilized = AccountSerializer(accounts, many=True)
     return(Response(searilized.data))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def block_user(request):
+    try:
+        blocked_id = int(request.POST.get("blocked_id"))
+        if (blocked_id == request.user.id):
+            return (Response('You can not block yourserf'))
+        blocked_user = Account.objects.get(blocked_id)
+        BlackList.objects.get(user=request.user)._add(blocked_user)
+        return (Response(f'You blocked {blocked_user.username}', status=200))
+    except BlackList.DoesNotExist:
+        return (Response({'error':'BlackList obj does not exist'}, 400))
+    except Account.DoesNotExist:
+        return (Response({'error':'Account obj does not exist'}, 400))
+    except Exception as e:
+        return (Response({'error':f'{e}'}, 400))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unblock_user(request):
+    try:
+        unblocked_id = int(request.POST.get("unblocked_id"))
+        if (unblocked_id == request.user.id):
+            return (Response({'error':'You can not unblock yourserf'}, status=401))
+        blocked_user = Account.objects.get(unblocked_id)
+        BlackList.objects.get(user=request.user).unblock(blocked_user)
+        return (Response(f'You blocked {blocked_user.username}', status=200))
+    except BlackList.DoesNotExist:
+        return (Response({'error':'BlackList obj does not exist'}, status=400))
+    except Account.DoesNotExist:
+        return (Response({'error':'Account obj does not exist'}, status=400))
+    except Exception as e:
+        return (Response({'error':f'{e}'}, 400))

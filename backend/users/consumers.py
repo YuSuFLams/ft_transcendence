@@ -43,6 +43,14 @@ class NotifConsumer(AsyncWebsocketConsumer):
                                     notif_type=notif_type,
                                     msg=msg)
 
+    @database_sync_to_async
+    def get_user_by_id(self, id):
+        try:
+            return Account.objects.get(id=id)
+        except:
+            print("user does not exist")
+            return None
+
     async def connect(self):
         if self.scope['user'].is_authenticated:
             auth_id = self.scope['user'].id
@@ -70,7 +78,7 @@ class NotifConsumer(AsyncWebsocketConsumer):
                 "msg": msg,
                 "timestamp": str(datetime.now()).split('.')[0]
             })
-        await self.update_notif_on_db(friend, notif_type)
+        await self.update_notif_on_db(friend, notif_type, msg=msg)
 
 
     async def notify_all_friends(self, notif_type, msg=''):
@@ -85,5 +93,26 @@ class NotifConsumer(AsyncWebsocketConsumer):
             "username": event['username'],
             "id": event['id'],
             'msg': event['msg'],
+            'timestamp': event['timestamp'],
+        }))
+
+    async def receive(self, text_data=None, bytes_data=None):
+        try:
+            json_data = json.loads(text_data)
+            msg = json_data.get('message')
+        except:
+            print('invalid JSON data')
+            return
+        
+        friend_id = int(self.scope['url_route']['kwargs']['id'])
+        friend_obj = await self.get_user_by_id(friend_id)
+        await self.notify_friend(friend_obj, 2, msg=msg)
+    
+    async def chat_msg(self, event):
+        await self.send(text_data=json.dumps({
+            'notif_type': event['notif_type'],
+            "username": event["username"],
+            "id": event['id'],
+            "msg": event["msg"],
             'timestamp': event['timestamp'],
         }))

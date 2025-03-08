@@ -29,9 +29,9 @@ class MyAccountManager(BaseUserManager):
         return (user)
 
 class Account(AbstractBaseUser):
-    username        = models.CharField(max_length=60, unique=True)
-    first_name      = models.CharField(max_length=30, blank=True)
-    last_name       = models.CharField(max_length=30, blank=True)
+    username        = models.CharField(max_length=20, unique=True)
+    first_name      = models.CharField(max_length=15, blank=True)
+    last_name       = models.CharField(max_length=15, blank=True)
     email           = models.EmailField(unique=True)
     is_admin        = models.BooleanField(default=False)
     is_staff        = models.BooleanField(default=False)
@@ -60,18 +60,6 @@ class Account(AbstractBaseUser):
 
     def __str__(self):
         return (self.username)
-
-
-class Notif(models.Model):
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL,
-                               on_delete=models.CASCADE,
-                               related_name='sender_notif')
-    receiver = models.ForeignKey(settings.AUTH_USER_MODEL,
-                               on_delete=models.CASCADE,
-                               related_name='receiver_notif')
-    msg = models.CharField(max_length=512)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
 
 class FriendList(models.Model):
     #one user -> one friendlist
@@ -104,17 +92,33 @@ class FriendList(models.Model):
         except:
             pass
 
-    
     def unfriend(self, fake_friend):
         self.remove_friend(fake_friend)
         fake = FriendList.objects.get(user=fake_friend)
         fake.remove_friend(self.user)
 
-    def is_friend(self, friend):
-        if friend in self.friends.all():
-            return (True)
-        return (False)
+
+class BlackList(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE,
+                             related_name='black_list')
     
+    blocked = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                     related_name='blocked')
+    
+    def _add(self, new_enemy):
+        blocked_obj, created1 = BlackList.objects.get_or_create(user=self.user)
+        friend_list, created2 = FriendList.objects.get_or_create(user=self.user)
+
+        if (new_enemy not in blocked_obj.friends.all()):
+            blocked_obj.blocked.add(new_enemy)
+            self.save()
+        else:
+            print("already Blocked")
+
+    def unblock(self, friend):
+        BlackList.objects.filter(user=friend).delete()
+
 
 class FriendRequest(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL,
