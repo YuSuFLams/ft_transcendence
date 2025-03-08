@@ -24,3 +24,8 @@ class ResetPasswordAdmin(admin.ModelAdmin):
 class NotifAdmin(admin.ModelAdmin):
     list_display = ['sender', 'receiver', 'notif_type', 'msg','timestamp']
     readonly_fields = ['sender', 'receiver', 'notif_type']
+
+#TODO check this 
+# @admin.register(models.BlackList)
+# class BlackListAdmin(admin.ModelAdmin):
+#     list_display = ['user', 'blocked', 'timestamp']

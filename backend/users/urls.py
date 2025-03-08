@@ -16,8 +16,10 @@ urlpatterns = [
     path('unfriend_friend/', views.unfriend_friend, name='unfriend_friend'),
     path('cancel_my_req/', views.cancel_my_req, name='cancel_my_req'),
     path('decline_friend_req/', views.decline_friend_req, name='decline_friend_req'),
+    
     path('block_user/', views.block_user, name='block_user'),
     path('unblock_user/', views.unblock_user, name='unblock_user'),
+    path('list_blocked_users/', views.list_blocked_users, name='list_blocked_users'),
 
     # ####Login
     path('register/', views.register, name='register'),

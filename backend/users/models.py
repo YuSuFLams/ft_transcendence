@@ -105,19 +105,20 @@ class BlackList(models.Model):
     
     blocked = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                      related_name='blocked')
+    timestamp = models.DateTimeField(auto_now_add=True)
     
     def _add(self, new_enemy):
         blocked_obj, created1 = BlackList.objects.get_or_create(user=self.user)
-        friend_list, created2 = FriendList.objects.get_or_create(user=self.user)
 
-        if (new_enemy not in blocked_obj.friends.all()):
+        if (new_enemy not in blocked_obj.blocked.all()):
             blocked_obj.blocked.add(new_enemy)
             self.save()
         else:
             print("already Blocked")
 
     def unblock(self, friend):
-        BlackList.objects.filter(user=friend).delete()
+        blocked_obj, created1 = BlackList.objects.get_or_create(user=self.user)
+        blocked_obj.blocked.remove(friend)
 
 
 class FriendRequest(models.Model):

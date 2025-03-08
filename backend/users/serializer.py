@@ -1,5 +1,5 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import Account, FriendList, FriendRequest
+from .models import Account, FriendList, FriendRequest, BlackList
 from django.core.mail import send_mail
 from rest_framework import serializers
 from django.conf import settings
@@ -111,3 +111,10 @@ class ResetPasswordSerializerSuccess(serializers.Serializer):
     class Meta:
         model = Account
         fields = ['new_password1', 'new_password']
+
+class BlackListSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    
+    class Meta:
+        model = BlackList
+        fields = ['user', 'username', 'blocked', 'timestamp']

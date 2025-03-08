@@ -12,6 +12,7 @@ from .serializer import (AccountSerializer,
                          ChangePassSerializer,
                          FriendsListSerializer,
                          ResetPasswordSerializer,
+                         BlackListSerializer,
                          ResetPasswordSerializerSuccess,
                          OTPSerializer,)
 from rest_framework.response import Response
@@ -573,11 +574,15 @@ def search_account(request):
 @permission_classes([IsAuthenticated])
 def block_user(request):
     try:
-        blocked_id = int(request.POST.get("blocked_id"))
+        blocked_id = request.POST.get("blocked_id")
         if (blocked_id == request.user.id):
             return (Response('You can not block yourserf'))
-        blocked_user = Account.objects.get(blocked_id)
-        BlackList.objects.get(user=request.user)._add(blocked_user)
+        blocked_user = Account.objects.get(id=blocked_id)
+        blacklist_obj, created = BlackList.objects.get_or_create(user=request.user)
+        if blocked_user in blacklist_obj.blocked.all():
+            return (Response(f'{blocked_user.username} is already blocked', 200))
+
+        blacklist_obj._add(blocked_user)
         return (Response(f'You blocked {blocked_user.username}', status=200))
     except BlackList.DoesNotExist:
         return (Response({'error':'BlackList obj does not exist'}, 400))
@@ -591,15 +596,33 @@ def block_user(request):
 @permission_classes([IsAuthenticated])
 def unblock_user(request):
     try:
-        unblocked_id = int(request.POST.get("unblocked_id"))
+        unblocked_id = request.POST.get("unblocked_id")
         if (unblocked_id == request.user.id):
             return (Response({'error':'You can not unblock yourserf'}, status=401))
-        blocked_user = Account.objects.get(unblocked_id)
-        BlackList.objects.get(user=request.user).unblock(blocked_user)
-        return (Response(f'You blocked {blocked_user.username}', status=200))
+        blocked_user = Account.objects.get(id=unblocked_id)
+        blacklist_obj, created = BlackList.objects.get_or_create(user=request.user)
+
+        if blocked_user not in blacklist_obj.blocked.all():
+            return (Response(f'{blocked_user.username} is already unblocked', 200))
+
+
+        blacklist_obj.unblock(blocked_user)
+        return (Response(f'You unblocked {blocked_user.username}', status=200))
     except BlackList.DoesNotExist:
         return (Response({'error':'BlackList obj does not exist'}, status=400))
     except Account.DoesNotExist:
         return (Response({'error':'Account obj does not exist'}, status=400))
     except Exception as e:
         return (Response({'error':f'{e}'}, 400))
+    
+
+@api_view(['POST', 'GET'])
+@permission_classes([IsAuthenticated])
+def list_blocked_users(request):
+    try:
+        black_list = BlackList.objects.get(user=request.user)
+        return (Response(BlackListSerializer(black_list).data, status=200))
+    except BlackList.DoesNotExist:
+        return (Response({'error':'Blacklist obj does not exist'}, status=400))
+    except Exception as e:
+        return (Response({'error':f'{e}'}, status=400))
