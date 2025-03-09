@@ -30,6 +30,8 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from datetime import datetime
 import jwt, json, requests
+from django.core.mail import send_mail
+import pyotp
 
 #TODO blacklist the old access
 @api_view(['POST'])
@@ -316,6 +318,13 @@ def change_password(request):
     the logged user from login -> dashboard
 """
 
+def is_blocked(request, friend):
+    fr_blk_obj, created = BlackList.objects.get_or_create(user=friend)
+    my_blk_obj, created = BlackList.objects.get_or_create(user=request.user)
+    if (request.user in fr_blk_obj.blocked.all()):
+        return True
+    return (friend in my_blk_obj.blocked.all())
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def view_profile(request, id):
@@ -341,6 +350,8 @@ def view_profile(request, id):
         is_self = True
         friend_req = FriendRequest.objects.filter(receiver=user, is_active=True)
         context['friend_req'] = friend_req
+    elif is_blocked(request, user):
+        friendship = -1
     else :
         try :
             friend_list.friends.get(id=request.user.id)
@@ -354,13 +365,12 @@ def view_profile(request, id):
                 #he sent a request, you can accept or decline
                 context['friend_req_id'] = get_friend_request_or_false(user, request.user).id
 
-    #TODO add is_online
     context['is_self'] = is_self
     context['friendship'] = friendship
     serializer = ViewProfileSerializer(context)
     return (Response(serializer.data))
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def me(request):
     try:
@@ -523,13 +533,6 @@ def decline_friend_req(request):
         return(Response('Cannot find decline_friend_req', status=400))
 
 
-def is_blocked(request, friend):
-    fr_blk_obj, created = BlackList.objects.get_or_create(user=friend)
-    my_blk_obj, created = BlackList.objects.get_or_create(user=request.user)
-    if (request.user in fr_blk_obj.blocked.all()):
-        return True
-    return (friend in my_blk_obj.blocked.all())
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def accept_friend(request):
@@ -641,3 +644,92 @@ def list_blocked_users(request):
         return (Response({'error':'Blacklist obj does not exist'}, status=400))
     except Exception as e:
         return (Response({'error':f'{e}'}, status=400))
+
+###HELPER
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def is_authenticated(request):
+    return (Response({'Authenticated':True}, status=200))
+
+
+###RESET PASS
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def get_pub_data(request): #TODO maybe like /me
+    try:
+        user = Account.objects.get(email=request.data.get('email'))
+    except Account.DoesNotExist:
+        return (Response({'error':'The email is incorrect'}, status=400))
+    return Response({'username':user.username, 'first_name':user.first_name, 'last_name':user.last_name}, status=200)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_reset_mail(request):
+    reset_email = request.data.get('email')
+    if not reset_email:
+        return (Response({'error': 'The email field is required'}, status=400))
+
+    user = Account.objects.filter(email=reset_email)
+    if (not user.exists()):
+        return (Response({'error':'The email is incorrect'}, status=400))
+    
+    ####FIXME 
+    # if (user.first().is_oauth):
+    #     return (Response({'error':'Oauth account cannot reset the password'}, status=400))
+    #### the first_name and last_name are optional, so they can be blank
+    #### i think using username in case the full_name is blank is better
+    ResetPassword.objects.filter(email=reset_email).delete()
+    totp = pyotp.TOTP(pyotp.random_base32())
+    code = totp.now()
+    reseted = ResetPassword(email=reset_email, code=code)
+    reseted.save()
+    send_mail('Transcendence Reset Password',
+            f'To reset your password, Use the secret code: {code}',
+            settings.EMAIL_HOST_USER,
+            [reset_email],
+            fail_silently=False)
+    return (Response('The reset email is sent, please check your email', status=200))
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_mail_check(request):
+    try:
+        reset_user = ResetPassword.objects.get(email=request.data.get('email'),
+                                               code=request.data.get('code'))
+        if (not reset_user.is_valid()):
+            reset_user.delete()
+            return (Response({'error': 'Reset token is invalid'}, status=400))
+        if (reset_user.code != request.data.get('code')):
+            return (Response({'error': 'The code is incorrect'}, status=400))
+        return (Response({'Success': True}, status=200))
+    except ResetPassword.DoesNotExist:
+        return (Response({'error': 'Something went wrong'}, status=400))
+    
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_mail_success(request):
+    user_mail = request.data.get('email')
+    if not user_mail:
+        return (Response({'error':'Something went wrong'}, status=400))
+    
+    code = request.data.get('code')
+    if not code:
+        return (Response({'error':'Something went wrong'}, status=400))
+    
+    try:
+        user = Account.objects.get(email=user_mail)
+    except:
+        return (Response({'error':'Something went wrong'}, status=400))
+    
+    if not ResetPassword.objects.filter(email=user_mail, code=code).exists():
+        return (Response({'error':'Invalid code'}, status=400))
+    new_pass_serialized = ResetPasswordSerializerSuccess(data=request.data)
+    if (not new_pass_serialized.is_valid()):
+        return (Response({'error': 'The new password is invalid'}  , status=400))
+    
+    valid = new_pass_serialized.validated_data
+    user.set_password(valid['new_password1'])
+    user.save()
+    ResetPassword.objects.filter(email=user_mail).delete()
+    return (Response({'Success': True}, status=200))

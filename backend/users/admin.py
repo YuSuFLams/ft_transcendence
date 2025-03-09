@@ -17,8 +17,7 @@ class FriendRequestAdmin(admin.ModelAdmin):
 
 @admin.register(models.ResetPassword)
 class ResetPasswordAdmin(admin.ModelAdmin):
-    list_display = ['email', 'token', 'created_at']
-    readonly_fields = ['email', 'token', 'created_at']
+    list_display = ['email', 'code', 'created_at']
 
 @admin.register(models.Notification)
 class NotifAdmin(admin.ModelAdmin):

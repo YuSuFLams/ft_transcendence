@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.conf import settings
-
+from django.utils import timezone
 
 class MyAccountManager(BaseUserManager):
     def create_user(self, email, username, password=None):
@@ -151,10 +151,13 @@ class FriendRequest(models.Model):
         self.is_active = False
         self.save()
     
+####### RESET_PASS
 class ResetPassword(models.Model):
     email = models.EmailField()
-    token = models.CharField(max_length=100)
+    code = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
+    def is_valid(self):
+        return (timezone.now() - self.created_at).total_seconds() < 600
 
 
 """The utility of **kwargs

@@ -104,17 +104,25 @@ class ViewProfileSerializer(serializers.Serializer):
 class ResetPasswordSerializer(serializers.Serializer):
     reset_email = serializers.EmailField()
 
-class ResetPasswordSerializerSuccess(serializers.Serializer):
-    new_password1 = serializers.CharField(write_only=True)
-    new_password2 = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = Account
-        fields = ['new_password1', 'new_password']
-
 class BlackListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     
     class Meta:
         model = BlackList
         fields = ['user', 'username', 'blocked', 'timestamp']
+
+###### RESET PASS
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
+class ResetPasswordSerializerSuccess(serializers.Serializer):
+    new_password1 = serializers.CharField(write_only=True)
+    new_password2 = serializers.CharField(write_only=True)
+    def validate(self, data):
+        if (data['new_password1'] != data['new_password2']):
+            raise serializers.ValidationError("Passwords does not match")
+        try:
+            validate_password(data['new_password1'])
+        except ValidationError as e:
+            raise serializers.ValidationError(e.messages)
+        return data
