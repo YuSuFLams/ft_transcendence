@@ -43,10 +43,9 @@ class WebSocketJWTAuthenticationMiddleware(BaseMiddleware):
         except User.DoesNotExist:
             return AnonymousUser()
 
-from chat.routing import websocket_urlpatterns as wb_chat
 from users.routing import websocket_urlpatterns as wb_user
 
-websocket_urlpatterns = game_websocket_urlpatterns + tournament_websocket_urlpatterns + wb_chat + wb_user
+websocket_urlpatterns = game_websocket_urlpatterns + tournament_websocket_urlpatterns + wb_user
 
 
 application = ProtocolTypeRouter({

@@ -1,6 +1,6 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from users.models import Account, FriendList, Notification
+from users.models import Account, FriendList, Notification, BlackList
 from datetime import datetime
 import json
 
@@ -31,6 +31,15 @@ class NotifConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(e)
             return []
+    
+    @database_sync_to_async
+    def is_blocked(self, friend):
+        fr_blk_obj, created = BlackList.objects.get_or_create(user=friend)
+        my_blk_obj, created = BlackList.objects.get_or_create(user=self.scope['user'])
+        if (self.scope['user'] in fr_blk_obj.blocked.all()):
+            return True
+        return (friend in my_blk_obj.blocked.all())
+        
 
     @database_sync_to_async
     def updated_stats_on_db(self, id, is_online):
@@ -69,16 +78,20 @@ class NotifConsumer(AsyncWebsocketConsumer):
 
 
     async def notify_friend(self, friend, notif_type, msg=''):
-        await self.channel_layer.group_send(f"room_{friend.id}",
-            {
-                "type": "user.status",
-                "username": self.scope['user'].username,
-                "id": self.scope['user'].id,
-                "notif_type": notif_type,
-                "msg": msg,
-                "timestamp": str(datetime.now()).split('.')[0]
-            })
-        await self.update_notif_on_db(friend, notif_type, msg=msg)
+        if not (await self.is_blocked(friend)):
+            print('allowed')
+            await self.channel_layer.group_send(f"room_{friend.id}",
+                {
+                    "type": "user.status",
+                    "username": self.scope['user'].username,
+                    "id": self.scope['user'].id,
+                    "notif_type": notif_type,
+                    "msg": msg,
+                    "timestamp": str(datetime.now()).split('.')[0]
+                })
+            await self.update_notif_on_db(friend, notif_type, msg=msg)
+        else:
+            print('blocked')
 
 
     async def notify_all_friends(self, notif_type, msg=''):

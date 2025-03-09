@@ -425,14 +425,15 @@ def list_all_req_received(request):
 @permission_classes([IsAuthenticated])
 def send_friend_req(request):
     try:
-        friend_id = request.POST.get("friend_id")
-        if (int(friend_id) == request.user.id):
+        friend_id = int(request.POST.get("friend_id"))
+        if (friend_id == request.user.id):
             return (Response("You can not send a friend request to yourself", status=400))
 
-        try:
-            friend = Account.objects.get(id=friend_id)
-        except Account.DoesNotExist:
-            return (Response("The friend_id does not belong to any user", status=400))
+        friend = Account.objects.get(id=friend_id)
+
+        blk_obj, created = BlackList.objects.get_or_create(user=friend)
+        if (request.user in  blk_obj.blocked.all()):
+            return (Response({'error':f'You can not send a friend req, cause you are blocked by {friend.username}'}, status=400))
 
         try:
             friend_req = FriendRequest.objects.get(sender=request.user,
@@ -464,6 +465,10 @@ def send_friend_req(request):
             return (Response('The friend request sent successfully', status=200))
         except Exception as e:
             return (Response('Failed to send the friend request', status=400))
+    except Account.DoesNotExist:
+        return (Response("The friend_id does not belong to any user", status=400))
+    # except BlackList.DoesNotExist:
+    #     return (Response("BlackList obj DoesNotExist", status=400))
     except:
         return (Response("Cannot find friend_id", status=400))
 
@@ -518,16 +523,27 @@ def decline_friend_req(request):
         return(Response('Cannot find decline_friend_req', status=400))
 
 
+def is_blocked(request, friend):
+    fr_blk_obj, created = BlackList.objects.get_or_create(user=friend)
+    my_blk_obj, created = BlackList.objects.get_or_create(user=request.user)
+    if (request.user in fr_blk_obj.blocked.all()):
+        return True
+    return (friend in my_blk_obj.blocked.all())
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def accept_friend(request):
     try:
-        friend_id = request.POST.get("accept_friend_id")
-        if (int(friend_id) == request.user.id):
+        friend_id = int(request.POST.get("accept_friend_id"))
+        if (friend_id == request.user.id):
             return (Response('You can not accept your self as a friend'))
         try:
             friend = Account.objects.get(id=int(friend_id))
             try:
+                blk_obj, created = BlackList.objects.get_or_create(user=friend)
+                if (is_blocked(request, friend)):
+                    return (Response({'error':f'You can not send a friend req, cause you are blocked by {friend.username}'}, status=400))
+
                 friend_req_list = FriendRequest.objects.get(sender=friend, receiver=request.user, is_active=True)
                 friend_req_list.accept()
 
@@ -561,8 +577,8 @@ def accept_friend(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def search_account(request):
-    accounts = None
-    searilized = None
+    accounts = None #you can remove this
+    searilized = None #an dthis
     query_search = request.GET.get('q')
     if (query_search):
         accounts = Account.objects.filter(username__contains=query_search)
@@ -574,9 +590,9 @@ def search_account(request):
 @permission_classes([IsAuthenticated])
 def block_user(request):
     try:
-        blocked_id = request.POST.get("blocked_id")
+        blocked_id = int(request.POST.get("blocked_id"))
         if (blocked_id == request.user.id):
-            return (Response('You can not block yourserf'))
+            return (Response('You can not block yourself'))
         blocked_user = Account.objects.get(id=blocked_id)
         blacklist_obj, created = BlackList.objects.get_or_create(user=request.user)
         if blocked_user in blacklist_obj.blocked.all():
@@ -596,7 +612,7 @@ def block_user(request):
 @permission_classes([IsAuthenticated])
 def unblock_user(request):
     try:
-        unblocked_id = request.POST.get("unblocked_id")
+        unblocked_id = int(request.POST.get("unblocked_id"))
         if (unblocked_id == request.user.id):
             return (Response({'error':'You can not unblock yourserf'}, status=401))
         blocked_user = Account.objects.get(id=unblocked_id)
@@ -604,7 +620,6 @@ def unblock_user(request):
 
         if blocked_user not in blacklist_obj.blocked.all():
             return (Response(f'{blocked_user.username} is already unblocked', 200))
-
 
         blacklist_obj.unblock(blocked_user)
         return (Response(f'You unblocked {blocked_user.username}', status=200))

@@ -16,7 +16,6 @@ python3.10 -m pip install --upgrade pip
 python3.10 -m pip install -r requirements.txt
 
 python3.10 manage.py makemigrations users
-python3.10 manage.py makemigrations chat
 python3.10 manage.py makemigrations game
 python3.10 manage.py makemigrations tournament
 python3.10 manage.py makemigrations
