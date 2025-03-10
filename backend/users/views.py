@@ -32,6 +32,8 @@ from datetime import datetime
 import jwt, json, requests
 from django.core.mail import send_mail
 import pyotp
+from smtplib import SMTPException
+
 
 #TODO blacklist the old access
 @api_view(['POST'])
@@ -475,10 +477,9 @@ def send_friend_req(request):
             return (Response('The friend request sent successfully', status=200))
         except Exception as e:
             return (Response('Failed to send the friend request', status=400))
-    except Account.DoesNotExist:
+        
+    except (Account.DoesNotExist, BlackList.DoesNotExist):
         return (Response("The friend_id does not belong to any user", status=400))
-    # except BlackList.DoesNotExist:
-    #     return (Response("BlackList obj DoesNotExist", status=400))
     except:
         return (Response("Cannot find friend_id", status=400))
 
@@ -571,8 +572,8 @@ def accept_friend(request):
                         receiver=friend,
                         notif_type=notif_type,
                         msg=msg)
-
         return(Response({'Friendship_accepted':True}, status=200))
+    
     except (KeyError, TypeError):
         return(Response({'error':'accept_friend_id field is required'}, status=400))
     except Exception as e:
@@ -583,13 +584,13 @@ def accept_friend(request):
 @permission_classes([IsAuthenticated])
 def search_account(request):
     try:
-        query_search = request.GET.get('q')
+        query_search = request.GET['q']
         if (query_search):
             accounts = Account.objects.filter(username__contains=query_search)
             searilized = AccountSerializer(accounts, many=True)
         return(Response(searilized.data))
     
-    except (KeyError, TypeError):
+    except (KeyError):
         return(Response({'error':'q field is required'}, status=400))
     except Exception as e:
         return(Response({'error':f'{e}'}, status=400))
@@ -672,79 +673,92 @@ def get_pub_data(request): #TODO maybe like /me
                          status=200)
     except Account.DoesNotExist:
         return (Response({'error':'The email is incorrect'}, status=400))
+    except (KeyError, TypeError):
+        return(Response({'error':'unblocked_id field is required'}, status=400))
     except Exception as e:
-        return (Response({'error':f'{e}'}, status=400))
+        return(Response({'error':f'{e}'}, status=400))
     
-    
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def send_reset_mail(request):
-    reset_email = request.data.get('email')
-    if not reset_email:
-        return (Response({'error': 'The email field is required'}, status=400))
+    try:
+        reset_email = request.POST['email']
 
-    user = Account.objects.filter(email=reset_email)
-    if (not user.exists()):
-        return (Response({'error':'The email is incorrect'}, status=400))
+        user = Account.objects.filter(email=reset_email)
+        if (not user.exists()):
+            return (Response({'error':'The email is incorrect'}, status=400))
+        
+        ####FIXME 
+        # if (user.first().is_oauth):
+        #     return (Response({'error':'Oauth account cannot reset the password'}, status=400))
+        #### the first_name and last_name are optional, so they can be blank
+        #### i think using username in case the full_name is blank is better
+        ResetPassword.objects.filter(email=reset_email).delete()
+        totp = pyotp.TOTP(pyotp.random_base32())
+        code = totp.now()
+        reseted = ResetPassword(email=reset_email, code=code)
+        reseted.save()
+        send_mail('Transcendence Reset Password',
+                f'To reset your password, Use the secret code: {code}',
+                settings.EMAIL_HOST_USER,
+                [reset_email],
+                fail_silently=False)
+        return (Response('The reset email is sent, please check your email', status=200))
     
-    ####FIXME 
-    # if (user.first().is_oauth):
-    #     return (Response({'error':'Oauth account cannot reset the password'}, status=400))
-    #### the first_name and last_name are optional, so they can be blank
-    #### i think using username in case the full_name is blank is better
-    ResetPassword.objects.filter(email=reset_email).delete()
-    totp = pyotp.TOTP(pyotp.random_base32())
-    code = totp.now()
-    reseted = ResetPassword(email=reset_email, code=code)
-    reseted.save()
-    send_mail('Transcendence Reset Password',
-            f'To reset your password, Use the secret code: {code}',
-            settings.EMAIL_HOST_USER,
-            [reset_email],
-            fail_silently=False)
-    return (Response('The reset email is sent, please check your email', status=200))
+    except SMTPException:
+        return (Response({'error':'SMTP Failed to send the mail'}, status=400))
+    except KeyError:
+        return(Response({'error':'email field is required'}, status=400))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_mail_check(request):
     try:
-        reset_user = ResetPassword.objects.get(email=request.data.get('email'),
-                                               code=request.data.get('code'))
+        reset_user = ResetPassword.objects.get(email=request.POST['email'],
+                                               code=request.POST['code'])
         if (not reset_user.is_valid()):
             reset_user.delete()
-            return (Response({'error': 'Reset token is invalid'}, status=400))
-        if (reset_user.code != request.data.get('code')):
+            return (Response({'error': 'The Reset token is expired'}, status=400))
+        if (reset_user.code != request.POST['code']):
             return (Response({'error': 'The code is incorrect'}, status=400))
         return (Response({'Success': True}, status=200))
-    except ResetPassword.DoesNotExist:
-        return (Response({'error': 'Something went wrong'}, status=400))
     
+    except ResetPassword.DoesNotExist:
+        return (Response({'error': 'ResetPassword obj does not exist'}, status=400))
+    except (KeyError):
+        return(Response({'error':'email/code fields are required'}, status=400))
+    except Exception as e:
+        return (Response({'error':f'{e}'}, status=400))
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_mail_success(request):
-    user_mail = request.data.get('email')
-    #FIXME who changed error -> something went wrong
-    if not user_mail:
-        return (Response({'error':'Something went wrong'}, status=400))
-    
-    code = request.data.get('code')
-    if not code:
-        return (Response({'error':'Something went wrong'}, status=400))
-    
     try:
+        user_mail = request.POST['email']
+        code = request.POST['code']
+        
         user = Account.objects.get(email=user_mail)
-    except:
-        return (Response({'error':'Something went wrong'}, status=400))
-    
-    if not ResetPassword.objects.filter(email=user_mail, code=code).exists():
-        return (Response({'error':'Invalid code'}, status=400))
-    new_pass_serialized = ResetPasswordSerializerSuccess(data=request.data)
-    if (not new_pass_serialized.is_valid()):
-        return (Response({'error': 'The new password is invalid'}  , status=400))
-    
-    valid = new_pass_serialized.validated_data
-    user.set_password(valid['new_password1'])
-    user.save()
-    ResetPassword.objects.filter(email=user_mail).delete()
-    return (Response({'Success': True}, status=200))
+        
+        if not ResetPassword.objects.filter(email=user_mail, code=code).exists():
+            return (Response({'error':'Invalid code'}, status=400))
+        
+        new_pass_serialized = ResetPasswordSerializerSuccess(data=request.data)
+        if (not new_pass_serialized.is_valid()):
+            return (Response({'error': 'The new password is invalid'}  , status=400))
+        
+        valid = new_pass_serialized.validated_data
+        user.set_password(valid['new_password1'])
+        user.save()
+        ResetPassword.objects.filter(email=user_mail).delete()
+        return (Response({'Success': True}, status=200))
+
+    except Account.DoesNotExist:
+        return (Response({'error':'Account obj does not exist'}, status=400))
+    except KeyError:
+        return(Response({'error':'email/code fields are required'}, status=400))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
