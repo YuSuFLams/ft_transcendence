@@ -110,27 +110,21 @@ def lgn_42(request):
 @permission_classes([AllowAny])
 def google_oauth2_callback(request):
     try:
-        code = request.GET.get('code')
-    except:
-        return (Response('Code not found', status=400))
+        code = request.GET['code']
     
-    token_url = settings.GOOGLE_OAUTH_TOKEN
-    data = {
-        'code':code,
-        'client_id' : settings.CLIENT_ID_GOOGLE,
-        'client_secret': settings.CLIENT_SECRET_GOOGLE,
-        'redirect_uri' : settings.GOOGLE_REDIRECT,
-        'grant_type': 'authorization_code'
-    }
+        token_url = settings.GOOGLE_OAUTH_TOKEN
+        data = {
+            'code':code,
+            'client_id' : settings.CLIENT_ID_GOOGLE,
+            'client_secret': settings.CLIENT_SECRET_GOOGLE,
+            'redirect_uri' : settings.GOOGLE_REDIRECT,
+            'grant_type': 'authorization_code'
+        }
 
-    try:
         response = requests.post(token_url, data=data)
         response_json = json.loads(response.content)
         id_token = response_json['id_token']
-    except:
-        return (Response('Incorrect response from google api', status=400))
     
-    try:
         google_keys_url = settings.GOOGLE_JWKS
         jwks_client = jwt.PyJWKClient(google_keys_url)
         signing_key = jwks_client.get_signing_key_from_jwt(id_token)
@@ -139,129 +133,161 @@ def google_oauth2_callback(request):
                             algorithms=['RS256'],
                             options={'verify_exp':False},
                             audience=settings.CLIENT_ID_GOOGLE)
-    except:
-        return (Response('Invalid signature/Failed to decode google response', status=400))
 
 
-    tmp_email = decoded.get('email', '')
-    tmp_username = decoded.get('name', '')
+        tmp_email = decoded['email']
+        tmp_username = decoded['name']
 
-    user_mail = Account.objects.filter(email=tmp_email).first() or ''
-    user_username = Account.objects.filter(username=tmp_username).first() or ''
-    user_obj = None
+        user_mail = Account.objects.get(email=tmp_email)
+        user_username = Account.objects.get(username=tmp_username)
+        user_obj = None #TODO needed ?
 
-    if user_mail and user_username:
-        if (user_mail.id == user_username.id and user_username.is_oauth):
-            user_obj = user_mail
-        else:
+        if user_mail and user_username:
+            if (user_mail.id == user_username.id and user_username.is_oauth):
+                user_obj = user_mail
+            else:
+                return (Response('Please use the login form.', status=403))
+        elif user_mail or user_username:
             return (Response('Please use the login form.', status=403))
-    elif user_mail or user_username:
-        return (Response('Please use the login form.', status=403))
-    else:
-        user_obj = Account(email=tmp_email,
-                    username=tmp_username,
-                    first_name=decoded['given_name'],
-                    last_name=decoded['family_name'],
-                    avatar=decoded['picture'],
-                    is_oauth=True,
-                    )
-        user_obj.save()
+        else:
+            user_obj = Account(email=tmp_email,
+                        username=tmp_username,
+                        first_name=decoded['given_name'],
+                        last_name=decoded['family_name'],
+                        avatar=decoded['picture'],
+                        is_oauth=True,
+                        )
+            user_obj.save()
 
-    refresh_token = RefreshToken.for_user(user_obj)
-    access_token = AccessToken.for_user(user_obj)
+        refresh_token = RefreshToken.for_user(user_obj)
+        access_token = AccessToken.for_user(user_obj)
 
-    return Response({'Success':True,
-                     'access_token':str(access_token),
-                     'refresh_token':str(refresh_token)})
+        return Response({'Success':True,
+                        'access_token':str(access_token),
+                        'refresh_token':str(refresh_token)}, status=200)
 
+    except jwt.exceptions: 
+        return (Response({'error':'pyJWT Failed to decode google response'}, status=400))
+    
+    except Account.DoesNotExist:
+        return(Response({'error':'Account does not exist'}, status=400))
+
+    except KeyError:
+        return(Response({'error':'code field not found'}, status=400))
+    
+    except requests.exceptions.RequestException:
+        return (Response({'error':'Connection err on google api'}, status=400))
+    
+    except ValueError:
+        return (Response({'error':'JSON err on load google data'}, status=400))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
+
+
+#TODO learn EAFP exceptions
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def oauth2_42_callback(request):
     try:
-        code = request.GET.get('code')
-    except:
-        return(Response('No code found', status=400))
+        code = request.GET['code']
 
-    token_url = 'https://api.intra.42.fr/oauth/token'
-    data = {
-        'code':code,
-        'client_id' : settings.CLIENT_ID_42,
-        'client_secret': settings.CLIENT_SECRET_42,
-        'redirect_uri' : 'http://localhost:3000/oauth/',
-        'grant_type': 'authorization_code'
-    }
+        token_url = 'https://api.intra.42.fr/oauth/token'
+        data = {
+            'code':code,
+            'client_id' : settings.CLIENT_ID_42,
+            'client_secret': settings.CLIENT_SECRET_42,
+            'redirect_uri' : 'http://localhost:3000/oauth/',
+            'grant_type': 'authorization_code'
+        }
 
-    try:
         response = requests.post(token_url, data=data)
         response_json = json.loads(response.content)
-    except:
-        return (Response('error'))
 
-    access_token = response_json['access_token']
-    intra_me = 'https://api.intra.42.fr/v2/me'
-    authorization_header = {'Authorization' : f'Bearer {access_token}'}
-    try:
+        access_token = response_json['access_token']
+        intra_me = 'https://api.intra.42.fr/v2/me'
+        authorization_header = {'Authorization' : f'Bearer {access_token}'}
+
         response_42 = requests.get(intra_me, headers=authorization_header)
-    except:
-        return(Response('Cannot fetch 42 intra_me', status=400))
 
-    decoded = response_42.json()
-    tmp_email = decoded.get('email', '')
-    tmp_username = decoded.get('login', '')
+        decoded = response_42.json()
 
-    user_mail = Account.objects.filter(email=tmp_email).first() or ''
-    user_username = Account.objects.filter(username=tmp_username).first() or ''
-    user_obj = None
+        tmp_email = decoded['email']
+        tmp_username = decoded['login']
 
-    if user_mail and user_username:
-        if (user_mail.id == user_username.id and user_username.is_oauth):
-            user_obj = user_mail
+        user_mail = Account.objects.get(email=tmp_email)
+        user_username = Account.objects.get(username=tmp_username)
+        user_obj = None #TODO essential ?
+
+        if user_mail and user_username:
+            if (user_mail.id == user_username.id and user_username.is_oauth):
+                user_obj = user_mail
+            else:
+                return (Response({'error':'Please use the login form.'}, status=403))
+        elif user_mail or user_username:
+            return (Response({'error':'Please use the login form.'}, status=403))
         else:
-            return (Response('Please use the login form.', status=403))
-    elif user_mail or user_username:
-        return (Response('Please use the login form.', status=403))
-    else:
-        user_obj = Account(email=tmp_email,
-                    username=tmp_username,
-                    first_name=decoded['first_name'],
-                    last_name=decoded['last_name'],
-                    avatar=decoded['image']['versions']['medium'],
-                    is_oauth=True,
-                    )
+            user_obj = Account(email=tmp_email,
+                        username=tmp_username,
+                        first_name=decoded['first_name'],
+                        last_name=decoded['last_name'],
+                        avatar=decoded['image']['versions']['medium'],
+                        is_oauth=True,
+                        )
         user_obj.save()
 
-    refresh_token = RefreshToken.for_user(user_obj)
-    access_token = AccessToken.for_user(user_obj)
+        refresh_token = RefreshToken.for_user(user_obj)
+        access_token = AccessToken.for_user(user_obj)
 
-    return Response({'Success':True,
-                     'access_token':str(access_token),
-                     'refresh_token':str(refresh_token)})
+        return Response({'Success':True,
+                        'access_token':str(access_token),
+                        'refresh_token':str(refresh_token)}, status=200)
+    
+    except Account.DoesNotExist:
+        return(Response({'error':'Account does not exist'}, status=400))
+
+    except KeyError:
+        return(Response({'error':'code field not found'}, status=400))
+    
+    except requests.exceptions.RequestException:
+        return (Response({'error':'Connection err on 42 api'}, status=400))
+    
+    except ValueError:
+        return (Response({'error':'JSON err on load 42 data'}, status=400))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def VerifyOTP(request):
-    OTP_serial = OTPSerializer(data=request.data)
-    if OTP_serial.is_valid():
-        validated = OTP_serial.validated_data
-        print(f"{validated.get('form_OTP')} -- {request.user.otp_code}")
-        if (validated.get('form_OTP') == request.user.otp_code):
-            request.user.is_otp_verified = True
-            request.user.save()
-            return(Response({'Success':'OTP activated'}, status=200))
-    return(Response({'Success':'False OTP'}, status=400))
-
+    try:
+        OTP_serial = OTPSerializer(data=request.data)
+        if OTP_serial.is_valid():
+            validated = OTP_serial.validated_data
+            print(f"{validated.get('form_OTP')} -- {request.user.otp_code}")
+            if (validated.get('form_OTP') == request.user.otp_code):
+                request.user.is_otp_verified = True
+                request.user.save()
+                return(Response({'Success':'OTP activated'}, status=200))
+        return(Response({'error':'False OTP'}, status=400))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def Activate_DesactivateOTP(request):
-    if  (request.user.is_otp_active and not request.user.is_otp_verified):
-        return(Response('To desactivate 2FA you should verify it first', status=403))
-    request.user.is_otp_active = not request.user.is_otp_active
-    request.user.save()
-    return(Response({'Success':True}, status=200))
-
+    try:
+        if (request.user.is_otp_active and not request.user.is_otp_verified):
+            return(Response('To desactivate 2FA you should verify it first', status=403))
+        request.user.is_otp_active = not request.user.is_otp_active
+        request.user.save()
+        return(Response({'Success':True}, status=200))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsOTP])
@@ -272,14 +298,17 @@ def check_OTP(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def edit(request):
-    edit_user = EditAccountSerializer(instance=request.user, 
-                                      data=request.data,
-                                      partial=True)
-    if (edit_user.is_valid()):
-        edit_user.save()
-        return Response(edit_user.data)
-    return (Response(edit_user.errors))
-
+    try:
+        edit_user = EditAccountSerializer(instance=request.user, 
+                                        data=request.data,
+                                        partial=True)
+        if (edit_user.is_valid()):
+            edit_user.save()
+            return Response(edit_user.data, status=200)
+        return (Response(edit_user.errors, status=400))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -310,10 +339,12 @@ def change_password(request):
         request.user.set_password(valid['new_password'])
         request.user.save()
         return (Response('Password updated successfully', status=200))
+    
     except KeyError:
         return (Response({'error':'Required fields are missing'}, status=400))
-    except:
-        return (Response({'error':'Error setting new password'}, status=400))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
     
 """
     overriding the dispatch method to redirect 
@@ -321,79 +352,92 @@ def change_password(request):
 """
 
 def is_blocked(request, friend):
-    fr_blk_obj, created = BlackList.objects.get_or_create(user=friend)
-    my_blk_obj, created = BlackList.objects.get_or_create(user=request.user)
-    if (request.user in fr_blk_obj.blocked.all()):
-        return True
-    return (friend in my_blk_obj.blocked.all())
+    try:
+        fr_blk_obj, created = BlackList.objects.get_or_create(user=friend)
+        my_blk_obj, created = BlackList.objects.get_or_create(user=request.user)
+        if (request.user in fr_blk_obj.blocked.all()):
+            return True
+        return (friend in my_blk_obj.blocked.all())
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
+
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def view_profile(request, id):
     try:
         user = Account.objects.get(id=id)
-    except :
-        return(Response("Account not found."))
     
-    context = {}
-    context['username'] = user.username
-    context['avatar'] = user.avatar
-    context['email'] = user.email
-    context['first_name'] = user.first_name
+        context = {}
+        context['username'] = user.username
+        context['avatar'] = user.avatar
+        context['email'] = user.email
+        context['first_name'] = user.first_name
 
-    friend_list, created = FriendList.objects.get_or_create(user=user)
+        friend_list, created = FriendList.objects.get_or_create(user=user)
 
-    context['friends'] = friend_list.friends.all()
+        context['friends'] = friend_list.friends.all()
 
-    is_self = False
-    friendship = 0
+        is_self = False
+        friendship = 0
 
-    if (request.user.is_authenticated and request.user == user):
-        is_self = True
-        friend_req = FriendRequest.objects.filter(receiver=user, is_active=True)
-        context['friend_req'] = friend_req
-    elif is_blocked(request, user):
-        friendship = -1
-    else :
-        try :
-            friend_list.friends.get(id=request.user.id)
-            friendship = 1 #you're friends
-        except:
-            if (get_friend_request_or_false(sender=request.user, receiver=user)):
-                friendship = 2
-                #you sent a request, we're waiting him to accept or dny, and you can cancel
-            elif (get_friend_request_or_false(sender=user, receiver=request.user)):
-                friendship = 3
-                #he sent a request, you can accept or decline
-                context['friend_req_id'] = get_friend_request_or_false(user, request.user).id
+        if (request.user.is_authenticated and request.user == user):
+            is_self = True
+            friend_req = FriendRequest.objects.filter(receiver=user, is_active=True)
+            context['friend_req'] = friend_req
+        elif is_blocked(request, user):
+            friendship = -1
+        else :
+            try :
+                friend_list.friends.get(id=request.user.id)
+                friendship = 1 #you're friends
+            except:
+                if (get_friend_request_or_false(sender=request.user, receiver=user)):
+                    friendship = 2
+                    #you sent a request, we're waiting him to accept or dny, and you can cancel
+                elif (get_friend_request_or_false(sender=user, receiver=request.user)):
+                    friendship = 3
+                    #he sent a request, you can accept or decline
+                    context['friend_req_id'] = get_friend_request_or_false(user, request.user).id
 
-    context['is_self'] = is_self
-    context['friendship'] = friendship
-    serializer = ViewProfileSerializer(context)
-    return (Response(serializer.data))
+        context['is_self'] = is_self
+        context['friendship'] = friendship
+        serializer = ViewProfileSerializer(context)
+        return (Response(serializer.data))
+    
+    except Account.DoesNotExist:
+        return(Response({'error':'Account not found.'}, status=400))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
+
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def me(request):
     try:
         user = Account.objects.get(id=request.user.id)
-    except :
-        return(Response("Account not found."))
     
-    context = {}
-    context['username'] = user.username
-    context['avatar'] = user.avatar
-    context['email'] = user.email
-    context['first_name'] = user.first_name
-    friend_list, created = FriendList.objects.get_or_create(user=user)
-    context['friends'] = friend_list.friends.all()
-    context['friend_req'] = FriendRequest.objects.filter(receiver=user,
-                                                         is_active=True)
-    context['is_self'] = True
-    context['friendship'] = 0
-    serializer = ViewProfileSerializer(context)
-    return (Response(serializer.data))
-
+        context = {}
+        context['username'] = user.username
+        context['avatar'] = user.avatar
+        context['email'] = user.email
+        context['first_name'] = user.first_name
+        friend_list, created = FriendList.objects.get_or_create(user=user)
+        context['friends'] = friend_list.friends.all()
+        context['friend_req'] = FriendRequest.objects.filter(receiver=user,
+                                                            is_active=True)
+        context['is_self'] = True
+        context['friendship'] = 0
+        serializer = ViewProfileSerializer(context)
+        return (Response(serializer.data, status=200))
+    
+    except Account.DoesNotExist:
+        return(Response({'error':'Account not found.'}, status=400))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 #FRIENDS SYSTEM
 def get_friend_request_or_false(sender, receiver):
@@ -401,16 +445,20 @@ def get_friend_request_or_false(sender, receiver):
         return (FriendRequest.objects.get(sender=sender, receiver=receiver, is_active=True))
     except FriendRequest.DoesNotExist:
         return False
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_all_friends(request):
-    # try:
-    friend_list = FriendList.objects.filter(user=request.user)
-    serializer = FriendsListSerializer(friend_list, many=True)
-    return (Response(serializer.data))
-    # except FriendList.DoesNotExist:
-    #     return (Response('You have no Friends'))
+    try:
+        friend_list = FriendList.objects.filter(user=request.user)
+        serializer = FriendsListSerializer(friend_list, many=True)
+        return (Response(serializer.data))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
+    
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -419,8 +467,8 @@ def list_all_req_sent(request):
         friend_request = FriendRequest.objects.filter(sender=request.user, is_active=True)
         serializer = FriendsReqReceivedSerializer(friend_request, many=True)
         return (Response(serializer.data))
-    except:
-        return (Response('You got no friend requests'))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -429,8 +477,8 @@ def list_all_req_received(request):
         friend_request = FriendRequest.objects.filter(receiver=request.user, is_active=True)
         serializer = FriendsReqReceivedSerializer(friend_request, many=True)
         return (Response(serializer.data))
-    except:
-        return (Response('You did not sent any friend request'))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 
 @api_view(['POST'])
@@ -439,7 +487,7 @@ def send_friend_req(request):
     try:
         friend_id = int(request.POST.get("friend_id"))
         if (friend_id == request.user.id):
-            return (Response("You can not send a friend request to yourself", status=400))
+            return (Response({"error":"You can not send a friend request to yourself"}, status=400))
 
         friend = Account.objects.get(id=friend_id)
 
@@ -447,41 +495,43 @@ def send_friend_req(request):
         if (request.user in  blk_obj.blocked.all()):
             return (Response({'error':f'You can not send a friend req, cause you are blocked by {friend.username}'}, status=400))
 
-        try:
-            friend_req = FriendRequest.objects.get(sender=request.user,
-                                            receiver=friend,
-                                            is_active=True)
-            return (Response("The Friend request already sent", status=200))
-        except FriendRequest.DoesNotExist:
-            friend_req = FriendRequest(sender=request.user, receiver=friend)
-            friend_req.save()
+        friend_req = FriendRequest.objects.get(sender=request.user,
+                                        receiver=friend,
+                                        is_active=True)
+        return (Response("The Friend request already sent", status=200))
+    
+    except FriendRequest.DoesNotExist:
+        friend_req = FriendRequest(sender=request.user, receiver=friend)
+        friend_req.save()
 
-            notif_type = 3
-            msg = f"{request.user.username} requests a friendship"
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"room_{friend_id}",
-                {
-                    "type": "user.status",
-                    "username": request.user.username,
-                    "id": request.user.id,
-                    "notif_type": notif_type,
-                    "msg": msg,
-                    "timestamp": str(datetime.now()).split('.')[0],
-                })
-            Notification.objects.create(sender=request.user,
-                            receiver=friend,
-                            notif_type=notif_type,
-                            msg=msg)
+        notif_type = 3
+        msg = f"{request.user.username} requests a friendship"
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"room_{friend_id}",
+            {
+                "type": "user.status",
+                "username": request.user.username,
+                "id": request.user.id,
+                "notif_type": notif_type,
+                "msg": msg,
+                "timestamp": str(datetime.now()).split('.')[0],
+            })
+        Notification.objects.create(sender=request.user,
+                        receiver=friend,
+                        notif_type=notif_type,
+                        msg=msg)
 
-            return (Response('The friend request sent successfully', status=200))
-        except Exception as e:
-            return (Response('Failed to send the friend request', status=400))
-        
+        return (Response('The friend request sent successfully', status=200))
+    
     except (Account.DoesNotExist, BlackList.DoesNotExist):
         return (Response("The friend_id does not belong to any user", status=400))
-    except:
-        return (Response("Cannot find friend_id", status=400))
+    
+    except (KeyError, TypeError):
+        return(Response({'error':'friend_id field is required'}, status=400))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 
 @api_view(['POST'])
@@ -545,7 +595,7 @@ def accept_friend(request):
     try:
         friend_id = int(request.POST.get("accept_friend_id"))
         if (friend_id == request.user.id):
-            return (Response('You can not accept your self as a friend'))
+            return (Response({'error':'You can not accept your self as a friend'}, status=400))
 
         friend = Account.objects.get(id=int(friend_id))
         blk_obj, created = BlackList.objects.get_or_create(user=friend)##TODO is it needed?
