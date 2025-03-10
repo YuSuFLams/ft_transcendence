@@ -19,7 +19,7 @@ urlpatterns = [
     path('cancel_my_req/', views.cancel_my_req, name='cancel_my_req'),
     path('decline_friend_req/', views.decline_friend_req, name='decline_friend_req'),
     
-    # ###BLACK LIST
+    # ###BLOCK SYS
     path('block_user/', views.block_user, name='block_user'),
     path('unblock_user/', views.unblock_user, name='unblock_user'),
     path('list_blocked_users/', views.list_blocked_users, name='list_blocked_users'),
@@ -41,8 +41,6 @@ urlpatterns = [
     path('reset_mail_success/', views.reset_mail_success, name='reset_mail_success'),
 
     # path('logout/', views.logout, name='logout'),
-    # path('reset_password/', views.send_reset_mail, name='send_reset_mail'),
-    # path('reset_password_success/<uid>/', views.send_reset_mail_success, name='send_reset_mail_success'),
 
     # ####Oauth2
     path('google/', views.lgn, name='lgn'),

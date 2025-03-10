@@ -4,6 +4,7 @@ from users.models import Account, FriendList, Notification, BlackList
 from datetime import datetime
 import json
 
+#TODO search abt wss
 
 class NotifConsumer(AsyncWebsocketConsumer):
     # def __init__(self, *args, **kwargs):
@@ -57,7 +58,7 @@ class NotifConsumer(AsyncWebsocketConsumer):
         try:
             return Account.objects.get(id=id)
         except:
-            print("user does not exist")
+            print('[WS] get_user_by_id() returned None')
             return None
 
     async def connect(self):
@@ -78,8 +79,9 @@ class NotifConsumer(AsyncWebsocketConsumer):
 
 
     async def notify_friend(self, friend, notif_type, msg=''):
-        if not (await self.is_blocked(friend)):
-            print('allowed')
+        if (friend == self.scope['user']):
+            print('[WS] you can not notify yourself')
+        elif not (await self.is_blocked(friend)):
             await self.channel_layer.group_send(f"room_{friend.id}",
                 {
                     "type": "user.status",
@@ -91,7 +93,7 @@ class NotifConsumer(AsyncWebsocketConsumer):
                 })
             await self.update_notif_on_db(friend, notif_type, msg=msg)
         else:
-            print('blocked')
+            print('[WS] blocked')
 
 
     async def notify_all_friends(self, notif_type, msg=''):
@@ -113,14 +115,15 @@ class NotifConsumer(AsyncWebsocketConsumer):
         try:
             json_data = json.loads(text_data)
             msg = json_data.get('message')
+            friend_id = json_data.get('id')
         except:
-            print('invalid JSON data')
+            print('[WS] invalid JSON data')
             return
         
-        friend_id = int(self.scope['url_route']['kwargs']['id'])
         friend_obj = await self.get_user_by_id(friend_id)
-        await self.notify_friend(friend_obj, 2, msg=msg)
-    
+        if friend_obj:
+            await self.notify_friend(friend_obj, 2, msg=msg)
+
     async def chat_msg(self, event):
         await self.send(text_data=json.dumps({
             'notif_type': event['notif_type'],

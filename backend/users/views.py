@@ -449,7 +449,7 @@ def send_friend_req(request):
             friend_req = FriendRequest.objects.get(sender=request.user,
                                             receiver=friend,
                                             is_active=True)
-            return (Response("The Friend request already sent", status=400))
+            return (Response("The Friend request already sent", status=200))
         except FriendRequest.DoesNotExist:
             friend_req = FriendRequest(sender=request.user, receiver=friend)
             friend_req.save()
@@ -489,48 +489,53 @@ def unfriend_friend(request):
     try:
         friend_id = int(request.POST.get("unfriend_id"))
         if (friend_id == request.user.id):
-            return (Response('You can not unfriend yourself'))
-        try:
-            friend = Account.objects.get(id=friend_id)
-            friend_list = FriendList.objects.get(user=request.user)
-            friend_list.unfriend(fake_friend=friend)
-            return(Response('You unfriended successfully'))
-        except:
-            return(Response('Failed to unfriend'))
-    except:
-        return(Response('There is no unfriend_id', status=400))
+            return (Response({'error':'You can not unfriend yourself'}, status=400))
+
+        friend = Account.objects.get(id=friend_id)
+        if not (request.user.friends.filter(user=friend).exists()):
+            return(Response({'error':f'{friend.username} is already not your friend'}, status=400))
+        friend_list = FriendList.objects.get(user=request.user)
+        friend_list.unfriend(fake_friend=friend)
+        return(Response(f'You unfriended {friend.username} successfully', status=200))
+
+    except (KeyError, TypeError):
+        return(Response({'error':'unfriend_id field is required'}, status=400))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def cancel_my_req(request):
     try:
         cancel_req_id = int(request.POST.get("cancel_req_id"))
-        try:
-            friend = Account.objects.get(id=cancel_req_id)
-            friend_list = FriendRequest.objects.get(sender=request.user, receiver=friend, is_active=True)
-            friend_list.cancel()
-            return(Response('You cancelled the request successfully'))
-        except:
-            return(Response('Failed to Cancel your request'))
-    except:
-        return(Response('Cannot find cancel_req_id', status=400))
+
+        friend = Account.objects.get(id=cancel_req_id)
+        friend_list = FriendRequest.objects.get(sender=request.user, receiver=friend, is_active=True)
+        friend_list.cancel()
+        return(Response('You cancelled the request successfully', status=200))
+
+    except (KeyError, TypeError):
+        return(Response({'error':'cancel_req_id field is required'}, status=400))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def decline_friend_req(request):
     try:
         decline_friend_req = int(request.POST.get("decline_friend_req"))
-        try:
-            friend = Account.objects.get(id=decline_friend_req)
-            friend_list = FriendRequest.objects.get(sender=friend,
-                                                    receiver=request.user,
-                                                    is_active=True)
-            friend_list.decline()
-            return(Response('You cancelled the request successfully'))
-        except:
-            return(Response('Failed to Cancel your request'))
-    except:
-        return(Response('Cannot find decline_friend_req', status=400))
+
+        friend = Account.objects.get(id=decline_friend_req)
+        friend_list = FriendRequest.objects.get(sender=friend,
+                                                receiver=request.user,
+                                                is_active=True)
+        friend_list.decline()
+        return(Response('You cancelled the request successfully'))
+
+    except (KeyError, TypeError):
+        return(Response({'error':'decline_friend_req field is required'}, status=400))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 
 @api_view(['POST'])
@@ -540,53 +545,54 @@ def accept_friend(request):
         friend_id = int(request.POST.get("accept_friend_id"))
         if (friend_id == request.user.id):
             return (Response('You can not accept your self as a friend'))
-        try:
-            friend = Account.objects.get(id=int(friend_id))
-            try:
-                blk_obj, created = BlackList.objects.get_or_create(user=friend)
-                if (is_blocked(request, friend)):
-                    return (Response({'error':f'You can not send a friend req, cause you are blocked by {friend.username}'}, status=400))
 
-                friend_req_list = FriendRequest.objects.get(sender=friend, receiver=request.user, is_active=True)
-                friend_req_list.accept()
+        friend = Account.objects.get(id=int(friend_id))
+        blk_obj, created = BlackList.objects.get_or_create(user=friend)##TODO is it needed?
+        if (is_blocked(request, friend)):
+            return (Response({'error':f'You can not send a friend req, cause you are blocked by {friend.username}'}, status=400))
 
-                notif_type = 4
-                msg = f"{request.user.username} accepted your friendship"
-                channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.group_send)(
-                    f"room_{friend_id}",
-                    {
-                        "type": "user.status",
-                        "username": request.user.username,
-                        "id": request.user.id,
-                        "notif_type": notif_type,
-                        "msg": msg,
-                        "timestamp": str(datetime.now()).split('.')[0],
-                    })
-                Notification.objects.create(sender=request.user,
-                                receiver=friend,
-                                notif_type=notif_type,
-                                msg=msg)
+        friend_req_list = FriendRequest.objects.get(sender=friend, receiver=request.user, is_active=True)
+        friend_req_list.accept()
 
-                return(Response({'Friendship_accepted':True}))
-            except:
-                return(Response('failed to accept the friendship'))
-        except:
-            return(Response('accept_friend_id not found', status=400))
-    except:
-        return(Response({'Friendship_accepted':False}))
+        notif_type = 4
+        msg = f"{request.user.username} accepted your friendship"
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"room_{friend_id}",
+            {
+                "type": "user.status",
+                "username": request.user.username,
+                "id": request.user.id,
+                "notif_type": notif_type,
+                "msg": msg,
+                "timestamp": str(datetime.now()).split('.')[0],
+            })
+        Notification.objects.create(sender=request.user,
+                        receiver=friend,
+                        notif_type=notif_type,
+                        msg=msg)
+
+        return(Response({'Friendship_accepted':True}, status=200))
+    except (KeyError, TypeError):
+        return(Response({'error':'accept_friend_id field is required'}, status=400))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
     
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def search_account(request):
-    accounts = None #you can remove this
-    searilized = None #an dthis
-    query_search = request.GET.get('q')
-    if (query_search):
-        accounts = Account.objects.filter(username__contains=query_search)
-        searilized = AccountSerializer(accounts, many=True)
-    return(Response(searilized.data))
+    try:
+        query_search = request.GET.get('q')
+        if (query_search):
+            accounts = Account.objects.filter(username__contains=query_search)
+            searilized = AccountSerializer(accounts, many=True)
+        return(Response(searilized.data))
+    
+    except (KeyError, TypeError):
+        return(Response({'error':'q field is required'}, status=400))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 
 @api_view(['POST'])
@@ -595,20 +601,21 @@ def block_user(request):
     try:
         blocked_id = int(request.POST.get("blocked_id"))
         if (blocked_id == request.user.id):
-            return (Response('You can not block yourself'))
+            return (Response({'error':'You can not block yourself'}, status=400))
         blocked_user = Account.objects.get(id=blocked_id)
         blacklist_obj, created = BlackList.objects.get_or_create(user=request.user)
         if blocked_user in blacklist_obj.blocked.all():
-            return (Response(f'{blocked_user.username} is already blocked', 200))
+            return (Response(f'{blocked_user.username} is already blocked', status=200))
 
         blacklist_obj._add(blocked_user)
         return (Response(f'You blocked {blocked_user.username}', status=200))
-    except BlackList.DoesNotExist:
-        return (Response({'error':'BlackList obj does not exist'}, 400))
-    except Account.DoesNotExist:
-        return (Response({'error':'Account obj does not exist'}, 400))
+    
+    except (BlackList.DoesNotExist, Account.DoesNotExist):
+        return (Response({'error':'BlackList obj/Account does not exist'}, 400))
+    except (KeyError, TypeError):
+        return(Response({'error':'blocked_id field is required'}, status=400))
     except Exception as e:
-        return (Response({'error':f'{e}'}, 400))
+        return(Response({'error':f'{e}'}, status=400))
 
 
 @api_view(['POST'])
@@ -626,12 +633,13 @@ def unblock_user(request):
 
         blacklist_obj.unblock(blocked_user)
         return (Response(f'You unblocked {blocked_user.username}', status=200))
-    except BlackList.DoesNotExist:
-        return (Response({'error':'BlackList obj does not exist'}, status=400))
-    except Account.DoesNotExist:
-        return (Response({'error':'Account obj does not exist'}, status=400))
+    
+    except (BlackList.DoesNotExist, Account.DoesNotExist):
+        return (Response({'error':'BlackList/Account obj does not exist'}, status=400))
+    except (KeyError, TypeError):
+        return(Response({'error':'unblocked_id field is required'}, status=400))
     except Exception as e:
-        return (Response({'error':f'{e}'}, 400))
+        return(Response({'error':f'{e}'}, status=400))
     
 
 @api_view(['POST', 'GET'])
@@ -658,10 +666,16 @@ def is_authenticated(request):
 def get_pub_data(request): #TODO maybe like /me
     try:
         user = Account.objects.get(email=request.data.get('email'))
+        return Response({'username':user.username,
+                         'first_name':user.first_name,
+                         'last_name':user.last_name},
+                         status=200)
     except Account.DoesNotExist:
         return (Response({'error':'The email is incorrect'}, status=400))
-    return Response({'username':user.username, 'first_name':user.first_name, 'last_name':user.last_name}, status=200)
-
+    except Exception as e:
+        return (Response({'error':f'{e}'}, status=400))
+    
+    
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def send_reset_mail(request):
@@ -710,6 +724,7 @@ def reset_mail_check(request):
 @permission_classes([AllowAny])
 def reset_mail_success(request):
     user_mail = request.data.get('email')
+    #FIXME who changed error -> something went wrong
     if not user_mail:
         return (Response({'error':'Something went wrong'}, status=400))
     

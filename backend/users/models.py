@@ -154,7 +154,7 @@ class FriendRequest(models.Model):
 ####### RESET_PASS
 class ResetPassword(models.Model):
     email = models.EmailField()
-    code = models.CharField(max_length=6)
+    code = models.CharField(max_length=6, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     def is_valid(self):
         return (timezone.now() - self.created_at).total_seconds() < 600
@@ -169,6 +169,7 @@ def pre_del_account(sender, instance, **kwargs):
     try:
         friend_list = instance.friend_list
         friend_list.friends.clear() #remove all the friend relationship before removing the user
+        #TODO in this case the users will s
         friend_list.delete()
     except FriendList.DoesNotExist:
         pass
