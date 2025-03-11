@@ -34,28 +34,27 @@ from django.core.mail import send_mail
 import pyotp
 from smtplib import SMTPException
 
-
 #TODO blacklist the old access
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
-    user_form = RegisterSerializer(data=request.data)
-    if (user_form.is_valid()):
-        valid = user_form.validated_data
-        if (valid['password'] != valid['repassword']):
-            return (Response('Passwords does not match.', status=400))     
+    try:
+        user_form = RegisterSerializer(data=request.data)
+        #TODO where i validate for uniq
+        if (user_form.is_valid()):
+            valid = user_form.validated_data
+            if (valid['password'] != valid['repassword']):
+                return (Response({'error':'Passwords does not match.'}, status=400))     
 
-        try:
             validate_password(valid['password'])
-        except:
-            return (Response('The password does not comply with the requirements.', status=400))
 
-        user_form.save()
-        new_user = Account.objects.get(username=request.data.get('username'))
-        # friend_list, created = FriendList.objects.get_or_create(user=new_user)
+            user_form.save()
 
-        return Response(user_form.data, status=200)
-    return (Response(user_form.errors.values(), status=400))
+            return Response(user_form.data, status=200)
+        return (Response(user_form.errors, status=400))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -67,11 +66,11 @@ class MyTokenObtainPairView(TokenObtainPairView):
                              'access':access_token,
                              'refresh':refresh_token},
                              status=200)
-        except:
-            return(Response({'success':False}, status=401))
+        except Exception as e:
+            return(Response({'error':f'{e}'}, status=401))
 
 
-class MyTokenRefreshView(TokenRefreshView):
+class MyTokenRefreshView(TokenRefreshView): #NOT CLEAN
     def post(self, request, *args, **kwargs):
         try:
             refresh_token = request.COOKIES.get('refresh_token')
@@ -166,9 +165,6 @@ def google_oauth2_callback(request):
                         'access_token':str(access_token),
                         'refresh_token':str(refresh_token)}, status=200)
 
-    except jwt.exceptions: 
-        return (Response({'error':'pyJWT Failed to decode google response'}, status=400))
-    
     except Account.DoesNotExist:
         return(Response({'error':'Account does not exist'}, status=400))
 
@@ -317,7 +313,7 @@ def change_password(request):
         new_instance = ChangePassSerializer(instance=request.user,
                                             data=request.data)
         
-        if (not new_instance.is_valid()):
+        if (not new_instance.is_valid()): #TODO user.form_errors check on register
             return (Response({'error':'Error the data is not valid'}, status=400))
         
         valid = new_instance.validated_data
@@ -331,10 +327,7 @@ def change_password(request):
         if (valid['new_password'] != valid['new_password2']):
             return (Response({'error':'Passwords does not match.'}, status=400))
         
-        try:
-            validate_password(password=valid['new_password'])
-        except:
-            return (Response({'error':'New password does not comply with the requirements.'}, status=400))
+        validate_password(password=valid['new_password'])
 
         request.user.set_password(valid['new_password'])
         request.user.save()
@@ -346,10 +339,7 @@ def change_password(request):
     except Exception as e:
         return(Response({'error':f'{e}'}, status=400))
     
-"""
-    overriding the dispatch method to redirect 
-    the logged user from login -> dashboard
-"""
+
 
 def is_blocked(request, friend):
     try:
