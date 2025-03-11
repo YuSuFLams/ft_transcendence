@@ -62,8 +62,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
             response = super().post(request, *args, **kwargs)
             access_token = response.data['access']
             refresh_token = response.data['refresh']
-            return Response({'Success':True,
-                             'access':access_token,
+            return Response({'access':access_token,
                              'refresh':refresh_token},
                              status=200)
         except Exception as e:
@@ -78,8 +77,7 @@ class MyTokenRefreshView(TokenRefreshView): #NOT CLEAN
             req = super().post(request, *args, **kwargs)
             access_token = req.data['access']
 
-            return Response({'Refreshed':True,
-                             'access':access_token},
+            return Response({'access':access_token},
                              status=200)
         except:
             return (Response({'Refreshed':False}, status=401))
@@ -133,13 +131,11 @@ def google_oauth2_callback(request):
                             options={'verify_exp':False},
                             audience=settings.CLIENT_ID_GOOGLE)
 
-
         tmp_email = decoded['email']
         tmp_username = decoded['name']
 
-        user_mail = Account.objects.get(email=tmp_email)
-        user_username = Account.objects.get(username=tmp_username)
-        user_obj = None #TODO needed ?
+        user_mail = Account.objects.filter(email=tmp_email)
+        user_username = Account.objects.filter(username=tmp_username)
 
         if user_mail and user_username:
             if (user_mail.id == user_username.id and user_username.is_oauth):
@@ -161,12 +157,8 @@ def google_oauth2_callback(request):
         refresh_token = RefreshToken.for_user(user_obj)
         access_token = AccessToken.for_user(user_obj)
 
-        return Response({'Success':True,
-                        'access_token':str(access_token),
-                        'refresh_token':str(refresh_token)}, status=200)
-
-    except Account.DoesNotExist:
-        return(Response({'error':'Account does not exist'}, status=400))
+        return Response({'access_token':str(access_token),
+                         'refresh_token':str(refresh_token)}, status=200)
 
     except KeyError:
         return(Response({'error':'code field not found'}, status=400))
@@ -212,9 +204,8 @@ def oauth2_42_callback(request):
         tmp_email = decoded['email']
         tmp_username = decoded['login']
 
-        user_mail = Account.objects.get(email=tmp_email)
-        user_username = Account.objects.get(username=tmp_username)
-        user_obj = None #TODO essential ?
+        user_mail = Account.objects.filter(email=tmp_email) 
+        user_username = Account.objects.filter(username=tmp_username)
 
         if user_mail and user_username:
             if (user_mail.id == user_username.id and user_username.is_oauth):
@@ -231,17 +222,13 @@ def oauth2_42_callback(request):
                         avatar=decoded['image']['versions']['medium'],
                         is_oauth=True,
                         )
-        user_obj.save()
+            user_obj.save()
 
         refresh_token = RefreshToken.for_user(user_obj)
         access_token = AccessToken.for_user(user_obj)
 
-        return Response({'Success':True,
-                        'access_token':str(access_token),
-                        'refresh_token':str(refresh_token)}, status=200)
-    
-    except Account.DoesNotExist:
-        return(Response({'error':'Account does not exist'}, status=400))
+        return Response({'access_token':str(access_token),
+                         'refresh_token':str(refresh_token)}, status=200)
 
     except KeyError:
         return(Response({'error':'code field not found'}, status=400))
@@ -455,7 +442,7 @@ def list_all_friends(request):
 def list_all_req_sent(request):
     try:
         friend_request = FriendRequest.objects.filter(sender=request.user, is_active=True)
-        serializer = FriendsReqReceivedSerializer(friend_request, many=True)
+        serializer = FriendsReqSentSerializer(friend_request, many=True)
         return (Response(serializer.data))
     except Exception as e:
         return(Response({'error':f'{e}'}, status=400))
@@ -704,7 +691,7 @@ def is_authenticated(request):
 ###RESET PASS
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def get_pub_data(request): #TODO maybe like /me
+def get_pub_data(request):
     try:
         user = Account.objects.get(email=request.data.get('email'))
         return Response({'username':user.username,
@@ -802,3 +789,20 @@ def reset_mail_success(request):
         return(Response({'error':'email/code fields are required'}, status=400))
     except Exception as e:
         return(Response({'error':f'{e}'}, status=400))
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def readen_notif(request):
+    try:
+        unreaden_notifs = Notification.objects.filter(receiver=request.user)
+        if unreaden_notifs:
+            unreaden_notifs.update(is_readen=True)
+            return (Response('All notifs are readen', status=200))
+        return (Response('already all notifs are readen', status=200))
+        
+    except Notification.DoesNotExist:
+        return(Response({'error':'Notification obj does not exist'}, status=400))
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
+    

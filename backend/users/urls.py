@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [    
-    # ####Profile
+    # ####PROFILE
     path('<int:id>/', views.view_profile, name='view_profile'),
     path('me/friends/', views.list_all_friends, name='list_all_friends'),
     path('me/edit/', views.edit, name='edit'),
@@ -42,13 +42,16 @@ urlpatterns = [
 
     # path('logout/', views.logout, name='logout'),
 
-    # ####Oauth2
+    # ####OAUTH2
     path('google/', views.lgn, name='lgn'),
     path('42/', views.lgn_42, name='lgn_42'),
     path('google/callback/', views.google_oauth2_callback, name='oauth2_google_callback'),
     path('42/callback/', views.oauth2_42_callback, name='oauth2_42_callback'),
 
-    # ####Helpers
+    # ####NOTIF
+    path('readen_notif/', views.readen_notif, name='readen_notif'),
+
+    # ####HELPERS
     path('is_authenticated/', views.is_authenticated, name='is_authenticated'),
     path('search/', views.search_account, name='search'),
 ]
