@@ -24,7 +24,7 @@ const PageTournamentLocal = () => {
 
     useEffect(() => {
         const id = Cookie.get("idTournament");
-        if (id) router.push(`/game/tournament-local/${id}`);
+        if (id) router.push(`/game/tournament/competition`);
     }, [router]);
 
     const handlePlayerChange = (key: string, value: string) => { setPlayers((prev) => ({ ...prev, [key]: value }));};

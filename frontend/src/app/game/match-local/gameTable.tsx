@@ -163,8 +163,8 @@ const TableLocal: React.FC<TableLocalProps> = ({
         <div className="flex justify-around font-[ssb] items-center space-x-8">
           {/* Player Left */}
           <div className="flex flex-col items-center space-y-2">
-            <span className="text-6xl font-[Font8] font-extrabold text-white drop-shadow-xl">{playerLeft}</span>
-            <span className="text-6xl font-[Font7] font-extrabold text-white drop-shadow-xl">{scorePlayerLeft}</span>
+            <span className="text-5xl text-blue-800 font-[Font8] font-extrabold text-white drop-shadow-xl">{playerLeft}</span>
+            <span className="text-5xl text-blue-800 font-[Font7] font-extrabold text-white drop-shadow-xl">{scorePlayerLeft}</span>
           </div>
 
           {/* Divider */}
@@ -174,8 +174,8 @@ const TableLocal: React.FC<TableLocalProps> = ({
 
           {/* Player Right */}
           <div className="flex flex-col items-center space-y-2">
-            <span className="text-6xl font-[Font8] font-extrabold text-white drop-shadow-xl">{playerRight}</span>
-            <span className="text-6xl font-[Font7] font-extrabold text-white drop-shadow-xl">{scorePlayerRight}</span>
+            <span className="text-5xl text-blue-800 font-[Font8] font-extrabold text-white drop-shadow-xl">{playerRight}</span>
+            <span className="text-5xl text-blue-800 font-[Font7] font-extrabold text-white drop-shadow-xl">{scorePlayerRight}</span>
           </div>
         </div>
       </div>

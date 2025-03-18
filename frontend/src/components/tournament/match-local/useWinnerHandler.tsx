@@ -9,7 +9,7 @@ export const useWinnerHandler = (winner: string | null, idTournament: number | n
         if (winner) {
             const timeout = setTimeout(() => {
                 removeData();
-                router.push(`/game/tournament-local/${idTournament}`);
+                router.push(`/game/tournament/competition`);
                 console.log("Winner detected, redirecting...");
                 setWinner(null);
             }, 1000);

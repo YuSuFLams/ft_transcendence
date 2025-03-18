@@ -51,12 +51,7 @@ body {
   font-weight: normal;
   font-style: normal;
 }
-@font-face {
-  font-family: 'Font1';
-  src: url('assets/fonts/Font1.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
+
 @font-face {
   font-family: 'Font4';
   src: url('assets/fonts/Font4.ttf') format('truetype');
@@ -64,8 +59,14 @@ body {
   font-style: normal;
 }
 @font-face {
-  font-family: 'Font3';
-  src: url('assets/fonts/Font3.ttf') format('truetype');
+  font-family: 'Font7';
+  src: url('assets/fonts/Font7.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Font8';
+  src: url('assets/fonts/Font8.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }

@@ -23,7 +23,7 @@ const handleCreateTournament = async (
 
             if (response.data) {
                 Cookie.set("idTournament", response.data.tournament_id);
-                router.push(`/game/tournament-local/${response.data.tournament_id}`);
+                router.push(`/game/tournament/competition`);
             }
         } catch (error) {
             console.error("Error creating the tournament:", error);

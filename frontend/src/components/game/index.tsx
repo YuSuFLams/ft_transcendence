@@ -22,7 +22,7 @@ const PageGame = () => {
 
         {title: "Online Match", icon: <TbWorld />, path: "/game-online", description: "Global real-time battles", neon: "neon-blue-light", color: "blue-500",},
 
-        {title: "Tournament", icon: <GiLaurelsTrophy />, path: "/game/tournament-local", description: "Local competitive play", neon: "neon-blue-dark", color: "blue-600",},
+        {title: "Tournament", icon: <GiLaurelsTrophy />, path: "/game/tournament", description: "Local competitive play", neon: "neon-blue-dark", color: "blue-600",},
     ];
 
     const glowVariants = {hidden: { opacity: 0, scale: 1 }, visible: { opacity: 1, scale: 1, transition: { type: "spring", bounce: 0.4, duration: 0.8 }}};

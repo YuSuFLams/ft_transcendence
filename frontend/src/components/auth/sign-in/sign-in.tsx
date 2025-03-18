@@ -27,14 +27,14 @@ const SignIn: React.FC<SignInProps> = ({ toggleView, setIsLogin }) => {
 
     return (
         <div className="flex items-center justify-center max-w-7xl w-full min-h-screen">
-            <div className="flex flex-col sm:flex-row w-full max-w-7xl bg-[#1a1a2e] rounded-xl shadow-2xl shadow-[#5650f0]/20 overflow-hidden min-h-[80vh] max-h-7xl">
+            <div className="flex sm:flex-row w-full max-w-[100rem] bg-[#1a1a2e] rounded-xl shadow-2xl shadow-[#5650f0]/20 overflow-hidden min-h-[80vh] max-h-7xl">
                 {/* Left Side: Hidden on small screens, visible on lg and above */}
-                <div className="hidden sm:flex w-[60%] items-center justify-center  p-6">
+                <div className="hidden sm:flex w-[60%] items-center justify-center p-6">
                     <Image src={'/tennis-amico.svg'} alt="Sign Up Illustration" width={500} height={500} className="object-contain" priority/>
                 </div>
 
                 {/* Right Side: Form */}
-                <motion.div className="sm:w-1/2 p-6 md:p-8 flex flex-col justify-center space-y-6 bg-[#141424] " initial={{ opacity: 0, x: 50 }}
+                <motion.div className="w-full sm:w-1/2 p-6 md:p-8 flex flex-col justify-center space-y-6 bg-[#141424]" initial={{ opacity: 0, x: 50 }}
 					animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
                 >
                     <h1 className="text-3xl md:text-4xl text-[#5650f0] font-extrabold text-center uppercase tracking-wide">Sign In</h1>

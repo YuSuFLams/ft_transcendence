@@ -22,7 +22,7 @@ const PageTournamentLocalPlayers = () => {
     useWinnerHandler(winnerTournament, isDone, setIsDone);
     useSetPlayersMatch(players8, numberPlayers, numberMatch, tournamentData, setRound);
     const PlayesMatches = () => {
-        router.push("/game/tournament-local/match-local");
+        router.push("/game/tournament/match-local");
         Cookie.set("idMatch", String(numberMatch));
     };
     return (

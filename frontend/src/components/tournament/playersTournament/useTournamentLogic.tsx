@@ -24,7 +24,7 @@ export const useTournamentLogic = () => {
                 getTournamentLocalByID(id).then((data) => {if (data) setTournamentData(data);});
             }
         } else {
-            router.push("/game/tournament-local");
+            router.push("/game/tournament");
         }
     }, []);
 

@@ -30,8 +30,8 @@ const SignUp: React.FC<SignUpProps> = ({ toggleView, setIsCreated }) => {
   const [loading, setLoading] = useState(false);
 
   	return (
-		<div className="flex items-center justify-center max-w-7xl w-full min-h-screen">
-			<div className="flex flex-col sm:flex-row-reverse w-full max-w-7xl bg-[#1a1a2e] rounded-xl shadow-2xl shadow-[#5650f0]/20 overflow-hidden min-h-[80vh] max-h-7xl">
+		<div className="flex items-center justify-center max-w-8xl w-full min-h-screen">
+			<div className="flex sm:flex-row-reverse w-full max-w-[100rem] bg-[#1a1a2e] rounded-xl shadow-2xl shadow-[#5650f0]/20 overflow-hidden min-h-[80vh] max-h-7xl">
 				{/* Left Side: Gaming Illustration */}
 				<div className="hidden sm:flex w-[60%] items-center justify-center  p-6">
 					<Image src="/tennis-rafiki.svg" alt="Sign Up Illustration" width={500} height={500} className="object-contain" priority/>

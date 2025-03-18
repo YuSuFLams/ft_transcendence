@@ -37,7 +37,7 @@ export const useGameLogic = () => {
             const idTournamentFromCookie = Cookie.get("idTournament");
             if (isStarted) setGameStarted(true);
             if (idTournamentFromCookie) setIdTournament(parseInt(idTournamentFromCookie));
-            if (!idTournamentFromCookie) router.push("/game/tournament-local");
+            if (!idTournamentFromCookie) router.push("/game/tournament");
         });
     }, [router]);
 
