@@ -40,10 +40,3 @@ class emailORusername(ModelBackend):
         if user.check_password(password):
             return user
         return None
-
-
-class IsOTP(BasePermission):
-    def has_permission(self, request, view):
-        if not request.user.is_otp_active:
-            return True
-        return request.user.is_otp_verified

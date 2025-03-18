@@ -1,6 +1,6 @@
 "use client";
 
-import PageGame from "../components/game/index-game";
+import PageGame from "@/components/game";
 
 const Page = () => {
 

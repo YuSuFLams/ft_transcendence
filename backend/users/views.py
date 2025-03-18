@@ -1,18 +1,31 @@
-from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from django.contrib.auth.password_validation import validate_password
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import  AllowAny, IsAuthenticated
-from .serializer import (RegisterSerializer, OTPSerializer)
-from rest_framework.response import Response
 from django.shortcuts import  redirect
-from urllib.parse import urlencode
-from django.conf import settings
-from .authentication import IsOTP
-from .models import Account
+from django.contrib.auth.password_validation import validate_password
+from .models import Account, ResetPassword
+from .serializer import (ResetPasswordSerializerSuccess,
+                         RegisterSerializer)
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import  AllowAny
+
+from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
+from rest_framework.response import Response
+
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 import jwt, json, requests
+from django.conf import settings
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.conf import settings
+from urllib.parse import urlencode
+from urllib.parse import unquote
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def is_authenticated(request):
+    return (Response({'Authenticated':True}, status=200))
 
+# Create your views here.
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -20,16 +33,17 @@ def register(request):
     if (user_form.is_valid()):
         valid = user_form.validated_data
         if (valid['password'] != valid['repassword']):
-            return (Response('Passwords does not match.', status=400))     
+            return (Response({'error':'Passwords does not match'}, status=400))     
 
         try:
             validate_password(valid['password'])
         except:
-            return (Response('The password does not comply with the requirements.', status=400))
+            return (Response({'error':'The password does not comply with the requirements'}, status=400))
 
         user_form.save()
         return Response(user_form.data, status=200)
     return (Response(user_form.errors.values(), status=400))
+
 
 class MyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -37,13 +51,9 @@ class MyTokenObtainPairView(TokenObtainPairView):
             response = super().post(request, *args, **kwargs)
             access_token = response.data['access']
             refresh_token = response.data['refresh']
-            return Response({'Success':True,
-                             'access':access_token,
-                             'refresh':refresh_token},
-                             status=200)
+            return Response({'Success':True, 'access':access_token, 'refresh':refresh_token}, status=200)
         except:
             return(Response({'success':False}, status=401))
-
 
 class MyTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
@@ -53,13 +63,22 @@ class MyTokenRefreshView(TokenRefreshView):
             req = super().post(request, *args, **kwargs)
             access_token = req.data['access']
 
-            return Response({'Refreshed':True,
-                             'access':access_token},
-                             status=200)
+            resp = Response()
+            resp.set_cookie(
+                key='access_token',
+                value=access_token,
+                secure=True,
+                httponly=True,
+                samesite='None',
+                path='/'
+            )
+            resp.data = {'Refreshed':True}
+            return resp
         except:
-            return (Response({'Refreshed':False}, status=401))
+            return (Response({'Refreshed':False}))
         
-
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def lgn(request):
     base_url = settings.API_GOOGLE
     params = {
@@ -71,14 +90,16 @@ def lgn(request):
         'prompt' : 'consent'
     }
     google_lgn = f'{base_url}?{urlencode(params)}'
-    return (redirect(google_lgn))
-
+    data = {'authorize_link': google_lgn}
+    return Response(data, status=200)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def lgn_42(request):
-    return Response({'authorize_link': settings.API_42}, status=200)
-
+    data = {
+        'authorize_link': settings.API_42  # Corrected typo in 'authorize_link'
+    }
+    return Response(data, status=200)  # Explicitly setting the status code
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -86,7 +107,8 @@ def google_oauth2_callback(request):
     try:
         code = request.GET.get('code')
     except:
-        return (Response('Code not found', status=400))
+        return (Response({'error':'code field is required'},
+                         status=400))
     
     token_url = settings.GOOGLE_OAUTH_TOKEN
     data = {
@@ -102,7 +124,7 @@ def google_oauth2_callback(request):
         response_json = json.loads(response.content)
         id_token = response_json['id_token']
     except:
-        return (Response('Incorrect response from google api', status=400))
+        return (Response({'error':'Incorrect response from google api'}, status=400))
     
     try:
         google_keys_url = settings.GOOGLE_JWKS
@@ -114,7 +136,7 @@ def google_oauth2_callback(request):
                             options={'verify_exp':False},
                             audience=settings.CLIENT_ID_GOOGLE)
     except:
-        return (Response('Invalid signature/Failed to decode google response', status=400))
+        return (Response({'error':'Invalid signature/Failed to decode google response'}, status=400))
 
 
     tmp_email = decoded.get('email', '')
@@ -128,9 +150,9 @@ def google_oauth2_callback(request):
         if (user_mail.id == user_username.id and user_username.is_oauth):
             user_obj = user_mail
         else:
-            return (Response('Please use the login form.', status=403))
+            return (Response({'error':'Account with the same email/username exist.'}, status=403))
     elif user_mail or user_username:
-        return (Response('Please use the login form.', status=403))
+        return (Response({'error':'Account with the same email/username exist'}, status=403))
     else:
         user_obj = Account(email=tmp_email,
                     username=tmp_username,
@@ -155,7 +177,7 @@ def oauth2_42_callback(request):
     try:
         code = request.GET.get('code')
     except:
-        return(Response('No code found', status=400))
+        return(Response({'error':'Code field is required'}, status=400))
 
     token_url = 'https://api.intra.42.fr/oauth/token'
     data = {
@@ -170,7 +192,7 @@ def oauth2_42_callback(request):
         response = requests.post(token_url, data=data)
         response_json = json.loads(response.content)
     except:
-        return (Response('error'))
+        return (Response({'error':'Failed to fetch data from 42 API'}, status=400))
 
     access_token = response_json['access_token']
     intra_me = 'https://api.intra.42.fr/v2/me'
@@ -178,7 +200,7 @@ def oauth2_42_callback(request):
     try:
         response_42 = requests.get(intra_me, headers=authorization_header)
     except:
-        return(Response('Cannot fetch 42 intra_me', status=400))
+        return(Response({'error':'Cannot fetch 42 intra_me'}, status=400))
 
     decoded = response_42.json()
     tmp_email = decoded.get('email', '')
@@ -192,9 +214,9 @@ def oauth2_42_callback(request):
         if (user_mail.id == user_username.id and user_username.is_oauth):
             user_obj = user_mail
         else:
-            return (Response('Please use the login form.', status=403))
+            return (Response({'error':'Please use the login form.'}, status=403))
     elif user_mail or user_username:
-        return (Response('Please use the login form.', status=403))
+        return (Response({'error':'Please use the login form.'}, status=403))
     else:
         user_obj = Account(email=tmp_email,
                     username=tmp_username,
@@ -210,34 +232,87 @@ def oauth2_42_callback(request):
 
     return Response({'Success':True,
                      'access_token':str(access_token),
-                     'refresh_token':str(refresh_token)})
+                     'refresh_token':str(refresh_token)},
+                     status=200)
 
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def VerifyOTP(request):
-    OTP_serial = OTPSerializer(data=request.data)
-    if OTP_serial.is_valid():
-        validated = OTP_serial.validated_data
-        print(f"{validated.get('form_OTP')} -- {request.user.otp_code}")
-        if (validated.get('form_OTP') == request.user.otp_code):
-            request.user.is_otp_verified = True
-            request.user.save()
-            return(Response({'Success':'OTP activated'}, status=200))
-    return(Response({'Success':'False OTP'}, status=400))
-
+###### RESET PASS
+from django.core.mail import send_mail
+import pyotp
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def Activate_DesactivateOTP(request):
-    if  (request.user.is_otp_active and not request.user.is_otp_verified):
-        return(Response('To desactivate 2FA you should verify it first', status=403))
-    request.user.is_otp_active = not request.user.is_otp_active
-    request.user.save()
-    return(Response({'Success':True}, status=200))
-
+@permission_classes([AllowAny])
+def get_pub_data(request):
+    try:
+        user = Account.objects.get(email=request.data.get('email'))
+    except Account.DoesNotExist:
+        return (Response({'error':'The email is incorrect'}, status=400))
+    return Response({'username':user.username, 'first_name':user.first_name, 'last_name':user.last_name, 'email':user.email}, status=200)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, IsOTP])
-def check_OTP(request):
-    return (Response('OTP Verified', status=200))
+@permission_classes([AllowAny])
+def send_reset_mail(request):
+    reset_email = request.data.get('email')
+    if not reset_email:
+        return (Response({'error': 'The email field is required'}, status=400))
+
+    user = Account.objects.filter(email=reset_email)
+    if (not user.exists()):
+        return (Response({'error':'The email is incorrect'}, status=400))
+
+    ResetPassword.objects.filter(email=reset_email).delete()
+    totp = pyotp.TOTP(pyotp.random_base32())
+    code = totp.now()
+    reseted = ResetPassword(email=reset_email, code=code)
+    reseted.save()
+    send_mail('Transcendence Reset Password',
+            f'To reset your password, Use the secret code: {code}',
+            settings.EMAIL_HOST_USER,
+            [reset_email],
+            fail_silently=False)
+    return (Response('The reset email is sent, please check your email', status=200))
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_mail_check(request):
+    try:
+        reset_user = ResetPassword.objects.get(email=request.data.get('email'),
+                                               code=request.data.get('code'))
+        if (not reset_user.is_valid()):
+            reset_user.delete()
+            return (Response({'error': 'Reset token is invalid'}, status=400))
+        if (reset_user.code != request.data.get('code')):
+            return (Response({'error': 'The code is incorrect'}, status=400))
+        return (Response({'Success': True}, status=200))
+    except ResetPassword.DoesNotExist:
+        return (Response({'error': 'Reset token is invalid'}, status=400))
+    
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_mail_success(request):
+    user_mail = request.data.get('email')
+    if not user_mail:
+        return (Response({'error':'Something went wrong'}, status=400))
+    
+    ####FIXME 
+    # add 'code' as post parameter so the process is more secure.
+    code = request.data.get('code')
+    if not code:
+        return (Response({'error':'Something went wrong'}, status=400))
+    
+    try:
+        user = Account.objects.get(email=user_mail)
+    except:
+        return (Response({'error':'Something went wrong'}, status=400))
+    
+    if not ResetPassword.objects.filter(email=user_mail, code=code).exists():
+        return (Response({'error':'Invalid code'}, status=400))
+    new_pass_serialized = ResetPasswordSerializerSuccess(data=request.data)
+    if (not new_pass_serialized.is_valid()):
+        return (Response({'error': 'The new password is invalid'}  , status=400))
+    
+    valid = new_pass_serialized.validated_data
+    user.set_password(valid['new_password1'])
+    user.save()
+    ResetPassword.objects.filter(email=user_mail).delete()
+    return (Response({'Success': True}, status=200))

@@ -18,25 +18,24 @@ urlpatterns = [
 
     # ####Login
     path('register/', views.register, name='register'),
+    path('verify/', views.is_authenticated, name='is_authenticated'),
     path('login/', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('login/refresh/', views.MyTokenRefreshView.as_view(), name='token_refresh'),
-
-    # ####2FA
-    path('otp/', views.VerifyOTP, name='VerifyOTP'),
-    path('otp/check/', views.check_OTP, name='checkOTP'),
-    path('otp/activate_desactivate/', views.Activate_DesactivateOTP, name='Activate_DesactivateOTP'),
-
-    # path('logout/', views.logout, name='logout'),
-    # path('reset_password/', views.send_reset_mail, name='send_reset_mail'),
-    # path('reset_password_success/<uid>/', views.send_reset_mail_success, name='send_reset_mail_success'),
+    
+    # ####Reset password
+    path('reset_password/', views.send_reset_mail, name='send_reset_mail'),
+    path('reset_mail_pub/', views.get_pub_data, name='get_pub_data'),
+    path('reset_password_check/', views.reset_mail_check, name='reset_mail_check'),
+    path('reset_mail_success/', views.reset_mail_success, name='reset_mail_success'),
 
     # ####Oauth2
     path('google/', views.lgn, name='lgn'),
-    path('42/', views.lgn_42, name='lgn_42'),
     path('google/callback/', views.google_oauth2_callback, name='oauth2_google_callback'),
+    path('42/', views.lgn_42, name='lgn_42'),
     path('42/callback/', views.oauth2_42_callback, name='oauth2_42_callback'),
 
     # ####Helpers
     # path('is_authenticated/', views.is_authenticated, name='is_authenticated'),
     # path('search/', views.search_account, name='search'),
 ]
+

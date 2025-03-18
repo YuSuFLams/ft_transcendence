@@ -13,28 +13,15 @@ export default {
         foreground: "var(--foreground)",
       },
       animation: {
-        'move-up': 'moveUp 5s infinite alternate ease-in-out',
-        'move-down': 'moveDown 5s infinite alternate ease-in-out',
-        'fade-in': 'fadeIn 2s ease-in-out',
-        'blob': "blobAnimation infinite alternate ease-in-out",
+        'spin-slow': 'spin 3s linear infinite',
+        'spin-slow-reverse': 'spin 3s linear infinite reverse',
+        'fade-in-out': 'fadeInOut 3s ease-in infinite',
       },
       keyframes: {
-        moveUp: {
-          '0%': { transform: 'translateY(0px)' },
-          '100%': { transform: 'translateY(-20px)' },
-        },
-        moveDown: {
-          '0%': { transform: 'translateY(0px)' },
-          '100%': { transform: 'translateY(20px)' },
-        },
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        blobAnimation: {
-          "0%": { transform: "translate(0, 0) scale(1)" },
-          "100%": { transform: "translate(10px, -10px) scale(1.2)" },
-        },
+          fadeInOut: {
+              '0%, 100%': { opacity: '0.5' },
+              '50%': { opacity: '1' },
+          },
       },
     },
   },

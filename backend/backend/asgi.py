@@ -10,7 +10,6 @@ from django.conf import settings
 from channels.db import database_sync_to_async
 from urllib.parse import parse_qs
 from game.routing import websocket_urlpatterns as game_websocket_urlpatterns
-from tournament.routing import websocket_urlpatterns as tournament_websocket_urlpatterns
 
 
 User = get_user_model()
@@ -43,7 +42,7 @@ class WebSocketJWTAuthenticationMiddleware(BaseMiddleware):
         except User.DoesNotExist:
             return AnonymousUser()
 
-websocket_urlpatterns = game_websocket_urlpatterns + tournament_websocket_urlpatterns
+websocket_urlpatterns = game_websocket_urlpatterns
 
 
 application = ProtocolTypeRouter({

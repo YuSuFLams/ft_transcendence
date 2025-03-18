@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+.glitch {
+    position: relative;
+    animation: glitch 2s linear infinite alternate;
+}
+
+.glitch:before {
+    content: attr(data-text);
+    position: absolute;
+    left: -2px;
+    text-shadow: 1px 0 #00ffff;
+    top: 0;
+    width: 100%;
+    overflow: hidden;
+    animation: glitch-top 1s linear infinite alternate;
+}
+
+.glitch:after {
+    content: attr(data-text);
+    position: absolute;
+    left: 2px;
+    text-shadow: -1px 0 #4c00ff;
+    top: 0;
+    width: 100%;
+    overflow: hidden;
+    animation: glitch-bottom 1.5s linear infinite alternate;
+}
+
+@keyframes glitch {
+    2%, 64% { transform: translate(2px, 0) skew(0deg); }
+    4%, 60% { transform: translate(-2px, 0) skew(0deg); }
+    62% { transform: translate(0, 0) skew(5deg); }
+}
+
+@keyframes glitch-top {
+    2%, 64% { transform: translate(2px, -2px); }
+    4%, 60% { transform: translate(-2px, 2px); }
+    62% { transform: translate(13px, -1px) skew(-13deg); }
+}
+
+@keyframes glitch-bottom {
+    2%, 64% { transform: translate(-2px, 0); }
+    4%, 60% { transform: translate(2px, 2px); }
+    62% { transform: translate(-22px, 1px) skew(21deg); }
+}
+
+.neon-blue { 
+    border-color: #1E90FF; 
+    box-shadow: 0 0 10px #1E90FF;
+}
+
+.neon-blue-light { 
+    border-color: #4169E1; 
+    box-shadow: 0 0 10px #4169E1;
+}
+
+.neon-blue-dark { 
+    border-color: #0000CD; 
+    box-shadow: 0 0 10px #0000CD;
+}
+
+.neon-blue-glow { 
+    box-shadow: 0 0 20px #1E90FF; 
+}
+
+.neon-blue-light-glow { 
+    box-shadow: 0 0 20px #4169E1; 
+}
+
+.neon-blue-dark-glow { 
+    box-shadow: 0 0 20px #0000CD; 
+}

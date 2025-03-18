@@ -20,6 +20,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
+########## # OTP   [DO NOT REMOVE IT] USED ALSO ON JWT SETTINGS
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -30,11 +32,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         user.otp_code = totp.now()
         user.is_otp_verified = False
         user.save()
-        print(f'FROM GET TOKEN {user.otp_code}')
         send_otp(user)
         return token
-
-
+        
 
 from django.core.mail import send_mail
 from django.conf import settings
@@ -54,3 +54,19 @@ def send_otp(user):
 
 class OTPSerializer(serializers.Serializer):
     form_OTP = serializers.CharField(required=True, max_length=6)
+
+
+###### RESET PASS
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+class ResetPasswordSerializerSuccess(serializers.Serializer):
+    new_password1 = serializers.CharField(write_only=True)
+    new_password2 = serializers.CharField(write_only=True)
+    def validate(self, data):
+        if (data['new_password1'] != data['new_password2']):
+            raise serializers.ValidationError("Passwords does not match")
+        try:
+            validate_password(data['new_password1'])
+        except ValidationError as e:
+            raise serializers.ValidationError(e.messages)
+        return data
