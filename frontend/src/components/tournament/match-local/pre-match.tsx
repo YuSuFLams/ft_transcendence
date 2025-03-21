@@ -57,7 +57,6 @@ interface cardPlayersProps {
 export const CardPlayers: React.FC<cardPlayersProps> = ({playerLeft, playerRight, socket, setGameStarted}) => {
     const p1 = Cookie.get("p1");
     const p2 = Cookie.get("p2");
-    console.log("Player 1:", p1, "Player 2:", p2);
     return (
         <div className="w-full flex-1 font-mono flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative">
             <h1 className="absolute top-10 text-3xl md:text-4xl lg:text-6xl font-bold text-blue-600 tracking-widest animate-pulse">[TOURNAMENT:GAME]</h1>

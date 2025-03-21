@@ -126,9 +126,9 @@ const handleMessage = (
             break;
 
         case "end-game":
+            Cookie.remove("idMatch");
             setTimeout(() => {
                 setters.setWinner(message.data.winner);
-                Cookie.remove("idMatch");
             }, 500);
             break;
     }

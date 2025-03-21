@@ -105,70 +105,72 @@ def lgn_42(request):
 @permission_classes([AllowAny])
 def google_oauth2_callback(request):
     try:
-        code = request.GET.get('code')
-    except:
-        return (Response({'error':'code field is required'},
-                         status=400))
-    
-    token_url = settings.GOOGLE_OAUTH_TOKEN
-    data = {
-        'code':code,
-        'client_id' : settings.CLIENT_ID_GOOGLE,
-        'client_secret': settings.CLIENT_SECRET_GOOGLE,
-        'redirect_uri' : settings.GOOGLE_REDIRECT,
-        'grant_type': 'authorization_code'
-    }
+        try:
+            code = request.GET.get('code')
+        except:
+            return (Response({'error':'code field is required'},
+                            status=400))
+        
+        token_url = 'https://api.intra.42.fr/oauth/token'
+        data = {
+            'code':code,
+            'client_id' : settings.CLIENT_ID_42,
+            'client_secret': settings.CLIENT_SECRET_42,
+            'redirect_uri' : 'http://localhost:3000/oauth/',
+            'grant_type': 'authorization_code'
+        }
 
-    try:
         response = requests.post(token_url, data=data)
         response_json = json.loads(response.content)
-        id_token = response_json['id_token']
-    except:
-        return (Response({'error':'Incorrect response from google api'}, status=400))
-    
-    try:
-        google_keys_url = settings.GOOGLE_JWKS
-        jwks_client = jwt.PyJWKClient(google_keys_url)
-        signing_key = jwks_client.get_signing_key_from_jwt(id_token)
-        decoded = jwt.decode(id_token,
-                            signing_key.key,
-                            algorithms=['RS256'],
-                            options={'verify_exp':False},
-                            audience=settings.CLIENT_ID_GOOGLE)
-    except:
-        return (Response({'error':'Invalid signature/Failed to decode google response'}, status=400))
 
+        access_token = response_json['access_token']
+        intra_me = 'https://api.intra.42.fr/v2/me'
+        authorization_header = {'Authorization' : f'Bearer {access_token}'}
 
-    tmp_email = decoded.get('email', '')
-    tmp_username = decoded.get('name', '')
+        response_42 = requests.get(intra_me, headers=authorization_header)
 
-    user_mail = Account.objects.filter(email=tmp_email).first() or ''
-    user_username = Account.objects.filter(username=tmp_username).first() or ''
-    user_obj = None
+        decoded = response_42.json()
 
-    if user_mail and user_username:
-        if (user_mail.id == user_username.id and user_username.is_oauth):
-            user_obj = user_mail
+        tmp_email = decoded['email']
+        tmp_username = decoded['login']
+
+        user_mail = Account.objects.filter(email=tmp_email) 
+        user_username = Account.objects.filter(username=tmp_username)
+
+        if user_mail and user_username:
+            if (user_mail.id == user_username.id and user_username.is_oauth):
+                user_obj = user_mail
+            else:
+                return (Response({'error':'Please use the login form.'}, status=403))
+        elif user_mail or user_username:
+            return (Response({'error':'Please use the login form.'}, status=403))
         else:
-            return (Response({'error':'Account with the same email/username exist.'}, status=403))
-    elif user_mail or user_username:
-        return (Response({'error':'Account with the same email/username exist'}, status=403))
-    else:
-        user_obj = Account(email=tmp_email,
-                    username=tmp_username,
-                    first_name=decoded['given_name'],
-                    last_name=decoded['family_name'],
-                    avatar=decoded['picture'],
-                    is_oauth=True,
-                    )
-        user_obj.save()
+            user_obj = Account(email=tmp_email,
+                        username=tmp_username,
+                        first_name=decoded['first_name'],
+                        last_name=decoded['last_name'],
+                        avatar=decoded['image']['versions']['medium'],
+                        is_oauth=True,
+                        )
+            user_obj.save()
 
-    refresh_token = RefreshToken.for_user(user_obj)
-    access_token = AccessToken.for_user(user_obj)
+        refresh_token = RefreshToken.for_user(user_obj)
+        access_token = AccessToken.for_user(user_obj)
 
-    return Response({'Success':True,
-                     'access_token':str(access_token),
-                     'refresh_token':str(refresh_token)})
+        return Response({'access_token':str(access_token),
+                         'refresh_token':str(refresh_token)}, status=200)
+
+    except KeyError:
+        return(Response({'error':'code field not found'}, status=400))
+    
+    except requests.exceptions.RequestException:
+        return (Response({'error':'Connection err on 42 api'}, status=400))
+    
+    except ValueError:
+        return (Response({'error':'JSON err on load 42 data'}, status=400))
+    
+    except Exception as e:
+        return(Response({'error':f'{e}'}, status=400))
 
 
 @api_view(['GET'])

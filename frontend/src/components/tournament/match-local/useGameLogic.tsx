@@ -4,6 +4,8 @@ import Cookie from "js-cookie";
 import { useEffect, useRef, useState } from "react";
 import { checkInfoMatch } from "@/components/game/match-local/match";
 import { listenConnection, openWebSocket } from "./socket";
+import { removeData } from "@/components/game/match-local/match";
+
 
 export const useGameLogic = () => {
     const router = useRouter();
@@ -31,6 +33,12 @@ export const useGameLogic = () => {
 
     // Initial setup effect
     useEffect(() => {
+        const id_match = Cookie.get("idMatch");
+        if (!id_match) {
+            removeData();
+            router.push("/game/tournament/competition");
+            return;
+        }
         getPlayers(setPlayerLeft, setPlayerRight, setIfGetPlayers).then(() => {
             checkInfoMatch(setPlayerLeft, setPlayerRight, setPositionPlayerPaddleLeft, setPositionPlayerPaddleRight, setGameStarted);
             const isStarted = Cookie.get("gameStarted");
