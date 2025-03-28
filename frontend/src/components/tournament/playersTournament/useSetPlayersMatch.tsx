@@ -6,7 +6,8 @@ export const useSetPlayersMatch = (
 ) => {
     useEffect(() => {
         if (!players8 || !tournamentData?.matches) return;
-
+        const winner_team = tournamentData.winner_team;
+        if (winner_team) return; 
         const matches = tournamentData.matches;
         const setPlayers = (p1: string, p2: string) => {
             Cookie.set("p1", p1);

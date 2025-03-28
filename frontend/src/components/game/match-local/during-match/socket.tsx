@@ -7,7 +7,7 @@ type WebSocketMessage = {
     data: any;
 };
 
-type BallPosition = { x: number; y: number; z: number };
+export type BallPosition = { x: number; y: number; z: number };
 
 // Constants for cookie keys
 const COOKIE_KEYS = {

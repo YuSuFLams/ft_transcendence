@@ -50,6 +50,6 @@ export const useGameLogic = () => {
 
     return { 
         playerLeft, playerRight, positionPlayerPaddleLeft, positionPlayerPaddleRight, scorePlayerLeft, scorePlayerRight, 
-        ballPosition, gameStarted, winner, isDone, setIsDone, socket, setGameStarted,
+        ballPosition, gameStarted, winner, isDone, setIsDone, socket, setGameStarted, router
     };
 };

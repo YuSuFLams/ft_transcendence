@@ -14,7 +14,7 @@ const RulesButton: React.FC<{ setIsClicked: React.Dispatch<React.SetStateAction<
                 <motion.div whileHover={{ rotate: [0, -10, 10, -10, 0], transition: { duration: 0.5 } }} className="text-blue-400 group-hover:animate-pulse">
                     <HiQuestionMarkCircle size={32} />
                 </motion.div>
-                <span className="text-xl text-blue-400 hidden md:block">Rules</span>
+                <span className="text-xl font-[Font7] text-blue-400 hidden md:block">Rules</span>
             </div>
             
             {/* Scanline Effect */}
@@ -57,7 +57,7 @@ const RulesGameLocal: React.FC<{ isClicked: boolean; setIsClicked: React.Dispatc
                         </motion.button>
 
                         {/* Title */}
-                        <h1 className="text-4xl font-bold text-center mb-8 tracking-wider relative z-10"> <span className="text-blue-500">Game</span> <span className="text-white">Rules</span></h1>
+                        <h1 className="text-4xl font-[Font7] font-bold text-center mb-8 tracking-wider relative z-10"> <span className="text-blue-500">Game</span> <span className="text-white">Rules</span></h1>
 
                         {/* Rules List */}
                         <ul className="space-y-6 relative z-10">

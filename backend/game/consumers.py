@@ -97,15 +97,15 @@ class MatchInfo:
         self.is_running: bool = False
         self.winner: str = None
         self.radius: float = 0.1
-        self.fixed_speed: float = 0.025
-        self.max_speed: float = 0.07
-        self.speed_increase_factor: float = 1.05
-        self.ball: dict = {"x": 0, "y": 0.12, "z": 0}
-        self.paddle: dict = {'width': 0.8, 'height': 0.2}
-        self.paddle1: dict = {"x": 0, "y": 0.1, "z": -2.7}
-        self.paddle2: dict = {"x": 0, "y": 0.1, "z": 2.7}
-        self.table_game: dict = {"width": 3, "height": 6}
-        self.velocity: dict = {"x": 0.005, "y": 0, "z": 0.015}
+        self.fixed_speed: float = 0.17
+        self.max_speed: float = 0.1
+        self.speed_increase_factor: float = 1.1
+        self.ball: dict = {"x": 0, "y": 0, "z": 0}
+        self.paddle: dict = {'width': 2.5, 'height': 0.25}
+        self.paddle1: dict = {"x": -9, "y": 0, "z": 0}
+        self.paddle2: dict = {"x": 9, "y": 0, "z": 0}
+        self.table_game: dict = {"width": 11.9, "height": 19}
+        self.velocity: dict = {"x": 0.2, "y": 0, "z": 0.2}
         self.id_tournament = None
         self.game_loop_task = None
         self.match_data: dict = None
@@ -115,61 +115,61 @@ class MatchInfo:
     async def ball_wall_collision(self, new_ball_position: dict):
         half_width = self.table_game['width'] / 2
 
-        if new_ball_position['x'] + self.radius >= half_width:
-            new_ball_position['x'] = half_width - self.radius
-            self.velocity['x'] *= -1
+        if new_ball_position['z'] + self.radius >= half_width:
+            new_ball_position['z'] = half_width - self.radius
+            self.velocity['z'] *= -1
 
-        elif new_ball_position['x'] - self.radius <= -half_width:
-            new_ball_position['x'] = -half_width + self.radius
-            self.velocity['x'] *= -1
+        elif new_ball_position['z'] - self.radius <= -half_width:
+            new_ball_position['z'] = -half_width + self.radius
+            self.velocity['z'] *= -1
 
     async def reset_ball(self, scoring_player: str):
-        self.ball = {'x': 0, 'y': 0.12, 'z': 0}
-        self.velocity = {'x': 0.001, 'y': 0.0, 'z': 0.015 if scoring_player == "left" else -0.015}
+        self.ball = {'x': 0, 'y': 0, 'z': 0}
+        self.velocity = {'x': 0.15 if scoring_player == "left" else -0.15, 'y': 0.0, 'z': 0.15}
 
     async def normalize_velocity(self):
-        magnitude = math.sqrt(self.velocity['x']**2 + self.velocity['z']**2)
+        magnitude = math.sqrt(self.velocity['z']**2 + self.velocity['x']**2)
         if magnitude > 0:
             # Calculate the normalized velocity
-            normalized_x = self.velocity['x'] / magnitude
-            normalized_z = self.velocity['z'] / magnitude
+            normalized_x = self.velocity['z'] / magnitude
+            normalized_z = self.velocity['x'] / magnitude
             
             # Apply the fixed speed, but limit it if the magnitude exceeds the fixed speed
             speed_limit = self.fixed_speed  # Define your speed limit (e.g., 10)
             
             # Ensure the speed does not exceed the limit
             if magnitude > speed_limit:
-                self.velocity['x'] = normalized_x * speed_limit
-                self.velocity['z'] = normalized_z * speed_limit
+                self.velocity['z'] = normalized_x * speed_limit
+                self.velocity['x'] = normalized_z * speed_limit
             else:
                 # If the velocity is within the limit, just scale it to the fixed speed
-                self.velocity['x'] = normalized_x * self.fixed_speed
-                self.velocity['z'] = normalized_z * self.fixed_speed
+                self.velocity['z'] = normalized_x * self.fixed_speed
+                self.velocity['x'] = normalized_z * self.fixed_speed
 
     async def ball_paddle_collision(self, new_ball_position: dict):
-        paddle = self.paddle1 if new_ball_position['z'] < 0 else self.paddle2
+        paddle = self.paddle1 if new_ball_position['x'] < 0 else self.paddle2
         half_paddle_width = self.paddle['width'] / 2
         half_paddle_height = self.paddle['height'] / 2
 
-        if (abs(new_ball_position['z'] - paddle['z']) < half_paddle_height + self.radius and
-            abs(new_ball_position['x'] - paddle['x']) < half_paddle_width + self.radius):
-            self.velocity['z'] *= -1
+        if (abs(new_ball_position['x'] - paddle['x']) < half_paddle_height + self.radius and
+            abs(new_ball_position['z'] - paddle['z']) < half_paddle_width + self.radius):
+            self.velocity['x'] *= -1
 
             # Increase the speed of the ball
-            self.velocity['x'] *= self.speed_increase_factor
             self.velocity['z'] *= self.speed_increase_factor
+            self.velocity['x'] *= self.speed_increase_factor
 
             # Limit the speed to the maximum speed
-            magnitude = math.sqrt(self.velocity['x']**2 + self.velocity['z']**2)
+            magnitude = math.sqrt(self.velocity['z']**2 + self.velocity['x']**2)
             if magnitude > self.max_speed:
                 scale = self.max_speed / magnitude
-                self.velocity['x'] *= scale
                 self.velocity['z'] *= scale
+                self.velocity['x'] *= scale
 
-            if new_ball_position['z'] < 0:
-                new_ball_position['z'] = paddle['z'] + half_paddle_height + self.radius
+            if new_ball_position['x'] < 0:
+                new_ball_position['x'] = paddle['x'] + half_paddle_height + self.radius
             else:
-                new_ball_position['z'] = paddle['z'] - half_paddle_height - self.radius
+                new_ball_position['x'] = paddle['x'] - half_paddle_height - self.radius
 
         return new_ball_position   
 
@@ -195,35 +195,35 @@ class GameEvent:
 
     async def paddle_move(self, data: dict):
         try:
-            table_width = self.event_match.table_game['width']
+            table_width = self.event_match.table_game['width'] - 1.5
             half_width = table_width / 2
-            move_amount = 0.3
-            lerp_speed = 0.3 
+            move_amount = 0.5
+            lerp_speed = 0.5
 
-            prev_pos_right = self.event_match.paddle2['x']
-            prev_pos_left = self.event_match.paddle1['x']
+            prev_pos_right = self.event_match.paddle2['z']
+            prev_pos_left = self.event_match.paddle1['z']
 
             if data.get('direction') == 'right':
                 if data.get('event') == 'ArrowRight':
-                    target_position = min(prev_pos_right + move_amount, half_width - 0.4)  
-                elif data.get('event') == 'ArrowLeft':
                     target_position = max(prev_pos_right - move_amount, -half_width + 0.4)
+                elif data.get('event') == 'ArrowLeft':
+                    target_position = min(prev_pos_right + move_amount, half_width - 0.4)  
                 else:
                     target_position = prev_pos_right  
 
                 new_position = prev_pos_right + (target_position - prev_pos_right) * lerp_speed
-                self.event_match.paddle2['x'] = new_position
+                self.event_match.paddle2['z'] = new_position
                 await self.consumer.send_data({'type': 'paddle', 'data': {'right_paddle': new_position}})
             elif data.get('direction') == 'left':
                 if data.get('event') == 'D':
-                    target_position = max(prev_pos_left - move_amount, -half_width + 0.4)
-                elif data.get('event') == 'A':
                     target_position = min(prev_pos_left + move_amount, half_width - 0.4) 
+                elif data.get('event') == 'A':
+                    target_position = max(prev_pos_left - move_amount, -half_width + 0.4)
                 else:
                     target_position = prev_pos_left  
 
                 new_position = prev_pos_left + (target_position - prev_pos_left) * lerp_speed
-                self.event_match.paddle1['x'] = new_position
+                self.event_match.paddle1['z'] = new_position
                 await self.consumer.send_data({'type': 'paddle', 'data': {'left_paddle': new_position}})
         except Exception as e:
             pass

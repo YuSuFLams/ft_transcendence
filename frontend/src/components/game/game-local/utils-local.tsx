@@ -1,8 +1,8 @@
 
 
 // utils-local.tsx
-import pictureRight from "@/../public/Image/picture1.jpg";
-import pictureLeft from "@/../public/Image/picture2.jpg";
+import pictureRight from "@/../public/Image/picture2.jpg";
+import pictureLeft from "@/../public/Image/picture1.jpg";
 import { UserCard } from "./utils-game";
 import Cookie from "js-cookie";
 

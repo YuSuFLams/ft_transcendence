@@ -37,10 +37,10 @@ class GameRunning:
         self.match.event_match.ball = await self.match.event_match.ball_paddle_collision(new_ball_position)
         await self.match.event_match.normalize_velocity()
 
-        if new_ball_position['z'] > self.match.event_match.table_game['height'] / 2:
+        if new_ball_position['x'] > self.match.event_match.table_game['height'] / 2:
             await self.on_score("left", case='TournamentGame')
             await self.match.event_match.reset_ball("left")
-        elif new_ball_position['z'] < -self.match.event_match.table_game['height'] / 2:
+        elif new_ball_position['x'] < -self.match.event_match.table_game['height'] / 2:
             await self.on_score("right", case='TournamentGame')
             await self.match.event_match.reset_ball("right")
         if self.match.event_match.winner is not None:
@@ -117,9 +117,9 @@ class GameRunning:
             left_paddle = data.get('left_paddle')
             right_paddle = data.get('right_paddle')
             if left_paddle is not None:  # Fixed inconsistent None checking
-                self.match.event_match.paddle1['x'] = float(left_paddle)
+                self.match.event_match.paddle1['z'] = float(left_paddle)
             if right_paddle is not None:
-                self.match.event_match.paddle2['x'] = float(right_paddle)
+                self.match.event_match.paddle2['z'] = float(right_paddle)
 
             ball_position = data.get('ball')
             velocity = data.get('velocity')  # Fixed typo from 'valocity'

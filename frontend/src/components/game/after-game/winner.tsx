@@ -1,7 +1,5 @@
 import { removeData } from '@/components/game/match-local/match';
 import React, { useState, useEffect, useRef } from 'react';
-import pictureRight from "@/../public/Image/picture2.jpg";
-import pictureLeft from "@/../public/Image/picture1.jpg";
 import { LiaTrophySolid } from "react-icons/lia";
 import { BiHappyBeaming } from "react-icons/bi";
 import { motion } from "framer-motion";
@@ -19,7 +17,9 @@ interface WinnerCardProps {
 
 const WinnerCard: React.FC<WinnerCardProps> = ({ playerLeft, winner, router, setIsDone }) => {
     // Determine the winner's picture
-    const picture = winner === playerLeft ? pictureLeft : pictureRight;
+	const p1 = Cookie.get("p1") || "2";
+	const p2 = Cookie.get("p2") || "1";
+    const picture = winner === playerLeft ? `/Image/picture${p2}.jpg` : `/Image/picture${p1}.jpg`;
 
     // Handle "Play Again" button click
     const handleReturnToGame = () => {
@@ -28,6 +28,8 @@ const WinnerCard: React.FC<WinnerCardProps> = ({ playerLeft, winner, router, set
 		else {
 			Cookie.remove("idTournament")
 			Cookie.remove("idMatch")
+			Cookie.remove("p1");
+    		Cookie.remove("p2");
 		}
         router.push('/game');
     };
@@ -54,7 +56,7 @@ const WinnerCard: React.FC<WinnerCardProps> = ({ playerLeft, winner, router, set
 		return () => window.removeEventListener('resize', updateDimensions);
 	}, []);
 
-    const winnerAvatar = picture ? picture : '/default-avatar.png';
+    const winnerAvatar = picture ? picture : '/Image/default_ing.png';
 
     return (
         <div ref={containerRef} className="relative flex items-center justify-center min-h-screen w-full">
@@ -69,7 +71,7 @@ const WinnerCard: React.FC<WinnerCardProps> = ({ playerLeft, winner, router, set
 				<motion.div className="relative h-28 w-28 sm:h-36 sm:w-36 md:h-48 md:w-48 rounded-full border-4 border-blue-900 overflow-hidden ring-2 ring-blue-900/50"
 					variants={avatarVariants} transition={{ type: 'spring', stiffness: 300 }}
 				>
-					<Image src={winnerAvatar} alt={`${winner || 'Winner'}'s Avatar`} fill priority className="object-cover hover:scale-105 transition-transform duration-500 ease-in-out"/>
+					<Image src={winnerAvatar} alt={`${winner || 'Winner'}'s Avatar`} fill sizes='100%' priority className="object-cover"/>
 				</motion.div>
 
                 {/* Winner Message */}

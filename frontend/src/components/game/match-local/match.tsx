@@ -32,8 +32,6 @@ const removeData = () => {
     Cookie.remove("player2");
     Cookie.remove("idGame");
     Cookie.remove("ball");
-    Cookie.remove("p1");
-    Cookie.remove("p2");
 }
 
 const handleQuitGame = (
